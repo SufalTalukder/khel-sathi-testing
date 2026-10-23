@@ -1,0 +1,91 @@
+# -----------------------------------------------
+# [FIX 1] Block sensitive files BEFORE rewrite
+# -----------------------------------------------
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # -----------------------------------------------
+    # [FIX 1] Block dangerous HTTP methods
+    # -----------------------------------------------
+    RewriteCond %{REQUEST_METHOD} ^(PUT|DELETE|TRACE)$ [NC]
+    RewriteRule .* - [F,L]
+
+    # -----------------------------------------------
+    # [FIX 2] Block .git folder
+    # -----------------------------------------------
+    RewriteCond %{REQUEST_URI} ^/\.git [NC]
+    RewriteRule ^ - [F,L]
+
+    # -----------------------------------------------
+    # [FIX 3] Block sensitive folders and files
+    # -----------------------------------------------
+    RewriteCond %{REQUEST_URI} ^/bkp [NC]
+    RewriteRule ^ - [F,L]
+
+    RewriteCond %{REQUEST_URI} ^/database [NC]
+    RewriteRule ^ - [F,L]
+
+    RewriteCond %{REQUEST_URI} ^/scratch [NC]
+    RewriteRule ^ - [F,L]
+
+    RewriteCond %{REQUEST_URI} ^/payload\.json [NC]
+    RewriteRule ^ - [F,L]
+
+    RewriteCond %{REQUEST_URI} ^/GIT_WORKFLOW\.md [NC]
+    RewriteRule ^ - [F,L]
+
+    RewriteCond %{REQUEST_URI} ^/index_backup [NC]
+    RewriteRule ^ - [F,L]
+
+    # -----------------------------------------------
+    # [FIX 4] Force HTTPS
+    # -----------------------------------------------
+    RewriteCond %{HTTPS} off
+    RewriteCond %{REQUEST_URI} !^/\.git [NC]
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # -----------------------------------------------
+    # ORIGINAL ROUTING — DO NOT TOUCH
+    # -----------------------------------------------
+    # 1. Serve root files/dirs directly (EXCEPT application folder)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteCond %{REQUEST_URI} !^/application [NC]
+    RewriteRule ^ - [L]
+
+    # 2. Route to Laravel application
+    RewriteCond %{REQUEST_URI} !^/application [NC]
+    RewriteRule ^(.*)$ application/$1 [L,QSA]
+
+    # 3. Redirect to Laravel public folder
+    RewriteRule ^(.*)$ application/public/$1 [L]
+
+</IfModule>
+
+# -----------------------------------------------
+# [FIX 5] Security Headers
+# -----------------------------------------------
+<IfModule mod_headers.c>
+
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always set Cross-Origin-Resource-Policy "same-origin"
+    Header always set Content-Security-Policy-Report-Only "default-src 'self' https: 'unsafe-inline' 'unsafe-eval' data: blob:;"
+
+</IfModule>
+
+ServerSignature Off

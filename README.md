@@ -1,0 +1,1 @@
+The Khel Sathi portal (khelsathi.in) is the official web-based platform of the Department of Sports, Government of Uttar Pradesh, designed to provide online services to sportspersons and athletes. It facilitates player registration for financial aid, awards, coaching, and booking sports infrastructure, such as stadiums and hostels.
