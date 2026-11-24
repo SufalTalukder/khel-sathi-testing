@@ -38,6 +38,7 @@
     <link href="{{ asset('admin') }}/css/responsive.css" rel='stylesheet' />
     <link href="{{ asset('admin') }}/css/datepicker.css" rel="stylesheet" media="all" />
     <link href="{{ asset('admin') }}/css/toast.css" rel='stylesheet' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <link href="{{ asset('admin') }}/css/default.css" rel='stylesheet' />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="{{ url('admin') }}/css/select2.min.css" rel="stylesheet" media="all" />
@@ -57,13 +58,36 @@
             font-weight: 700 !important;
         }
 
+        /* Global Bootstrap 5 Modal & Backdrop Stacking Fix */
+        .modal-backdrop {
+            z-index: 1060 !important;
+            opacity: 0.5 !important;
+        }
+        .modal {
+            z-index: 1070 !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+        .modal-dialog {
+            z-index: 1075 !important;
+            margin-top: 80px !important;
+            margin-bottom: 40px !important;
+        }
+        .modal-dialog.modal-dialog-centered {
+            display: flex !important;
+            align-items: center !important;
+            min-height: calc(100% - 100px) !important;
+            margin-top: 50px !important;
+            margin-bottom: 50px !important;
+        }
+
         /* .sub-menu li a.active {
             padding-left: 37px !important;
         } */
 
         /* 15-06-2026 */
-        /* ─── Global responsive table fix ─── */
-        /* .table-responsive {
+        /* ─── Global responsive table fix ───
+        .table-responsive {
             overflow-x: hidden !important;
         }
 
@@ -80,7 +104,48 @@
             padding: 4px 5px;
             vertical-align: middle;
             overflow-wrap: break-word;
-        } */
+        }
+        */
+
+        /* Global BlockUI Permanent Override: Kill legacy grey box and busy.gif */
+        .blockUI.blockMsg.blockPage,
+        .blockUI.blockOverlay {
+            display: none !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        .blockUI img[src*="busy.gif"],
+        img[src*="busy.gif"] {
+            display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        .blockUI.blockMsg.blockPage>h1 {
+            display: none !important;
+        }
+
+        /* Permanent Destruction of DataTables Processing Popup / Dotted Spinner Box */
+        div.dataTables_wrapper div.dataTables_processing,
+        .dataTables_processing.card,
+        .dataTables_processing,
+        .dataTables_wrapper .dataTables_processing {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            z-index: -9999 !important;
+        }
     </style>
     <script type="text/javascript" src="{{ url('admin') }}/js/jquery-min.js"></script>
 </head>
@@ -193,8 +258,25 @@
     <script type="text/javascript" src="{{ url('admin') }}/js/dragble.js"></script>
     <script type="text/javascript" src="{{ url('admin') }}/js/theme-script.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+    <x-global_loader />
     <script type="text/javascript" src="{{ url('admin') }}/js/toast.js"></script>
-    <script type="text/javascript" src="{{ url('admin') }}/js/custom.js"></script>
+    <script type="text/javascript" src="{{ url('admin') }}/js/custom.js?v={{ time() }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        if (typeof toastr !== 'undefined') {
+            toastr.success = function(msg) { if (typeof success === 'function') { success(msg); } };
+            toastr.error = function(msg) { if (typeof error === 'function') { error(msg); } };
+            toastr.warning = function(msg) { if (typeof warning === 'function') { warning(msg); } };
+            toastr.info = function(msg) { if (typeof info === 'function') { info(msg); } };
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "timeOut": 8000,
+                "extendedTimeOut": 4000
+            };
+        }
+    </script>
     <script type="text/javascript" src="{{ url('admin') }}/js/sweetalert.min.js"></script>
     <script type="text/javascript" src="{{ url('admin') }}/js/chart.js"></script>
     <script type="text/javascript" src="{{ url('admin') }}/js/select2.min.js"></script>
@@ -228,6 +310,12 @@
             setTimeout(function() {
                 $('#hide_data').hide();
             }, 2500);
+
+            // Ensure all modals are appended directly to body to prevent stacking context clipping
+            $('.modal').appendTo('body');
+        });
+        $(document).on('show.bs.modal', '.modal', function() {
+            $(this).appendTo('body');
         });
     </script>
     <x-modal />

@@ -137,13 +137,19 @@
         //find  value selected option
 
         $(document).on("change", "#dropdownid", function() {
-            var id = ($(this).find("option:selected").val());
+            var id = $(this).val();
+            if (!id) return;
             $.ajax({
                 type: "GET",
                 url: ajaxUrl + "/admin/divisionMap/" + id,
-                dataType: "text",
+                dataType: "json",
                 success: function(res) {
-                    success(res.msg);
+                    if (res && Array.isArray(res)) {
+                        var selectedDistricts = res.map(function(item) {
+                            return String(item.district_id);
+                        });
+                        $('select[name="district_id[]"]').val(selectedDistricts).trigger('change');
+                    }
                 },
             });
         });

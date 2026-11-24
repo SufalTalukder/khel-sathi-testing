@@ -118,8 +118,13 @@ function roleName($id)
 
 function moveFile($path, $files)
 {
-    $name = date('His') . $files->getClientOriginalName();
-    $files->move(public_path($path), $name);
+    $dir = public_path($path);
+    if (!file_exists($dir)) {
+        @mkdir($dir, 0777, true);
+    }
+    $cleanName = preg_replace('/[^A-Za-z0-9_\.-]/', '_', $files->getClientOriginalName());
+    $name = date('His') . '_' . $cleanName;
+    $files->move($dir, $name);
     return $name;
 }
 
@@ -134,6 +139,38 @@ function dmy($ArrTime)
         return "N/A";
     }
     return date("d-m-Y", strtotime($ArrTime));
+}
+
+function application_submission_date($item)
+{
+    $appNo = is_object($item) ? ($item->application_no ?? '') : (is_array($item) ? ($item['application_no'] ?? '') : (string) $item);
+    $createdAt = is_object($item) ? ($item->created_at ?? null) : (is_array($item) ? ($item['created_at'] ?? null) : null);
+    $finalSubmitDate = is_object($item) ? ($item->final_submit_date ?? null) : (is_array($item) ? ($item['final_submit_date'] ?? null) : null);
+
+    // 1. If application_no starts with 6 digits representing ymd (e.g. 260629...)
+    if (!empty($appNo) && strlen($appNo) >= 6 && is_numeric(substr($appNo, 0, 6))) {
+        $y = (int) substr($appNo, 0, 2);
+        $m = (int) substr($appNo, 2, 2);
+        $d = (int) substr($appNo, 4, 2);
+        if ($m >= 1 && $m <= 12 && $d >= 1 && $d <= 31) {
+            $year = 2000 + $y;
+            if (checkdate($m, $d, $year)) {
+                return sprintf('%02d-%02d-%04d', $d, $m, $year);
+            }
+        }
+    }
+
+    // 2. Fallback to final_submit_date if valid
+    if (!empty($finalSubmitDate) && $finalSubmitDate != '0000-00-00' && $finalSubmitDate != '0000-00-00 00:00:00' && strtotime($finalSubmitDate) > 0) {
+        return date('d-m-Y', strtotime($finalSubmitDate));
+    }
+
+    // 3. Fallback to created_at
+    if (!empty($createdAt) && $createdAt != '0000-00-00' && $createdAt != '0000-00-00 00:00:00' && strtotime($createdAt) > 0) {
+        return date('d-m-Y', strtotime($createdAt));
+    }
+
+    return 'N/A';
 }
 
 function dmyHi($ArrTime)
@@ -356,15 +393,27 @@ function stateName($id)
 
 function districtName($id)
 {
-    $table = DB::table('cities')->where('id', $id);
-    if ($table->exists())
-        return repairHindi($table->first()->city);
+    static $districtCache = [];
+    if (!$id) {
+        return '';
+    }
+    if (!array_key_exists($id, $districtCache)) {
+        $table = DB::table('cities')->where('id', $id)->first();
+        $districtCache[$id] = $table ? repairHindi($table->city) : '';
+    }
+    return $districtCache[$id];
 }
 function tehsiltName($id)
 {
-    $table = DB::table('tehsil_master')->where('id', $id);
-    if ($table->exists())
-        return repairHindi($table->first()->Tehsil_Name);
+    static $tehsilCache = [];
+    if (!$id) {
+        return '';
+    }
+    if (!array_key_exists($id, $tehsilCache)) {
+        $table = DB::table('tehsil_master')->where('id', $id)->first();
+        $tehsilCache[$id] = $table ? repairHindi($table->Tehsil_Name) : '';
+    }
+    return $tehsilCache[$id];
 }
 
 function swimming_service($id)
@@ -1541,25 +1590,25 @@ function status_check($type)
 {
 
     if ($type == 1) {
-        $status = DB::table('laxman_award')->where('user_id', Auth::id())->orderBy('id', 'desc')->first();
+        $status = DB::table('laxman_award')->where('user_id', Auth::id())->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 2) {
-        $status = DB::table('ranilaxmibai_award')->where('user_id', Auth::id())->orderBy('id', 'desc')->first();
+        $status = DB::table('ranilaxmibai_award')->where('user_id', Auth::id())->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 3) {
-        $status = DB::table('position_holder')->where('user_id', Auth::id())->orderBy('id', 'desc')->first();
+        $status = DB::table('position_holder')->where('user_id', Auth::id())->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 4) {
-        $status = DB::table('financial_assistance')->where('user_id', Auth::id())->orderBy('id', 'desc')->first();
+        $status = DB::table('financial_assistance')->where('user_id', Auth::id())->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 5) {
-        $status = DB::table('monthly_pension')->where('user_id', Auth::id())->orderBy('id', 'desc')->first();
+        $status = DB::table('monthly_pension')->where('user_id', Auth::id())->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 6) {
-        $status = DB::table('direct_recruitment')->where('user_id', Auth::id())->orderBy('id', 'desc')->first();
+        $status = DB::table('direct_recruitment')->where('user_id', Auth::id())->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 7) {
-        $status = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->orderBy('id', 'desc')->first();
+        $status = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
 
     return $status;
@@ -1569,25 +1618,25 @@ function data_gett($type, $id)
 {
 
     if ($type == 1) {
-        $status = DB::table('laxman_award')->where('user_id', $id)->orderBy('id', 'desc')->first();
+        $status = DB::table('laxman_award')->where('user_id', $id)->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 2) {
-        $status = DB::table('ranilaxmibai_award')->where('user_id', $id)->orderBy('id', 'desc')->first();
+        $status = DB::table('ranilaxmibai_award')->where('user_id', $id)->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 3) {
-        $status = DB::table('position_holder')->where('user_id', $id)->orderBy('id', 'desc')->first();
+        $status = DB::table('position_holder')->where('user_id', $id)->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 4) {
-        $status = DB::table('financial_assistance')->where('user_id', $id)->orderBy('id', 'desc')->first();
+        $status = DB::table('financial_assistance')->where('user_id', $id)->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 5) {
-        $status = DB::table('monthly_pension')->where('user_id', $id)->orderBy('id', 'desc')->first();
+        $status = DB::table('monthly_pension')->where('user_id', $id)->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 6) {
-        $status = DB::table('direct_recruitment')->where('user_id', $id)->orderBy('id', 'desc')->first();
+        $status = DB::table('direct_recruitment')->where('user_id', $id)->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
     if ($type == 7) {
-        $status = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', $id)->orderBy('id', 'desc')->first();
+        $status = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', $id)->orderBy('final_submit', 'desc')->orderBy('id', 'desc')->first();
     }
 
     return $status;
@@ -1695,17 +1744,29 @@ function get_age($from_date, $to_date)
 
 function sport_name_hostel($id)
 {
-    $table = DB::table('sport_master')->where('id', $id);
-    if ($table->exists())
-        return $table->first()->name;
+    static $sportCache = [];
+    if (!$id) {
+        return '';
+    }
+    if (!array_key_exists($id, $sportCache)) {
+        $table = DB::table('sport_master')->where('id', $id)->first();
+        $sportCache[$id] = $table ? $table->name : '';
+    }
+    return $sportCache[$id];
 }
 
 
 function sub_sport_name($id)
 {
-    $table = DB::table('sub_sport_type')->where('id', $id);
-    if ($table->exists())
-        return $table->first()->sub_type;
+    static $subSportCache = [];
+    if (!$id) {
+        return '';
+    }
+    if (!array_key_exists($id, $subSportCache)) {
+        $table = DB::table('sub_sport_type')->where('id', $id)->first();
+        $subSportCache[$id] = $table ? $table->sub_type : '';
+    }
+    return $subSportCache[$id];
 }
 
 

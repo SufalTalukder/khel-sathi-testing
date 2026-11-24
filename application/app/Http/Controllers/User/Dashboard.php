@@ -28,15 +28,15 @@ class Dashboard extends Controller
         }
         $user = DB::table('sport_welfare_registration_master')->where('id', Auth::id())->orderBy('id', 'desc')->first();
         if ($user->gender == "Male") {
-            $award = DB::table('laxman_award')->where('user_id', Auth::id())->orderBy('id', 'desc')->get();
+            $award = DB::table('laxman_award')->where('user_id', Auth::id())->where('final_submit', 1)->orderBy('id', 'desc')->get();
         } else {
-            $award = DB::table('ranilaxmibai_award')->where('user_id', Auth::id())->orderBy('id', 'desc')->get();
+            $award = DB::table('ranilaxmibai_award')->where('user_id', Auth::id())->where('final_submit', 1)->orderBy('id', 'desc')->get();
         }
-        $financial = DB::table('financial_assistance')->where('user_id', Auth::id())->orderBy('id', 'desc')->get();
-        $monthly = DB::table('monthly_pension')->where('user_id', Auth::id())->orderBy('id', 'desc')->get();
-        $position = DB::table('position_holder')->where('user_id', Auth::id())->orderBy('id', 'desc')->get();
-        $direct = DB::table('direct_recruitment')->where('user_id', Auth::id())->orderBy('id', 'desc')->get();
-        $eklavya  = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->orderBy('id', 'desc')->get();
+        $financial = DB::table('financial_assistance')->where('user_id', Auth::id())->where('final_submit', 1)->orderBy('id', 'desc')->get();
+        $monthly = DB::table('monthly_pension')->where('user_id', Auth::id())->where('final_submit', 1)->orderBy('id', 'desc')->get();
+        $position = DB::table('position_holder')->where('user_id', Auth::id())->where('final_submit', 1)->orderBy('id', 'desc')->get();
+        $direct = DB::table('direct_recruitment')->where('user_id', Auth::id())->where('final_submit', 1)->orderBy('id', 'desc')->get();
+        $eklavya  = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->where('final_submit', 1)->orderBy('id', 'desc')->get();
         return view('dashboard_new', compact('user', 'award', 'financial', 'monthly', 'position', 'direct', 'eklavya'));
     }
     

@@ -1672,7 +1672,18 @@
                                                         </path>
                                                     </g>
                                                 </g>
-                                                <?php $check = status_check(7); ?>
+                                                <?php 
+                                                $check = status_check(7); 
+                                                $check_total_queries = 0;
+                                                $check_open_queries = 0;
+                                                if (!empty($check)) {
+                                                    $check_total_queries = DB::table('query_master')->where('form_type', 7)->where('application_no', $check->application_no)->count();
+                                                    $check_open_queries = DB::table('query_master')->where('form_type', 7)->where('application_no', $check->application_no)->where(function($q) {
+                                                        $q->where('is_closed', 0)->orWhereNull('is_closed');
+                                                    })->count();
+                                                }
+                                                $is_editable_eklavya = (!empty($check) && ($check->form_status == 2 || $check_open_queries > 0));
+                                                ?>
                                                 <?php $checkk = form_date_status(7); ?>
 
                                                 <?php $sub = 'btn-default';
@@ -1693,7 +1704,7 @@
                                                     <a id="ribbon">Form Not Available</a>
                                                 </div>
                                             @else
-                                                @if (empty($check) || (!empty($check) && $check->form_status == 2))
+                                                @if (empty($check))
                                                     <div id="ribbon-container">
                                                         {{-- <a href="{{ url('eklavya_kreeda_kosh') }}"
                                                             class="btn btn-primary">Click Here for New Application</a> --}}
@@ -1705,65 +1716,38 @@
                                                     </div>
                                                 @else
                                                     <div id="ribbon-container">
-                                                        <a
-                                                            @if (!empty($check)) href="{{ url('applicationpreview') }}/{{ $check->application_no }}" @endif>Form
-                                                            Already Filled</a>
+                                                        <a @if (!empty($check)) href="{{ url('applicationpreview') }}/{{ $check->application_no }}" @endif>Form Already Filled</a>
                                                     </div>
                                                 @endif
                                             @endif
-                                            <!-- <p class="arrow">
-                                    <button type="button" class="btn btn-default btn-arrow-right">Submitted</button>
-                                    <button type="button" class="btn btn-default btn-arrow-right">In Process</button>
-                                    <button type="button" class="btn btn-default btn-arrow-right">Approved</button>
-                                    <button type="button" class="btn btn-default btn-arrow-right display_none">Paid</button>
-                                  </p> -->
                                             <p class="arrow">
-                                                @if (!empty($check) && $check->final_submit == 1)
-                                                    <button type="button"
-                                                        class="btn {{ $sub }} btn-arrow-right">Submitted</button>
-                                                @else
-                                                    <button type="button"
-                                                        class="btn {{ $in_pend }} btn-arrow-right">Pending</button>
-                                                @endif
-                                                @if (isset($abc) && isset($check) && $check->form_status == 0 && $abc->is_closed == 0)
-                                                    @if ($abc->query_status == 0)
+                                                @if (!empty($check))
+                                                    @if ($check->form_status == 2)
                                                         <button type="button"
-                                                            class="btn {{ $in_pro }} btn-arrow-right">Query
-                                                            Marked</button>
+                                                            class="btn bg-danger text-white btn-arrow-right">Rejected</button>
+                                                    @elseif ($check_open_queries > 0)
+                                                        <button type="button"
+                                                            class="btn bg-primary text-white btn-arrow-right">Query Raised</button>
+                                                    @elseif ($check->form_status == 1)
+                                                        <button type="button"
+                                                            class="btn bg-success text-white btn-arrow-right">Approved</button>
+                                                        @if ($check->amount_release_status == 1)
+                                                            <button type="button"
+                                                                class="btn bg-success text-white btn-arrow-right">Paid</button>
+                                                        @endif
+                                                    @elseif ($check_total_queries > 0)
+                                                        <button type="button"
+                                                            class="btn bg-success text-white btn-arrow-right">Query Resolved</button>
+                                                    @elseif ($check->final_submit == 1)
+                                                        <button type="button"
+                                                            class="btn bg-info text-white btn-arrow-right">In Process</button>
                                                     @else
                                                         <button type="button"
-                                                            class="btn {{ $in_pro }} btn-arrow-right">
-                                                            @if ($abc->current_status != 'User')
-                                                                Query Marked
-                                                            @else
-                                                                Replied
-                                                            @endif
-                                                        </button>
+                                                            class="btn bg-warning text-dark btn-arrow-right">Pending</button>
                                                     @endif
                                                 @else
-                                                    <!-- <button type="button" class="btn {{ $in_pro }} btn-arrow-right">Query Closed</button> -->
                                                     <button type="button"
-                                                        class="btn {{ $in_pro }} btn-arrow-right">In
-                                                        Process</button>
-                                                @endif
-                                                @if (!empty($check) && $check->form_status == 1)
-                                                    <button type="button"
-                                                        class="btn bg-secondary btn-default btn-arrow-right">Approved</button>
-                                                    @if (!empty($check) && $check->amount_release_status == 1)
-                                                        <button type="button"
-                                                            class="btn bg-success btn-default btn-arrow-right display_none">Paid</button>
-                                                    @else
-                                                        <button type="button"
-                                                            class="btn btn-default btn-arrow-right display_none">Paid</button>
-                                                    @endif
-                                                @elseif(!empty($check) && $check->form_status == 2)
-                                                    <button type="button"
-                                                        class="btn bg-danger btn-default btn-arrow-right display_none">Rejected</button>
-                                                @else
-                                                    <button type="button"
-                                                        class="btn btn-default btn-arrow-right">Approved</button>
-                                                    <button type="button"
-                                                        class="btn btn-default btn-arrow-right display_none">Paid</button>
+                                                        class="btn btn-default btn-arrow-right">Pending</button>
                                                 @endif
                                             </p>
                                         </div>
@@ -1810,7 +1794,7 @@
                                                         <ul class="list">
                                                             <li>
                                                                 <div><span>Application Date
-                                                                    </span><small>{{ dmy($item->created_at) }}</small>
+                                                                    </span><small>{{ application_submission_date($item) }}</small>
                                                                 </div>
                                                             </li>
                                                             <li>
@@ -1891,7 +1875,7 @@
                                                     <ul class="list">
                                                         <li>
                                                             <div><span>Application Date
-                                                                </span><small>{{ dmy($item->created_at) }}</small></div>
+                                                                </span><small>{{ application_submission_date($item) }}</small></div>
                                                         </li>
                                                         <li>
                                                             <div><span>Application
@@ -1978,7 +1962,7 @@
                                                         <ul class="list">
                                                             <li>
                                                                 <div><span>Application Date
-                                                                    </span><small>{{ dmy($item->created_at) }}</small>
+                                                                    </span><small>{{ application_submission_date($item) }}</small>
                                                                 </div>
                                                             </li>
                                                             <li>
@@ -2066,7 +2050,7 @@
                                                         <ul class="list">
                                                             <li>
                                                                 <div><span>Application Date
-                                                                    </span><small>{{ dmy($item->created_at) }}</small>
+                                                                    </span><small>{{ application_submission_date($item) }}</small>
                                                                 </div>
                                                             </li>
                                                             <li>
@@ -2139,7 +2123,7 @@
                                                         <ul class="list">
                                                             <li>
                                                                 <div><span>Application Date
-                                                                    </span><small>{{ dmy($item->created_at) }}</small>
+                                                                    </span><small>{{ application_submission_date($item) }}</small>
                                                                 </div>
                                                             </li>
                                                             <li>
@@ -2185,84 +2169,81 @@
                                         @endforeach
                                     @endif
                                     @foreach ($eklavya as $key => $item)
-                                        <div class="col-md-4 col-sm-4">
-                                            <div class="counter">
-                                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round"
-                                                        stroke-linejoin="round"></g>
-                                                    <g id="SVGRepo_iconCarrier">
-                                                        <defs>
-                                                            <style>
-                                                                .cls-1,
-                                                                .cls-2 {
-                                                                    fill: none;
-                                                                    stroke: #000;
-                                                                    stroke-linecap: round;
-                                                                    stroke-linejoin: round;
-                                                                    stroke-width: 1.5px;
-                                                                }
+                                        @if ($item->final_submit == 1)
+                                            <div class="col-md-4 col-sm-4">
+                                                <a href="{{ url('applicationpreview') }}/{{ $item->application_no }}">
+                                                    <div class="counter">
+                                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                                            <g id="SVGRepo_tracerCarrier" stroke-linecap="round"
+                                                                stroke-linejoin="round"></g>
+                                                            <g id="SVGRepo_iconCarrier">
+                                                                <defs>
+                                                                    <style>
+                                                                        .cls-1,
+                                                                        .cls-2 {
+                                                                            fill: none;
+                                                                            stroke: #000;
+                                                                            stroke-linecap: round;
+                                                                            stroke-linejoin: round;
+                                                                            stroke-width: 1.5px;
+                                                                        }
 
-                                                                .cls-2 {
-                                                                    fill-rule: evenodd;
-                                                                }
-                                                            </style>
-                                                        </defs>
-                                                        <g id="ic-sport-jump-rope">
-                                                            <rect class="cls-1" x="4" y="14" width="4"
-                                                                height="8" rx="2"></rect>
-                                                            <rect class="cls-1" x="16" y="2" width="4"
-                                                                height="8" rx="2"></rect>
-                                                            <path class="cls-2"
-                                                                d="M6,14V8A3,3,0,0,1,9,5H9a3,3,0,0,1,3,3v8a3,3,0,0,0,3,3h0a3,3,0,0,0,3-3V10">
-                                                            </path>
-                                                        </g>
-                                                    </g>
-                                                </svg>
-                                                <p class="sub-title"> Eklavya Krida Kosh </p>
-                                                <ul class="list">
-                                                    <li>
-                                                        <div><span>Application Date
-                                                            </span><small>{{ dmy($item->created_at) }}</small></div>
-                                                    </li>
-                                                    <li>
-                                                        <div><span>Application
-                                                                Number</span><small>{{ $item->application_no }}</small>
-                                                        </div>
-                                                    </li>
-                                                    <?php $abc = marked_status($item->application_no, 7); ?>
-                                                    <li>
-                                                        <div><span>Application Status</span>
-                                                            @if ($item->form_status == 0)
-                                                                @if (isset($abc) && isset($item) && $item->form_status == 0 && $abc->is_closed == 0)
-                                                                    @if ($abc->query_status == 0)
-                                                                        <small class="text-info"> Query Marked </small>
+                                                                        .cls-2 {
+                                                                            fill-rule: evenodd;
+                                                                        }
+                                                                    </style>
+                                                                </defs>
+                                                                <g id="ic-sport-jump-rope">
+                                                                    <rect class="cls-1" x="4" y="14" width="4"
+                                                                        height="8" rx="2"></rect>
+                                                                    <rect class="cls-1" x="16" y="2" width="4"
+                                                                        height="8" rx="2"></rect>
+                                                                    <path class="cls-2"
+                                                                        d="M6,14V8A3,3,0,0,1,9,5H9a3,3,0,0,1,3,3v8a3,3,0,0,0,3,3h0a3,3,0,0,0,3-3V10">
+                                                                    </path>
+                                                                </g>
+                                                            </g>
+                                                        </svg>
+                                                        <p class="sub-title"> Eklavya Krida Kosh </p>
+                                                        <ul class="list">
+                                                            <li>
+                                                                <div><span>Application Date
+                                                                    </span><small>{{ application_submission_date($item) }}</small></div>
+                                                            </li>
+                                                            <li>
+                                                                <div><span>Application
+                                                                        Number</span><small>{{ $item->application_no }}</small>
+                                                                </div>
+                                                            </li>
+                                                            <?php 
+                                                            $sub_total_queries = DB::table('query_master')->where('form_type', 7)->where('application_no', $item->application_no)->count();
+                                                            $sub_open_queries = DB::table('query_master')->where('form_type', 7)->where('application_no', $item->application_no)->where(function($q) {
+                                                                $q->where('is_closed', 0)->orWhereNull('is_closed');
+                                                            })->count();
+                                                            ?>
+                                                            <li>
+                                                                <div><span>Application Status</span>
+                                                                    @if ($item->form_status == 2)
+                                                                        <small class="text-danger font-weight-bold"> Rejected </small>
+                                                                    @elseif ($sub_open_queries > 0)
+                                                                        <small class="text-primary font-weight-bold"> Query Raised </small>
+                                                                    @elseif ($item->form_status == 1)
+                                                                        <small class="text-success font-weight-bold"> Approved </small>
+                                                                    @elseif ($sub_total_queries > 0)
+                                                                        <small class="text-success font-weight-bold"> Query Resolved </small>
+                                                                    @elseif ($item->final_submit == 1)
+                                                                        <small class="text-info font-weight-bold"> In Process </small>
                                                                     @else
-                                                                        <small class="text-info">
-                                                                            @if ($abc->current_status != 'User')
-                                                                                Query Marked
-                                                                            @else
-                                                                                Replied
-                                                                            @endif
-                                                                        </small>
+                                                                        <small class="text-warning font-weight-bold"> Pending </small>
                                                                     @endif
-                                                                @elseif($item->final_submit == 1)
-                                                                    <small class="text-info"> In Process </small>
-                                                                @else
-                                                                    <small class="text-info"> Pending </small>
-                                                                @endif
-                                                            @elseif($item->form_status == 1)
-                                                                <small class="text-success"> Approved </small>
-                                                            @elseif($item->form_status == 2)
-                                                                <small class="text-danger"> Rejected </small>
-                                                            @else
-                                                                <small class="text-secondary"> Submitted </small>
-                                                            @endif
-                                                        </div>
-                                                    </li>
-                                                </ul>
+                                                                </div>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </a>
                                             </div>
-                                        </div>
+                                        @endif
                                     @endforeach
 
                                 </div>
@@ -2295,11 +2276,18 @@
                                         For Gyms, Swimming Pools, Stadium
                                     </small></a>
                             </li>
-                            <li>
+                            {{-- <li>
                                 <a href="{{ url('private_coaching') }}"><span>Online Registration</span><small>
 
 
                                         For Private Coaching, Academies, Associations
+                                    </small></a>
+                            </li> --}}
+                            <li>
+                                <a href="{{ url('private_coaching') }}"><span>Private Institutions Registration</span><small>
+
+
+                                        For Gyms & Swimming Pools
                                     </small></a>
                             </li>
                             {{-- TEMPORARILY DISABLED --}}

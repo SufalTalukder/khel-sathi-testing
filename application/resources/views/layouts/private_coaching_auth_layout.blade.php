@@ -8,27 +8,40 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="shortcut icon" href="{{ asset('') }}/favicon.ico" />
-<link href="{{ url('RPCAA') }}/css/bootstrap.css" rel='stylesheet'/>
-
-<link href="{{ url('RPCAA') }}/css/all.css" rel="stylesheet"/>
-<link href="{{ url('RPCAA') }}/css/dataTables.bootstrap5.min.css" rel='stylesheet'/>
-<link href="{{ url('RPCAA') }}/css/custom_theme.css" rel='stylesheet'/>
-<link href="{{ url('RPCAA') }}/css/draggle.css" rel="stylesheet">
-<link href="{{ url('RPCAA') }}/css/responsive.css" rel="stylesheet" media="all"/>
-<link href="{{ url('RPCAA') }}/css/datepicker.css" rel="stylesheet" media="all"/>
-<link href="{{ url('RPCAA') }}/css/toast.css" rel='stylesheet'/>
-<link href="{{ url('RPCAA') }}/css/default.css" rel='stylesheet'/>
-<link href="{{ url('RPCAA') }}/css/select2.min.css" rel="stylesheet" media="all"/>
+<link rel="shortcut icon" href="{{ asset('public') }}/images/favicon.ico" />
+<link href="{{ asset('RPCAA') }}/css/bootstrap.css" rel='stylesheet'/>
+<link href="{{ asset('RPCAA') }}/css/all.css" rel="stylesheet"/>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<link href="{{ asset('RPCAA') }}/css/dataTables.bootstrap5.min.css" rel='stylesheet'/>
+<link href="{{ asset('RPCAA') }}/css/custom_theme.css" rel='stylesheet'/>
+<link href="{{ asset('RPCAA') }}/css/draggle.css" rel="stylesheet">
+<link href="{{ asset('RPCAA') }}/css/responsive.css" rel="stylesheet" media="all"/>
+<link href="{{ asset('RPCAA') }}/css/datepicker.css" rel="stylesheet" media="all"/>
+<link href="{{ asset('RPCAA') }}/css/toast.css" rel='stylesheet'/>
+<link href="{{ asset('RPCAA') }}/css/default.css" rel='stylesheet'/>
+<link href="{{ asset('RPCAA') }}/css/select2.min.css" rel="stylesheet" media="all"/>
 <!-- InstanceBeginEditable name="head" -->
 <!-- InstanceEndEditable -->
+<style>
+  .contentwraper {
+    padding-top: 145px !important;
+    min-height: calc(100vh - 60px);
+  }
+  @media (max-width: 768px) {
+    .contentwraper {
+      padding-top: 175px !important;
+    }
+  .rounded {
+    border-radius: 6px !important;
+  }
+</style>
 </head>
 <body class="dashbg">
 <div class="contentwraper">
   <header class="header">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-2 col-md-1 b-right"> <img src="{{ url('RPCAA') }}/images/dash-logo.png" alt="" class="dash-logo" /> </div>
+        <div class="col-2 col-md-1 b-right"> <img src="{{ asset('RPCAA') }}/images/dash-logo.png" alt="" class="dash-logo" /> </div>
         <div class="col-10 col-md-11">
           <div class="row modulebg">
             <div class="col">
@@ -66,7 +79,8 @@
             </div>
 			  <div class="row modulebg1">
             <div class="col">
-              <h4>Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools / निजी कोचिंग अकादमियों / संघों, जिम, और तरणताल का पंजीकरण</h4>
+              <!-- <h4>Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools / निजी कोचिंग अकादमियों / संघों, जिम, और तरणताल का पंजीकरण</h4> -->
+              <h4>Private Institutions Registration (Gyms & Swimming Pools) / निजी संस्थान पंजीकरण (जिम एवं तरणताल)</h4>
             </div>
 
 
@@ -102,22 +116,22 @@
 <script>
     var ajaxUrl = "{{ url('') }}";
 </script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/jquery-min.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/bootstrap.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/jquery.nanoscroller.min.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/dataTables.bootstrap5.min.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/builder.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/beautifyhtml.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/dragble.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/datepicker.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/datepicker.en.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/select2.min.js"></script>
-<script type="text/javascript" src="{{ url('RPCAA') }}/js/theme-script.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/jquery-min.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/bootstrap.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/jquery.nanoscroller.min.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/dataTables.bootstrap5.min.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/builder.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/beautifyhtml.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/dragble.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/datepicker.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/datepicker.en.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/select2.min.js"></script>
+<script type="text/javascript" src="{{ asset('RPCAA') }}/js/theme-script.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
-<script type="text/javascript" src="{{ url('admin') }}/js/toast.js"></script>
-<script type="text/javascript" src="{{ url('admin') }}/js/custom.js"></script>
-<script type="text/javascript" src="{{ url('admin') }}/js/sweetalert.min.js"></script>
+<script type="text/javascript" src="{{ asset('admin') }}/js/toast.js?v={{ time() }}"></script>
+<script type="text/javascript" src="{{ asset('admin') }}/js/custom.js?v={{ time() }}"></script>
+<script type="text/javascript" src="{{ asset('admin') }}/js/sweetalert.min.js"></script>
 <x-message/>
 
 
@@ -138,6 +152,15 @@
 <x-message/>
 <script>
      $(".toggle-password").click(function () { $(this).toggleClass("fa-eye fa-eye-slash"); var input = $($(this).attr("toggle")); if (input.attr("type") == "password") { input.attr("type", "text"); } else { input.attr("type", "password"); } });
+
+     function adjustApplicantHeaderSpacing() {
+         var h = $('header.header').outerHeight();
+         if (h && h > 60) {
+             $('.contentwraper').css('padding-top', (h + 15) + 'px');
+         }
+     }
+     $(document).ready(adjustApplicantHeaderSpacing);
+     $(window).on('resize', adjustApplicantHeaderSpacing);
  </script>
      @stack('custom-scripts')
 <!-- InstanceEnd --></html>

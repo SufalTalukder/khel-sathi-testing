@@ -2,10 +2,12 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use App\Models\DivisionModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminCoachingCampController extends Controller
@@ -32,6 +34,7 @@ class AdminCoachingCampController extends Controller
                 $applicant_details->where('hostel_div_district_mapping.district_id', $request->district_id);
             }
             if($request->stadium){
+                Log::info('Stadium Name', ['response' => $request->stadium]);
                 $applicant_details->where('coaching_camp_basic_details.stadium', $request->stadium);
             }
             if($request->sport_id){
@@ -75,7 +78,12 @@ class AdminCoachingCampController extends Controller
         }
         if(Auth::guard('admin')->user()->admin_role==9){
             $applicant_details->where('hostel_div_district_mapping.district_id', Auth::guard('admin')->user()->district_id);
-            $stadiums       =   DB::table('studium_master')->join('cities','studium_master.district_id','=','cities.id')->join('hostel_div_district_mapping','cities.id','=','hostel_div_district_mapping.district_id')->where('hostel_div_district_mapping.district_id', Auth::guard('admin')->user()->district_id)->where('cities.state_id','23')->get();
+            $stadiums       =   DB::table('studium_master')
+                                ->join('cities','studium_master.district_id','=','cities.id')
+                                ->join('hostel_div_district_mapping','cities.id','=','hostel_div_district_mapping.district_id')
+                                ->where('hostel_div_district_mapping.district_id', Auth::guard('admin')->user()->district_id)
+                                ->where('cities.state_id','23')
+                                ->select('studium_master.*')->get();
         }
         $applicationview    =   $applicant_details->orderByDesc('coaching_camp_register.id')->get();
         return view('admin.coaching_camp.index', compact('sports', 'districts', 'applicationview','divisions','stadiums'));
@@ -135,7 +143,7 @@ class AdminCoachingCampController extends Controller
                        ->join('coaching_camp_basic_details', 'rajkosh_payment_request.application_no', '=', 'coaching_camp_basic_details.application_no')
                        ->join('coaching_camp_register', 'coaching_camp_basic_details.user_id', '=', 'coaching_camp_register.id')
                        ->where('rajkosh_payment_response.challan_no',(string)$request->challan)
-                       ->select('coaching_camp_basic_details.*','coaching_camp_register.*','rajkosh_payment_response.*','rajkosh_payment_request.Depchallan','rajkosh_payment_response.amount as paid_amount')
+                       ->select('coaching_camp_basic_details.*','coaching_camp_register.*','rajkosh_payment_response.*','rajkosh_payment_request.date_of_payment_attempt','rajkosh_payment_request.Depchallan','rajkosh_payment_response.amount as paid_amount')
                        ->first();
         $pdf = Pdf::loadView('coaching_camp.challan', compact('districts','sportList','userDetails'));
         $name = $userDetails->name . "_Coaching_Camp_Receipt_" . date('d-m-Y') . '.pdf';
@@ -188,82 +196,221 @@ class AdminCoachingCampController extends Controller
                 $validity = Carbon::now()->endOfMonth()->format('Y-m-d');
             }
         }
-        $payment_requests = DB::table('rajkosh_payment_request')->where('application_no',$applicationview->application_no)->where('module',[4,5])->get();
+        $payment_requests = DB::table('rajkosh_payment_request')->where('application_no',$applicationview->application_no)->where('module',5)->get();
         if($payment_requests){
             $challanNumbers = DB::table('rajkosh_payment_request')
             ->where('application_no', $applicationview->application_no)
-            ->where('module', [4,5])
+            ->whereIn('module', [4,5])
             ->pluck('Depchallan')
             ->toArray();
-            $payment_responses = DB::table('rajkosh_payment_response')->whereIn('challan_no', $challanNumbers)->where('Status','=','Success')->get();
+            $payment_responses = DB::table('rajkosh_payment_response')->join('rajkosh_payment_request','rajkosh_payment_request.Depchallan','=','rajkosh_payment_response.challan_no')->whereIn('challan_no', $challanNumbers)->where('Status','=','Success')->get();
             return view('admin.coaching_camp.basic_detail',compact('applicationview','payment_responses','validity'));
         }
         return view('admin.coaching_camp.basic_detail', compact('applicationview', 'validity'));
     }
 
     public function coaching_camp_report(Request $request){
-        // 1. Initialize query with Conditional Aggregation & New Columns
-        $query = DB::table('coaching_camp_register as cr')
-            ->join('coaching_camp_basic_details as cb', 'cr.id', '=', 'cb.user_id')
-            ->join('rajkosh_payment_request as rr', 'rr.application_no', '=', 'cb.application_no')
-            ->join('rajkosh_payment_response as r', 'rr.Depchallan', '=', 'r.challan_no')
-            ->join('cities as c', 'cb.stad_district', '=', 'c.id')
-            ->join('hostel_div_district_mapping as hm', 'c.id', '=', 'hm.district_id')
-            ->join('hostel_division_master as hdm', 'hm.division_id', '=', 'hdm.id')
-            ->select(
-                'hdm.division_name',
-                'c.city',
-                DB::raw('MONTH(rr.date_of_payment_attempt) as month'),
-                DB::raw('YEAR(rr.date_of_payment_attempt) as year'),
 
-                // Sum 1: sport is 9
-                DB::raw('SUM(CASE WHEN cb.sport = 9 THEN rr.AMOUNT ELSE 0 END) as tarantal'),
+        // 1. Date range
+        $fromDate = $request->filled('from_date')
+            ? Carbon::createFromFormat('!Y-m', $request->from_date)->startOfMonth()
+            : Carbon::parse('2026-09-01')->startOfMonth();
 
-                // Sum 2: user_type is 1 AND sport is not 9, 54, 55, or 56
-                DB::raw('SUM(CASE WHEN cr.user_type = 1 AND cb.sport NOT IN (9, 54, 55, 56) THEN rr.AMOUNT ELSE 0 END) as prashiksharthi'),
+        $toDate = $request->filled('to_date')
+            ? Carbon::createFromFormat('!Y-m', $request->to_date)->startOfMonth()
+            : now()->startOfMonth();
 
-                // Sum 3: user_type is 2 AND sport is not 9
-                DB::raw('SUM(CASE WHEN cr.user_type = 2 AND cb.sport != 9 THEN rr.AMOUNT ELSE 0 END) as shaukiya')
+        // 2. Generate months in selected range
+        $months = collect(
+            CarbonPeriod::create(
+                $fromDate->copy(),
+                '1 month',
+                $toDate->copy()
             )
-            ->where('r.Status', 'Success');
+        )->map(function ($date) {
+            return [
+                'month' => $date->month,
+                'year' => $date->year,
+            ];
+        });
 
-        if ($request->isMethod('post')) {
-            if ($request->filled('division_id')) {
-                $query->where('hm.division_id', $request->division_id);
+        // 3. Build months subquery
+        $monthQuery = null;
+
+        foreach ($months as $item) {
+            $part = DB::query()->selectRaw(
+                '? AS month, ? AS year',
+                [$item['month'], $item['year']]
+            );
+
+            if ($monthQuery === null) {
+                $monthQuery = $part;
+            } else {
+                $monthQuery->unionAll($part);
             }
-
-            if ($request->filled('district_id')) {
-                $query->where('hm.district_id', $request->district_id);
-            }
-
-            if ($request->filled('sport_id')) {
-                $query->where('cb.sport', $request->sport_id);
-            }
-
-            if ($request->filled('gender')) {
-                $query->where('cb.gender', $request->gender);
-            }
-
-            // Independent Date Logic
-            $fromDate = $request->filled('from_date') ? $request->from_date : '2026-09-01';
-            $toDate = $request->filled('to_date') ? $request->to_date : now()->toDateString();
-
-            $query->whereBetween('rr.date_of_payment_attempt', [$fromDate, $toDate]);
         }
 
-        // 3. Group by Division, District, Year, and Month
-        $results = $query
-            ->groupBy(
-                'hdm.division_name',
+        $admin = Auth::guard('admin')->user();
+
+        $districtQuery = DB::table('cities as c')
+            ->leftJoin('hostel_div_district_mapping as hm', 'c.id', '=', 'hm.district_id')
+            ->leftJoin('hostel_division_master as hdm', 'hm.division_id', '=', 'hdm.id')
+            ->where('c.state_id', 23)
+            ->select(
+                'c.id as district_id',
                 'c.city',
-                DB::raw('YEAR(rr.date_of_payment_attempt)'),
-                DB::raw('MONTH(rr.date_of_payment_attempt)')
+                'hm.division_id',
+                'hdm.division_name'
+            );
+
+        // Always apply login-based restrictions
+        if ($admin->admin_role == 2) {
+
+            // Division Admin: Only their division's districts
+            $districtQuery->where('hm.division_id', $admin->division_id);
+
+        } elseif ($admin->admin_role == 9) {
+
+            // District Admin: Only their assigned district
+            $districtQuery->where('hm.district_id', $admin->district_id);
+
+        }
+
+        // Apply optional filters only when provided
+        if ($request->filled('division_id')) {
+            $districtQuery->where('hm.division_id', $request->division_id);
+        }
+
+        if ($request->filled('district_id')) {
+            $districtQuery->where('c.id', $request->district_id);
+        }
+        // 5. Aggregate successful payments
+        $paymentQuery = DB::table(
+            'coaching_camp_basic_details as cb'
+        )
+            ->join(
+                'coaching_camp_register as cr',
+                'cb.user_id',
+                '=',
+                'cr.id'
             )
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->orderBy('hm.division_id', 'asc')
-            ->orderBy('hm.district_id', 'asc')
+            ->join(
+                'rajkosh_payment_request as rr',
+                'rr.application_no',
+                '=',
+                'cb.application_no'
+            )
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('rajkosh_payment_response as r')
+                    ->whereColumn('r.challan_no', 'rr.Depchallan')
+                    ->where('r.Status', 'Success');
+            })
+            ->where(
+                'rr.date_of_payment_attempt',
+                '>=',
+                $fromDate->copy()->startOfDay()
+            )
+            ->where(
+                'rr.date_of_payment_attempt',
+                '<',
+                $toDate->copy()->addMonth()->startOfDay()
+            );
+
+        if ($request->filled('sport_id')) {
+            $paymentQuery->where(
+                'cb.sport',
+                $request->sport_id
+            );
+        }
+
+        if ($request->filled('gender')) {
+            $paymentQuery->where(
+                'cr.gender',
+                $request->gender
+            );
+        }
+
+        $paymentQuery->select(
+            'cb.stad_district as district_id',
+
+            DB::raw(
+                'MONTH(rr.date_of_payment_attempt) as month'
+            ),
+
+            DB::raw(
+                'YEAR(rr.date_of_payment_attempt) as year'
+            ),
+
+            DB::raw('SUM(
+                CASE
+                    WHEN cb.sport = 9
+                    THEN rr.AMOUNT
+                    ELSE 0
+                END
+            ) as tarantal'),
+
+            DB::raw('SUM(
+                CASE
+                    WHEN cr.user_type = 1
+                    AND cb.sport NOT IN (9, 54, 55, 56)
+                    THEN rr.AMOUNT
+                    ELSE 0
+                END
+            ) as prashiksharthi'),
+
+            DB::raw('SUM(
+                CASE
+                    WHEN cr.user_type = 2
+                    AND cb.sport != 9
+                    THEN rr.AMOUNT
+                    ELSE 0
+                END
+            ) as shaukiya')
+        )
+        ->groupBy(
+            'cb.stad_district',
+            DB::raw('YEAR(rr.date_of_payment_attempt)'),
+            DB::raw('MONTH(rr.date_of_payment_attempt)')
+        );
+
+        // 6. Combine all districts with all months
+        $results = DB::query()
+            ->fromSub($districtQuery, 'd')
+            ->crossJoinSub($monthQuery, 'm')
+            ->leftJoinSub($paymentQuery, 'p', function ($join) {
+                $join->on(
+                    'd.district_id',
+                    '=',
+                    'p.district_id'
+                )
+                ->on('m.month', '=', 'p.month')
+                ->on('m.year', '=', 'p.year');
+            })
+            ->select(
+                'd.division_name',
+                'd.city',
+                'm.month',
+                'm.year',
+
+                DB::raw(
+                    'COALESCE(p.tarantal, 0) as tarantal'
+                ),
+
+                DB::raw(
+                    'COALESCE(p.prashiksharthi, 0) as prashiksharthi'
+                ),
+
+                DB::raw(
+                    'COALESCE(p.shaukiya, 0) as shaukiya'
+                )
+            )
+            ->orderBy('d.division_name', 'asc')
+            ->orderBy('d.city', 'asc')
+            ->orderBy('m.year', 'desc')
+            ->orderBy('m.month', 'desc')
             ->get();
+
         $districts          =   DB::table('cities')->select('city', 'id')->where('state_id', '23')->get();
         $divisions          =   DivisionModel::select('division_name', 'id')->get();
         $stadiums           =   DB::table('studium_master')->join('cities','studium_master.district_id','=','cities.id')->where('cities.state_id','23')->select('studium_master.*')->get();

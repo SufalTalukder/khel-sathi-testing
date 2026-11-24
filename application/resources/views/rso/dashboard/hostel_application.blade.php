@@ -220,7 +220,7 @@
                 </h4>
             </div>
             <div id="hostelapplication" class="table-responsive">
-                <table id="dataTable" class="table table-striped table-bordered dataTable datatable">
+                <table id="dataTable" class="table table-striped table-bordered">
                     <thead>
                         <tr>
                             <th>S.No.</th>
@@ -240,7 +240,7 @@
                     <tbody id="hostelapplicant">
                         @foreach ($hostelList as $key => $item)
                             <tr>
-                                <td>{{ $key + 1 }}</td>
+                                <td>{{ method_exists($hostelList, 'firstItem') ? ($hostelList->firstItem() + $key) : ($key + 1) }}</td>
                                 <td>{{ $item->application_no }}</td>
                                 <td>{{ $item->name }}</td>
                                 <td>{{ $item->email }}</td>
@@ -306,6 +306,20 @@
                         @endforeach
                     </tbody>
                 </table>
+                @if(method_exists($hostelList, 'links'))
+                <div class="row mt-3 mb-2 align-items-center">
+                    <div class="col-sm-6">
+                        <div class="dataTables_info text-muted fw-semibold">
+                            Showing {{ $hostelList->firstItem() ?? 0 }} to {{ $hostelList->lastItem() ?? 0 }} of {{ $hostelList->total() }} entries
+                        </div>
+                    </div>
+                    <div class="col-sm-6 text-end">
+                        <div class="d-inline-block">
+                            {{ $hostelList->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>

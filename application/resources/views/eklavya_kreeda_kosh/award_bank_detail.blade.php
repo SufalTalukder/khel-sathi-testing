@@ -141,7 +141,7 @@
                                                             </label>
                                                             <div class="input-group">
                                                                 <input type="file"
-                                                                    onchange="getfileext(this.value,103)" id="File103"
+                                                                    onchange="getfileext(this.value,103); handleFilePreview(this, 'view_btn_high_school');" id="File103"
                                                                     class="form-control" name="high_school_certificate"
                                                                     {{ isset($eklavya_data->high_school_certificate) ? '' : 'required' }}>
                                                                 <input type="hidden" name="high_school_certificate1"
@@ -159,10 +159,19 @@
                                                                             '.',
                                                                             $eklavya_data->high_school_certificate,
                                                                         );
+                                                                        $ext = end($doc);
                                                                     @endphp
                                                                     <img src="{{ $img1 }}" role="button"
-                                                                        onclick="appendImage('{{ $img }}','{{ $doc[1] ?? '' }}')"
-                                                                        class="img-fluid" />
+                                                                        id="view_btn_high_school"
+                                                                        data-original-url="{{ $img }}"
+                                                                        data-original-type="{{ $ext }}"
+                                                                        onclick="appendImage('{{ $img }}','{{ $ext }}')"
+                                                                        class="img-fluid" style="cursor: pointer;" />
+                                                                @else
+                                                                    <img src="{{ url('public/images/view.jpg') }}"
+                                                                        role="button"
+                                                                        id="view_btn_high_school"
+                                                                        class="img-fluid" style="display: none; cursor: pointer;" />
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -209,16 +218,19 @@
                                                                                 '.',
                                                                                 $eklavya_data->highest_qualification_certificate,
                                                                             );
+                                                                            $ext = end($doc);
                                                                         @endphp
                                                                         <img src="{{ $img1 }}" role="button"
                                                                             id="view_btn_highest_educational"
-                                                                            onclick="appendImage('{{ $img }}','{{ $doc[1] ?? '' }}')"
-                                                                            class="img-fluid" />
+                                                                            data-original-url="{{ $img }}"
+                                                                            data-original-type="{{ $ext }}"
+                                                                            onclick="appendImage('{{ $img }}','{{ $ext }}')"
+                                                                            class="img-fluid" style="cursor: pointer;" />
                                                                     @else
                                                                         <img src="{{ url('public/images/view.jpg') }}"
                                                                             role="button"
                                                                             id="view_btn_highest_educational"
-                                                                            class="img-fluid" style="display: none;" />
+                                                                            class="img-fluid" style="display: none; cursor: pointer;" />
                                                                     @endif
                                                                 </div>
                                                             </div>
@@ -252,15 +264,18 @@
                                                                                 '.',
                                                                                 $eklavya_data->domicile_certificate,
                                                                             );
+                                                                            $ext = end($doc);
                                                                         @endphp
                                                                         <img src="{{ $img1 }}" role="button"
                                                                             id="view_btn_domicile"
-                                                                            onclick="appendImage('{{ $img }}','{{ $doc[1] ?? '' }}')"
-                                                                            class="img-fluid" />
+                                                                            data-original-url="{{ $img }}"
+                                                                            data-original-type="{{ $ext }}"
+                                                                            onclick="appendImage('{{ $img }}','{{ $ext }}')"
+                                                                            class="img-fluid" style="cursor: pointer;" />
                                                                     @else
                                                                         <img src="{{ url('public/images/view.jpg') }}"
                                                                             role="button" id="view_btn_domicile"
-                                                                            class="img-fluid" style="display: none;" />
+                                                                            class="img-fluid" style="display: none; cursor: pointer;" />
                                                                     @endif
                                                                 </div>
                                                             </div>
@@ -384,7 +399,7 @@
                                                                 </label>
                                                                 <div class="input-group">
                                                                     <input type="file"
-                                                                        onchange="getfileext(this.value,102); handleFilePreview(this, 'view_btn_fee_bank_receipt');"
+                                                                        onchange="getfileext(this.value, 'diploma_fee_bank_receipt'); handleFilePreview(this, 'view_btn_fee_bank_receipt');"
                                                                         id="diploma_fee_bank_receipt" class="form-control"
                                                                         name="diploma_fee_bank_receipt"
                                                                         {{ isset($eklavya_data->diploma_fee_bank_receipt) ? '' : 'required' }}>
@@ -406,15 +421,18 @@
                                                                                 '.',
                                                                                 $eklavya_data->diploma_fee_bank_receipt,
                                                                             );
+                                                                            $ext = end($doc);
                                                                         @endphp
                                                                         <img src="{{ $img1 }}" role="button"
                                                                             id="view_btn_fee_bank_receipt"
-                                                                            onclick="appendImage('{{ $img }}','{{ $doc[1] ?? '' }}')"
-                                                                            class="img-fluid" />
+                                                                            data-original-url="{{ $img }}"
+                                                                            data-original-type="{{ $ext }}"
+                                                                            onclick="appendImage('{{ $img }}','{{ $ext }}')"
+                                                                            class="img-fluid" style="cursor: pointer;" />
                                                                     @else
                                                                         <img src="{{ url('public/images/view.jpg') }}"
                                                                             role="button" id="view_btn_fee_bank_receipt"
-                                                                            class="img-fluid" style="display: none;" />
+                                                                            class="img-fluid" style="display: none; cursor: pointer;" />
                                                                     @endif
                                                                 </div>
                                                             </div>
@@ -429,7 +447,7 @@
                                                                 </label>
                                                                 <div class="input-group">
                                                                     <input type="file"
-                                                                        onchange="getfileext(this.value,102); handleFilePreview(this, 'view_btn_semester');"
+                                                                        onchange="getfileext(this.value, 'diploma_semester_certificate'); handleFilePreview(this, 'view_btn_semester');"
                                                                         id="diploma_semester_certificate"
                                                                         class="form-control"
                                                                         name="diploma_semester_certificate">
@@ -451,15 +469,18 @@
                                                                                 '.',
                                                                                 $eklavya_data->diploma_semester_certificate,
                                                                             );
+                                                                            $ext = end($doc);
                                                                         @endphp
                                                                         <img src="{{ $img1 }}" role="button"
                                                                             id="view_btn_semester"
-                                                                            onclick="appendImage('{{ $img }}','{{ $doc[1] ?? '' }}')"
-                                                                            class="img-fluid" />
+                                                                            data-original-url="{{ $img }}"
+                                                                            data-original-type="{{ $ext }}"
+                                                                            onclick="appendImage('{{ $img }}','{{ $ext }}')"
+                                                                            class="img-fluid" style="cursor: pointer;" />
                                                                     @else
                                                                         <img src="{{ url('public/images/view.jpg') }}"
                                                                             role="button" id="view_btn_semester"
-                                                                            class="img-fluid" style="display: none;" />
+                                                                            class="img-fluid" style="display: none; cursor: pointer;" />
                                                                     @endif
                                                                 </div>
                                                             </div>
@@ -603,10 +624,15 @@
                                                                                 <input type="file" required
                                                                                     name="sport_achievement_docs[]"
                                                                                     class="form-control"
-                                                                                    onchange="getfileext(this.value,3)"
+                                                                                    onchange="getfileext(this.value, 3); handleFilePreview(this, 'view_btn_sport_achievement_docs_0');"
                                                                                     id="File3"
                                                                                     aria-describedby="inputGroupFileAddon05"
                                                                                     aria-label="Upload">
+                                                                                <img src="{{ url('public/images/view.jpg') }}"
+                                                                                    role="button"
+                                                                                    id="view_btn_sport_achievement_docs_0"
+                                                                                    class="img-fluid"
+                                                                                    style="display: none; cursor: pointer;" />
                                                                             </div>
                                                                         </td>
                                                                         <td><input type="text" required
@@ -733,8 +759,8 @@
                                                                                     <input type="file"
                                                                                         name="sport_achievement_docs[]"
                                                                                         class="form-control"
-                                                                                        onchange="getfileext(this.value,3); handleFilePreview(this, 'view_btn_sport_achievement_docs');"
-                                                                                        id="File3"
+                                                                                        onchange="getfileext(this.value, '3_{{ $key }}'); handleFilePreview(this, 'view_btn_sport_{{ $key }}');"
+                                                                                        id="File3_{{ $key }}"
                                                                                         aria-describedby="inputGroupFileAddon05"
                                                                                         aria-label="Upload">
                                                                                     <input type="hidden"
@@ -756,19 +782,21 @@
                                                                                                 '.',
                                                                                                 $post->sport_achievement_docs,
                                                                                             );
-
+                                                                                            $ext = end($doc);
                                                                                         @endphp
                                                                                         <img src="{{ $img1 }}"
                                                                                             role="button"
-                                                                                            id="view_btn_sport_achievement_docs"
-                                                                                            onclick="appendImage('{{ $img }}','{{ $doc[1] ?? '' }}')"
-                                                                                            class="img-fluid" />
+                                                                                            id="view_btn_sport_{{ $key }}"
+                                                                                            data-original-url="{{ $img }}"
+                                                                                            data-original-type="{{ $ext }}"
+                                                                                            onclick="appendImage('{{ $img }}','{{ $ext }}')"
+                                                                                            class="img-fluid" style="cursor: pointer;" />
                                                                                     @else
                                                                                         <img src="{{ url('public/images/view.jpg') }}"
                                                                                             role="button"
-                                                                                            id="view_btn_sport_achievement_docs"
+                                                                                            id="view_btn_sport_{{ $key }}"
                                                                                             class="img-fluid"
-                                                                                            style="display: none;" />
+                                                                                            style="display: none; cursor: pointer;" />
                                                                                     @endif
                                                                                 </div>
                                                                             </td>
@@ -859,7 +887,6 @@
                                                                 <input
                                                                     onchange="getfileext(this.value,104); handleFilePreview(this, 'view_btn_passbook');"
                                                                     id="File104" class="form-control" type="file"
-                                                                    id="formFile"
                                                                     {{ isset($eklavya_data->front_page_of_passbook) ? '' : 'required' }}
                                                                     name="front_page_of_passbook">
                                                                 <input type="hidden"
@@ -878,16 +905,18 @@
                                                                             '.',
                                                                             $eklavya_data->front_page_of_passbook,
                                                                         );
-
+                                                                        $ext = end($doc);
                                                                     @endphp
                                                                     <img src="{{ $img1 }}" role="button"
                                                                         id="view_btn_passbook"
-                                                                        onclick="appendImage('{{ $img }}','{{ $doc[1] ?? '' }}')"
-                                                                        class="img-fluid" />
+                                                                        data-original-url="{{ $img }}"
+                                                                        data-original-type="{{ $ext }}"
+                                                                        onclick="appendImage('{{ $img }}','{{ $ext }}')"
+                                                                        class="img-fluid" style="cursor: pointer;" />
                                                                 @else
                                                                     <img src="{{ url('public/images/view.jpg') }}"
                                                                         role="button" id="view_btn_passbook"
-                                                                        class="img-fluid" style="display: none;" />
+                                                                        class="img-fluid" style="display: none; cursor: pointer;" />
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -908,7 +937,6 @@
                                                                 <input
                                                                     onchange="getfileext(this.value,1044); handleFilePreview(this, 'view_btn_notary');"
                                                                     id="File1044" class="form-control" type="file"
-                                                                    id="formFile"
                                                                     {{ isset($eklavya_data->notary_affidavit_doc) ? '' : 'required' }}
                                                                     name="notary_affidavit_doc">
                                                                 <input type="hidden"
@@ -927,16 +955,18 @@
                                                                             '.',
                                                                             $eklavya_data->notary_affidavit_doc,
                                                                         );
-
+                                                                        $ext = end($doc);
                                                                     @endphp
                                                                     <img src="{{ $img1 }}" role="button"
                                                                         id="view_btn_notary"
-                                                                        onclick="appendImage('{{ $img }}','{{ $doc[1] ?? '' }}')"
-                                                                        class="img-fluid" />
+                                                                        data-original-url="{{ $img }}"
+                                                                        data-original-type="{{ $ext }}"
+                                                                        onclick="appendImage('{{ $img }}','{{ $ext }}')"
+                                                                        class="img-fluid" style="cursor: pointer;" />
                                                                 @else
                                                                     <img src="{{ url('public/images/view.jpg') }}"
                                                                         role="button" id="view_btn_notary"
-                                                                        class="img-fluid" style="display: none;" />
+                                                                        class="img-fluid" style="display: none; cursor: pointer;" />
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -1053,7 +1083,7 @@
 
         <script>
             $(document).ready(function() {
-                var i = 1;
+                var i = {{ isset($award_data) && count($award_data) > 0 ? count($award_data) : 1 }};
                 var length;
                 //var addamount = 0;
                 var addamount = 700;
@@ -1073,9 +1103,9 @@
                         i +
                         ')" onpaste="return false;" ondrop="return false;" onkeypress="return false" id="' +
                         i +
-                        'to" autocomplete="off" required  name="competition_to_date[]" data-language="en" placeholder="dd-mm-yyyy" required></td><td><input type="text" required  name="sport_place[]" placeholder="Place" class="form-control name_email"></td><td><div class="input-group"><input type="file" name="sport_achievement_docs[]" required class="form-control"   onchange="getfileext(this.value,2' +
-                        i + ')" id="File2' + i +
-                        '" aria-describedby="inputGroupFileAddon05" aria-label="Upload"></div></td><td><input type="text" required value="" name="event_details[]" placeholder="47th Junior Boys National Handball Championship, 2025" class="form-control"></td><td><button type="button" name="remove" id="' +
+                        'to" autocomplete="off" required  name="competition_to_date[]" data-language="en" placeholder="dd-mm-yyyy" required></td><td><input type="text" required  name="sport_place[]" placeholder="Place" class="form-control name_email"></td><td><div class="input-group"><input type="file" name="sport_achievement_docs[]" required class="form-control" onchange="getfileext(this.value, \'2' +
+                        i + '\'); handleFilePreview(this, \'view_btn_sport_dynamic_' + i + '\');" id="File2' + i +
+                        '" aria-describedby="inputGroupFileAddon05" aria-label="Upload"><img src="{{ url("public/images/view.jpg") }}" role="button" id="view_btn_sport_dynamic_' + i + '" class="img-fluid" style="display: none; cursor: pointer;" /></div></td><td><input type="text" required value="" name="event_details[]" placeholder="47th Junior Boys National Handball Championship, 2025" class="form-control"></td><td><button type="button" name="remove" id="' +
                         i +
                         '" class="btn btn-danger mt-1 px-2 btn_remove"><span class="far fa-trash-alt"></span></button></td></tr>'
                     );
@@ -1127,38 +1157,125 @@
         </script>
 
         <script type="text/javascript">
+            // Safe, enhanced file extension and size validation supporting both "File"+id and direct element id
+            window.getfileext = function(value, id) {
+                var el = document.getElementById("File" + id) || document.getElementById(id);
+                if (!el || !el.files || !el.files[0]) {
+                    return;
+                }
+                var file = el.files[0];
+                var file_size = file.size;
+                var fileExtension = ["jpeg", "jpg", "pdf", "png"];
+                var fileName = file.name || value || "";
+                var ext = fileName.split(".").pop().toLowerCase();
+
+                if ($.inArray(ext, fileExtension) == -1) {
+                    $(el).val("");
+                    if (typeof error === 'function') {
+                        error("Please Upload File in Valid Format (JPEG/JPG/PDF).");
+                    } else if (typeof toastr !== 'undefined') {
+                        toastr.error("Please Upload File in Valid Format (JPEG/JPG/PDF).");
+                    } else {
+                        alert("Please Upload File in Valid Format (JPEG/JPG/PDF).");
+                    }
+                } else if (file_size > 2097152) {
+                    $(el).val("");
+                    if (typeof error === 'function') {
+                        error("File Size should not exceed 2 MB.");
+                    } else if (typeof toastr !== 'undefined') {
+                        toastr.error("File Size should not exceed 2 MB.");
+                    } else {
+                        alert("File Size should not exceed 2 MB.");
+                    }
+                }
+            };
+
+            // Enhanced appendImage that handles both PDF (URL, Blob, Data URL) and images responsively
+            window.appendImage = function(img, pdf) {
+                var $modal = $("#query_form_iamge");
+                var $container = $("#query_form_image_append");
+
+                if (!$modal.length || !$container.length) return;
+
+                var isPdf = false;
+                if (pdf && pdf.toString().toLowerCase() === 'pdf') {
+                    isPdf = true;
+                } else if (typeof img === 'string') {
+                    var cleanImg = img.split('?')[0].split('#')[0].toLowerCase();
+                    if (cleanImg.endsWith('.pdf') || img.startsWith('data:application/pdf') || (img.startsWith('blob:') && pdf && pdf.toString().toLowerCase() === 'pdf')) {
+                        isPdf = true;
+                    }
+                }
+
+                if (isPdf) {
+                    $container.html(
+                        '<div style="width: 100%; height: 575px; background: #525659;">' +
+                            '<iframe src="' + img + '" style="width: 100%; height: 575px; border: none;" allowfullscreen></iframe>' +
+                        '</div>'
+                    );
+                } else {
+                    $container.html(
+                        '<div style="width: 100%; min-height: 400px; max-height: 575px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; padding: 10px;">' +
+                            '<img src="' + img + '" style="max-width: 100%; max-height: 550px; height: auto; width: auto; object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 4px;" alt="Preview" />' +
+                        '</div>'
+                    );
+                }
+
+                $modal.modal("show");
+            };
+
+            // Enhanced handleFilePreview that displays latest chosen file immediately,
+            // supports image & pdf by extension and MIME, and falls back to original server file on clear
             function handleFilePreview(input, previewId) {
-                const previewImg = document.getElementById(previewId);
+                var previewImg = document.getElementById(previewId);
+                if (!previewImg) return;
 
                 if (input.files && input.files[0]) {
-                    const file = input.files[0];
-                    const fileType = file.type;
+                    var file = input.files[0];
+                    var fileName = file.name || '';
+                    var ext = fileName.split('.').pop().toLowerCase();
+                    var fileType = file.type || '';
 
-                    if (fileType.startsWith('image/')) {
-                        previewImg.src = "{{ url('public/images/view.jpg') }}";
-                        previewImg.style.display = 'block';
+                    var isPdf = (fileType === 'application/pdf' || fileType === 'application/x-pdf' || ext === 'pdf');
+                    var isImage = (fileType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(ext));
 
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            previewImg.onclick = function() {
-                                appendImage(e.target.result, fileType.split('/')[1]);
-                            };
-                        };
-                        reader.readAsDataURL(file);
+                    previewImg.src = "{{ url('public/images/view.jpg') }}";
+                    previewImg.style.display = 'inline-block';
 
-                    } else if (fileType === 'application/pdf') {
-                        previewImg.src = "{{ url('public/images/view.jpg') }}";
-                        previewImg.style.display = 'block';
-
-                        const blobURL = URL.createObjectURL(file);
+                    if (isPdf) {
+                        var blob = new Blob([file], { type: 'application/pdf' });
+                        var blobURL = URL.createObjectURL(blob);
                         previewImg.onclick = function() {
                             appendImage(blobURL, 'pdf');
                         };
+                    } else if (isImage) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImg.onclick = function() {
+                                appendImage(e.target.result, ext || 'jpg');
+                            };
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        var genericBlob = URL.createObjectURL(file);
+                        previewImg.onclick = function() {
+                            appendImage(genericBlob, ext);
+                        };
                     }
                 } else {
-                    previewImg.style.display = 'none';
-                    previewImg.src = '';
-                    previewImg.onclick = null;
+                    var originalUrl = previewImg.getAttribute('data-original-url');
+                    var originalType = previewImg.getAttribute('data-original-type') || '';
+
+                    if (originalUrl && originalUrl.trim() !== '') {
+                        previewImg.src = "{{ url('public/images/view.jpg') }}";
+                        previewImg.style.display = 'inline-block';
+                        previewImg.onclick = function() {
+                            appendImage(originalUrl, originalType);
+                        };
+                    } else {
+                        previewImg.style.display = 'none';
+                        previewImg.onclick = null;
+                    }
                 }
             }
         </script>

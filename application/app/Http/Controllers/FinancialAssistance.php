@@ -1218,7 +1218,7 @@ class FinancialAssistance extends Controller
         // ]);
 
         if (!$user) {
-            return redirect()->route('/')->with('error', 'User not found.');
+            return redirect('/')->with('error', 'User not found.');
         }
 
         $dob_raw = $user->dob ?? null;

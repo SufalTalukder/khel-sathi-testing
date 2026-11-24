@@ -29,10 +29,10 @@
         <header class="header">
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col col-md-1 b-right">
+                    <div class="col-3 col-md-1 b-right">
                         <img src="{{ asset('public/coaching_camp')}}/images/dash-logo.png" alt="" class="dash-logo" />
                     </div>
-                    <div class="col col-md-11">
+                    <div class="col-9 col-md-11">
                         <div class="row modulebg">
                             <div class="col">
                                 <h4 class="moudlename">Khel Sathi Portal/खेल साथी पोर्टल <small>Department of Sports, Government of Uttar Pradesh

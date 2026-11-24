@@ -1,4 +1,4 @@
-﻿.deptname h1,
+.deptname h1,
 .deptname h2 {
     font-weight: 900
 }
@@ -12,7 +12,7 @@
 .pageheader h4 .btn {
     margin-left: 5px;
     height: auto;
-    width: 12%;
+    width: auto;
 }
 .sidebar .navsidebar>li>a svg {
     width: 19px;
@@ -1459,7 +1459,7 @@ input:checked+.slider:before {
 }
 
 .rounded {
-    border-radius: 10.25rem !important
+    border-radius: 0.25rem !important;
 }
 
 .field-icon {
@@ -3322,4 +3322,22 @@ div .nav-link:focus {
 .modal-data {
 	height: 68vh;
 	overflow: auto;
+}
+
+/* Global Bootstrap 5 Modal & Backdrop Stacking Fix */
+.modal-backdrop {
+    z-index: 1060 !important;
+}
+.modal {
+    z-index: 1070 !important;
+}
+.modal-dialog {
+    z-index: 1075 !important;
+}
+.modal-dialog.modal-dialog-centered {
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100% - 100px) !important;
+    margin-top: 50px !important;
+    margin-bottom: 50px !important;
 }

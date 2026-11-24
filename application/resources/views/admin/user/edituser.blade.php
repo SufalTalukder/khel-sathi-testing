@@ -110,8 +110,8 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="mobile">Designation</label>
-                        <input type="text" name="designation" id="designation" class="form-control" required value="{{ $item->designation }}">
+                        <label for="edit_designation">Designation</label>
+                        <input type="text" name="designation" id="edit_designation" class="form-control" required value="{{ $item->designation }}">
                         <div class="invalid-feedback">
                             Please provide Designation.
                         </div>
@@ -119,8 +119,8 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="mobile">Password</label>
-                        <input type="text" name="password" id="designation" class="form-control" required value="{{ $item->user_password }}">
+                        <label for="edit_password">Password</label>
+                        <input type="text" name="password" id="edit_password" class="form-control" required value="{{ $item->user_password }}">
                         <div class="invalid-feedback">
                             Please provide Password.
                         </div>

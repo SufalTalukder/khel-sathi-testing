@@ -22,22 +22,27 @@
                     </div>
                     <div class="col-md-12 col-12 deptname">
                         <h5 class="text-danger">
-                            Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools<br /> निजी कोचिंग
-                            अकादमियों / संघों, जिम, और तरणताल का पंजीकरण
+                            {{-- Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools<br /> निजी कोचिंग
+                            अकादमियों / संघों, जिम, और तरणताल का पंजीकरण --}}
+                            Private Institutions Registration (Gyms & Swimming Pools)<br /> निजी संस्थान पंजीकरण (जिम एवं तरणताल)
                         </h5>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 bg-light1">
                 <div class="login-form">
-                    <h3 class="mb-0 text-center">Registration/पंजीकरण</h3>
-                    <div class="d-flex text-center justify-content-center align-items-center mt-2">
-                        <span class="fw-normal">
-                            <a href="{{ route('private_coaching_login') }}" class="fw-bold">
-                                Already Registered ? Click Here to Login<br>
-                                पहले से ही पंजीकृत ? लॉगिन करने हेतु यहां क्लिक करें
-                            </a>
-                        </span>
+                    <div class="text-center text-md-center mt-md-0">
+                        <h3 class="mb-2">Registration/पंजीकरण</h3>
+                        <div class="auth-login-callout my-2 text-center">
+                            <div class="d-inline-block p-2 px-3 rounded-3" style="background: #f0fdf4; border: 1.5px dashed #16a34a; box-shadow: 0 2px 8px rgba(22, 163, 74, 0.1);">
+                                <div style="font-size: 0.82rem; color: #475569; font-weight: 600; margin-bottom: 4px;">
+                                    Already Registered? / क्या पहले से पंजीकृत हैं?
+                                </div>
+                                <a href="{{ route('private_coaching_login') }}" class="btn btn-sm btn-success rounded-pill px-4 py-1 fw-bold text-white shadow-sm" style="font-size: 0.88rem; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); border: none;">
+                                    <i class="fas fa-sign-in-alt me-1"></i> Click Here to Login / अभी लॉगिन करें &rarr;
+                                </a>
+                            </div>
+                        </div>
                     </div>
                     <form action="{{ route('private_coaching_register_store') }}" id="submitform"
                         class="mt-2 needs-validation" novalidate method="post">

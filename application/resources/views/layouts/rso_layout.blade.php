@@ -40,6 +40,27 @@
 		.menuheader-width {
 			left: 0;
 		}
+
+        /* Global BlockUI Permanent Override: Kill legacy grey box and busy.gif */
+        .blockUI.blockMsg.blockPage,
+        .blockUI.blockOverlay {
+            display: none !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        .blockUI img[src*="busy.gif"],
+        img[src*="busy.gif"] {
+            display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        .blockUI.blockMsg.blockPage>h1 {
+            display: none !important;
+        }
 	</style>
 </head>
 
@@ -359,7 +380,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 	<script src="{{ url('admin') }}/js/canvasjs.min.js"></script>
 	<script type="text/javascript" src="{{ url('admin') }}/js/toast.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
-	<script type="text/javascript" src="{{ url('admin') }}/js/custom.js"></script>
+	<x-global_loader/>
+	<script type="text/javascript" src="{{ url('admin') }}/js/custom.js?v={{ time() }}"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<x-message />
 	<script>

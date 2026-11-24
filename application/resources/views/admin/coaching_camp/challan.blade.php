@@ -126,7 +126,9 @@
                                 <td><b>Payment Date</b></td>
                                 <td>
                                     <b>: &nbsp;</b>
-                                    {{ date('d-m-Y', strtotime($userDetails->payment_date_coaching_fee)) }}
+                                    {{ !empty($userDetails->date_of_payment_attempt)
+                                    ? date('d-m-Y', strtotime($userDetails->date_of_payment_attempt))
+                                    : 'N/A' }}
                                 </td>
 
                                 <td><b>Bank Reference No:</b></td>

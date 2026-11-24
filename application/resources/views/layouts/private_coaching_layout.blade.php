@@ -7,16 +7,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="shortcut icon" href="{{ asset('') }}/favicon.ico" />
-    <link href="{{ url('RPCAA') }}/css/bootstrap.css" rel="stylesheet" />
-    <link href="{{ url('RPCAA') }}/css/all.css" rel="stylesheet" />
-    <link href="{{ url('RPCAA') }}/css/datepicker.css" rel="stylesheet" media="all" />
-    <link href="{{ url('RPCAA') }}/css/custom_theme.css" rel="stylesheet" />
-    <link href="{{ url('RPCAA') }}/css/responsive.css" rel="stylesheet" />
-    <link href="{{ url('RPCAA') }}/css/default.css" rel="stylesheet" />
-    <link href="{{ url('RPCAA') }}/css/login.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="{{ asset('public') }}/images/favicon.ico" />
+    <link href="{{ asset('RPCAA') }}/css/bootstrap.css" rel="stylesheet" />
+    <link href="{{ asset('RPCAA') }}/css/all.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="{{ asset('RPCAA') }}/css/datepicker.css" rel="stylesheet" media="all" />
+    <link href="{{ asset('RPCAA') }}/css/custom_theme.css" rel="stylesheet" />
+    <link href="{{ asset('RPCAA') }}/css/responsive.css" rel="stylesheet" />
+    <link href="{{ asset('RPCAA') }}/css/default.css" rel="stylesheet" />
+    <link href="{{ asset('RPCAA') }}/css/login.css" rel="stylesheet" />
     <link href="{{ asset('admin') }}/css/toast.css" rel='stylesheet' />
-    <script type="text/javascript" src="{{ url('admin') }}/js/jquery-min.js"></script>
+    <script type="text/javascript" src="{{ asset('admin') }}/js/jquery-min.js"></script>
     <!-- InstanceBeginEditable name="head" -->
 
 </head>
@@ -69,14 +70,13 @@
     <script>
         var ajaxUrl = "{{ url('') }}";
     </script>
-    <script src="js/jquery-min.js"></script>
-    <script type="text/javascript" src="{{ url('admin') }}/js/bootstrap.js"></script>
-    <script type="text/javascript" src="{{ url('RPCAA') }}/js/datepicker.js"></script>
-    <script type="text/javascript" src="{{ url('RPCAA') }}/js/datepicker.en.js"></script>
+    <script type="text/javascript" src="{{ asset('admin') }}/js/bootstrap.js"></script>
+    <script type="text/javascript" src="{{ asset('RPCAA') }}/js/datepicker.js"></script>
+    <script type="text/javascript" src="{{ asset('RPCAA') }}/js/datepicker.en.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
-    <script type="text/javascript" src="{{ url('admin') }}/js/toast.js"></script>
-    <script type="text/javascript" src="{{ url('admin') }}/js/custom.js"></script>
-    <script type="text/javascript" src="{{ url('admin') }}/js/sweetalert.min.js"></script>
+    <script type="text/javascript" src="{{ asset('admin') }}/js/toast.js?v={{ time() }}"></script>
+    <script type="text/javascript" src="{{ asset('admin') }}/js/custom.js?v={{ time() }}"></script>
+    <script type="text/javascript" src="{{ asset('admin') }}/js/sweetalert.min.js"></script>
     <x-message />
     <script>
         $("#preregister").submit(function(e) {

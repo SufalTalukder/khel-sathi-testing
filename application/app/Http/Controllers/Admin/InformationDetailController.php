@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class InformationDetailController extends Controller
@@ -169,58 +170,58 @@ class InformationDetailController extends Controller
             if ($validation->fails()) {
                 return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
             }
-            if (!Auth::guard('admin')->user()->id = 117) {
-                $currentMonth = now()->month;
-                $currentYear  = now()->year;
-                $today        = now()->day;
-
+            if (Auth::guard('admin')->user()->admin_role == 2 or Auth::guard('admin')->user()->admin_role == 9) {
+                $now = now();
                 $selectedMonth = (int) $req->month;
-                $selectedYear  = (int) $req->year;
-
-                // Current month is allowed
-                $isCurrentMonth = (
-                    $selectedMonth == $currentMonth &&
-                    $selectedYear == $currentYear
-                );
-
-                // Previous month is allowed only before 5th of current month
-                $previousDate = now()->subMonth();
-
-                $isPreviousMonthAllowed = (
-                    $selectedMonth == $previousDate->month &&
-                    $selectedYear == $previousDate->year &&
-                    $today <= 5
-                );
-
-                if (!$isCurrentMonth && !$isPreviousMonthAllowed) {
+                $selectedYear = (int) $req->year;
+                $selectedDate = Carbon::create(
+                    $selectedYear,
+                    $selectedMonth,
+                    1
+                )->startOfMonth();
+                $isCurrentMonth = $selectedDate->isSameMonth($now);
+                $isPreviousMonthAllowed =
+                    $now->day <= 5 &&
+                    $selectedDate->isSameMonth(
+                        $now->copy()->subMonth()
+                    );
+                if(!$isCurrentMonth){
+                    if($isPreviousMonthAllowed){
+                        $data = [
+                            'month_name'          => $req->month,
+                            'year'                => $req->year,
+                            'district_id'         => $req->district_name,
+                            'head_office_name'    => $req->head_office_name,
+                            'officer_name'        => $req->officer_name,
+                            'officer_designation' => $req->officer_designation,
+                            'officer_mobile'      => $req->officer_mobile,
+                        ];
+    
+                        // return response()->json(['error' => false, 'msg' => "Data saved sucessfully"]);
+                        if ($req->id) {
+                            DB::table('information_nodal_officer')->where('id', $req->id)->update($data);
+                            return response()->json(['error' => false, 'msg' => "Data Update sucessfully", 'url' => route('nodal_officer')]);
+                        } else {
+                            DB::table('information_nodal_officer')->insert($data);
+                            return response()->json(['error' => false, 'msg' => "Data Saved sucessfully", 'url' => route('nodal_officer')]);
+                        }
+                    }
+                    else{
+                        return response()->json([
+                            'error' => true,
+                            'msg' => 'Data entry for previous month is only allowed till 5th of the current month.'
+                        ]);
+                    }
+                }else{
                     return response()->json([
                         'error' => true,
-                        'msg' => 'You are trying to enter data for a previous month, which is not allowed by the system. Please enter data only for the current month.'
+                        'msg' => 'Data entry is not allowed for the current month.'
                     ]);
                 }
-            }
-            $data = [
-                'month_name'          => $req->month,
-                'year'                => $req->year,
-                'district_id'         => $req->district_name,
-                'head_office_name'    => $req->head_office_name,
-                'officer_name'        => $req->officer_name,
-                'officer_designation' => $req->officer_designation,
-                'officer_mobile'      => $req->officer_mobile,
-            ];
-
-            // return response()->json(['error' => false, 'msg' => "Data saved sucessfully"]);
-            if ($req->id) {
-                DB::table('information_nodal_officer')->where('id', $req->id)->update($data);
-                return response()->json(['error' => false, 'msg' => "Data Update sucessfully", 'url' => route('nodal_officer')]);
-            } else {
-                DB::table('information_nodal_officer')->insert($data);
-                return response()->json(['error' => false, 'msg' => "Data Saved sucessfully", 'url' => route('nodal_officer')]);
             }
         }
 
         $district_id_financial = Auth::guard('admin')->user()->district_id;
-
         $admin_id      = Auth::guard('admin')->user()->admin_role;
         $sports        = DB::table('sport_type')->orderBy('name', 'ASC')->get();
         $division_id   = 0;
@@ -619,67 +620,78 @@ class InformationDetailController extends Controller
             if ($validation->fails()) {
                 return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
             }
-            // $currentMonth = now()->month;
-            // $currentYear  = now()->year;
-            // $today        = now()->day;
 
-            // $selectedMonth = (int) $req->month;
-            // $selectedYear  = (int) $req->year;
+            if (in_array(Auth::guard('admin')->user()->admin_role, [2, 9])) {
 
-            // // Current month is allowed
-            // $isCurrentMonth = (
-            //     $selectedMonth == $currentMonth &&
-            //     $selectedYear == $currentYear
-            // );
+                $now = now();
+                $selectedMonth = (int) $req->month_name;
+                $selectedYear = (int) $req->year;
 
-            // // Previous month is allowed only before 5th of current month
-            // $previousDate = now()->subMonth();
+                $selectedDate = Carbon::create(
+                    $selectedYear,
+                    $selectedMonth,
+                    1
+                )->startOfMonth();
 
-            // $isPreviousMonthAllowed = (
-            //     $selectedMonth == $previousDate->month &&
-            //     $selectedYear == $previousDate->year &&
-            //     $today <= 5
-            // );
+                $isCurrentMonth = $selectedDate->isSameMonth($now);
 
-            // if (!$isCurrentMonth && !$isPreviousMonthAllowed) {
-            //     return response()->json([
-            //         'error' => true,
-            //         'msg' => 'You are trying to enter data for a previous month, which is not allowed by the system. Please enter data only for the current month.'
-            //     ]);
-            // }
-            //Checking if record already exists
-            $record = DB::table('information_rajasv_praptiya')->where('month_name', $req->month_name)->where('year', $req->year)->where('district_id', $req->district_id)->get();
-            if ($record->isNotEmpty()) {
-                $monthName = Carbon::create()->month($req->month_name)->format('F');
-                return response()->json(['error' => true, 'msg' => "Record already exists for " . $monthName . "," . $req->year]);
-            } else {
-                // Record does not exist
-                $data = [
-                    'month_name'              => $req->month_name,
-                    'year'                    => $req->year,
-                    'district_id'             => $req->district_id,
-                    'prasikshan'              => $req->prasikshan,
-                    'aarakshan'               => $req->aarakshan,
-                    'chatravas'               => $req->chatravas,
-                    'shokiya'                 => $req->shokiya,
-                    'tarantal'                => $req->tarantal,
-                    'any_praptiya'            => $req->any_praptiya,
-                    'mah_me_rajasv_praptiya'  => $req->mah_me_rajasv_praptiya,
-                    'pichala_yog'             => $req->pichala_yog,
-                    'varsh_ka_pragami_yog'    => $req->varsh_ka_pragami_yog,
-                    'vigat_varsh_isi_mah_tak' => $req->vigat_varsh_isi_mah_tak,
-                    'increment'               => $req->increment,
-                    'decrement'               => $req->decrement,
-                ];
-
-                if ($req->id) {
-                    DB::table('information_rajasv_praptiya')->where('id', $req->id)->update($data);
-                    return response()->json(['error' => false, 'msg' => "Data Update sucessfully", 'url' => route('rajasv_praptiya')]);
-                } else {
-                    DB::table('information_rajasv_praptiya')->insert($data);
-                    return response()->json(['error' => false, 'msg' => "Data Saved sucessfully", 'url' => route('rajasv_praptiya')]);
+                $isPreviousMonthAllowed =
+                    $now->day <= 5 &&
+                    $selectedDate->isSameMonth(
+                        $now->copy()->subMonth()
+                    );
+                if(!$isCurrentMonth){
+                    if ($isPreviousMonthAllowed or (in_array(Auth::guard('admin')->user()->id, [62,83,96,113,115]))) {
+                      $record = DB::table('information_rajasv_praptiya')->where('month_name', $req->month_name)->where('year', $req->year)->where('district_id', $req->district_id)->get();
+                        if ($record->isNotEmpty()) {
+                            $monthName = Carbon::create()->month($req->month_name)->format('F');
+                            return response()->json(['error' => true, 'msg' => "Record already exists for " . $monthName . "," . $req->year]);
+                        } else {
+                            // Record does not exist
+                            $data = [
+                                'month_name'              => $req->month_name,
+                                'year'                    => $req->year,
+                                'district_id'             => $req->district_id,
+                                'prasikshan'              => $req->prasikshan,
+                                'aarakshan'               => $req->aarakshan,
+                                'chatravas'               => $req->chatravas,
+                                'shokiya'                 => $req->shokiya,
+                                'tarantal'                => $req->tarantal,
+                                'any_praptiya'            => $req->any_praptiya,
+                                'mah_me_rajasv_praptiya'  => $req->mah_me_rajasv_praptiya,
+                                'pichala_yog'             => $req->pichala_yog,
+                                'varsh_ka_pragami_yog'    => $req->varsh_ka_pragami_yog,
+                                'vigat_varsh_isi_mah_tak' => $req->vigat_varsh_isi_mah_tak,
+                                'increment'               => $req->increment,
+                                'decrement'               => $req->decrement,
+                            ];
+    
+                            if ($req->id) {
+                                DB::table('information_rajasv_praptiya')->where('id', $req->id)->update($data);
+                                return response()->json(['error' => false, 'msg' => "Data Update sucessfully", 'url' => route('rajasv_praptiya')]);
+                            } else {
+                                DB::table('information_rajasv_praptiya')->insert($data);
+                                return response()->json(['error' => false, 'msg' => "Data Saved sucessfully", 'url' => route('rajasv_praptiya')]);
+                            }
+                        }
+                    }
+                    else{
+                        return response()->json([
+                            'error' => true,
+                            'msg' => 'Data entry is allowed only for the previous month until the 5th.'
+                        ]);
+                    }
+                }
+                else{
+                    return response()->json([
+                        'error' => true,
+                        'msg' => 'Data entry is allowed only for the previous month.'
+                    ]);
                 }
             }
+
+            // Checking if record already exists
+
             // return response()->json(['error' => false, 'msg' => "Data saved sucessfully"]);
         }
         $district_id_departmental = Auth::guard('admin')->user()->district_id;
@@ -690,7 +702,8 @@ class InformationDetailController extends Controller
         $division_id     = 0;
         $tehsils         = DB::table('tehsil_master')->select('Tehsil_Name', 'id')->where('dist_id', $district_id_departmental)->get();
         $rajasv_praptiya = DB::table('information_rajasv_praptiya')
-            ->join('hostel_div_district_mapping', 'information_rajasv_praptiya.district_id', '=', 'hostel_div_district_mapping.district_id');
+            ->join('hostel_div_district_mapping', 'information_rajasv_praptiya.district_id', '=', 'hostel_div_district_mapping.district_id')
+            ->join('cities','cities.id','=','hostel_div_district_mapping.district_id');
         if (Auth::guard('admin')->user()->admin_role == 1 || Auth::guard('admin')->user()->admin_role == 18) {
             $division  = DB::table('hostel_division_master')->select('division_name', 'id')->orderBy('division_name')->get();
             $districts = DB::table('cities')->select('city', 'id')->where('state_id', '23')->orderBy('city')->get();
@@ -832,7 +845,7 @@ class InformationDetailController extends Controller
         // }
         /** filter end */
         $rajasv_praptiya = $rajasv_praptiya->select('information_rajasv_praptiya.*')->orderBy('hostel_div_district_mapping.division_id', 'ASC')->orderBy('hostel_div_district_mapping.district_id', 'ASC')
-            ->orderBy('year', 'DESC')->orderBy('month_name', 'DESC')
+            ->orderBy('year', 'DESC')->orderBy('month_name', 'DESC')->orderBy('cities.city')
             ->get();
 
         $ed_data = null;
@@ -1867,13 +1880,13 @@ class InformationDetailController extends Controller
             if ($validation->fails()) {
                 return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
             }
-            if (!Auth::guard('admin')->user()->id == 117) {
+            if (Auth::guard('admin')->user()->admin_role == 2 or Auth::guard('admin')->user()->admin_role == 9) {
                 $currentMonth = now()->month;
                 $currentYear  = now()->year;
                 $today        = now()->day;
 
                 // used $request inside of $req
-                $selectedMonth = (int) $request->month;
+                $selectedMonth = (int) $request->month_name;
                 $selectedYear  = (int) $request->year;
 
                 // Current month is allowed
@@ -1891,10 +1904,16 @@ class InformationDetailController extends Controller
                     $today <= 5
                 );
 
-                if (!$isCurrentMonth && !$isPreviousMonthAllowed) {
+                if ($isCurrentMonth) {
                     return response()->json([
                         'error' => true,
-                        'msg' => 'You are trying to enter data for a previous month, which is not allowed by the system. Please enter data only for the current month.'
+                        'msg' => 'You are trying to enter data for the current month, which is not allowed by the system. Please enter data only for the previous month.'
+                    ]);
+                }
+                if (!$isPreviousMonthAllowed) {
+                    return response()->json([
+                        'error' => true,
+                        'msg' => 'You are trying to enter data for a month that is not allowed by the system. Please enter data only for the previous month.'
                     ]);
                 }
             }

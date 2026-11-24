@@ -106,7 +106,7 @@
                     </tr>
                     <tr>
                         <th colspan="2" style="font-size: 10pt; text-align:left">
-                            <strong>Year : </strong> 2024-2025
+                            <strong>Year : </strong> @if(date('m') >= 4){{date('Y')}}-{{date('Y')+1}} @else{{date('Y', strtotime('-1 year'))}}-{{date('Y')}} @endif
                         </th>
                     </tr>
                 </thead>

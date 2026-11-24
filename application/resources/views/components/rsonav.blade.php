@@ -2,15 +2,15 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-3 col-md-1 b-right">
-				<img src="{{ asset('') }}/assets_admin/images/logo.png" alt="" class="dash-logo"/>
+				<img src="{{ asset('') }}/assets_admin/images/logo.png" alt="" class="dash-logo" />
 			</div>
-					<div class="col-9 col-md-11">
-						<div class="row modulebg">
+			<div class="col-9 col-md-11">
+				<div class="row modulebg">
 					<div class="col">
-						<h4 class="moudlename">Department of Sports                          
-                                    <span class="department-logo">
-Government of Uttar Pradesh</span>
-                            </h4>
+						<h4 class="moudlename">Department of Sports
+							<span class="department-logo">
+								Government of Uttar Pradesh</span>
+						</h4>
 					</div>
 					<div class="col-auto">
 						<nav class="navbar navbar-expand-lg topmenu">
@@ -20,14 +20,14 @@ Government of Uttar Pradesh</span>
 									<li class="nav-item active"><a class="nav-link" href="{{url('admin/dashboard')}}"><span class="icons icon-speedometer"></span> Dashboard </a>
 									</li>
 									<li class="nav-item"><a href="#" class="profileicon">
-                                                <span class="icons icon-user"></span></a>
+											<span class="icons icon-user"></span></a>
 										<div class="sidebar">
 											<div class="profiletitle">RSO Login <span class="text-uppercase">Applicant</span> </div>
 											<div class="scrollwrap">
 												<div>
 													<ul class="navsidebar">
-														<!--<li class="nav-item"><a href="user-profile.html"><span class="icons icon-user"></span> Profile</a> </li>-->
-														<li class="nav-item"><a href="{{ route('adminChangePassword') }}"><span class="icons icon-lock"></span>  Change Password</a> </li>
+														<li class="nav-item"><a href="{{ route('adminprofile') }}"><span class="icons icon-user"></span> Profile & Settings</a> </li>
+														<li class="nav-item"><a href="{{ route('adminChangePassword') }}"><span class="icons icon-lock"></span> Change Password</a> </li>
 													</ul>
 												</div>
 											</div>

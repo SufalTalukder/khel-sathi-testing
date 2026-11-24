@@ -34,7 +34,7 @@
                                                         <option value="">Select District</option>
                                                         @foreach ($cities as $city)
                                                             <option value="{{ $city->id }}"
-                                                                @if (isset($applicationview->stad_city) && $applicationview->stad_city == $city->id) selected @endif>
+                                                                {{ ($applicationview->stad_district ?? '') == $city->id ? 'selected' : '' }}>
                                                                 {{ $city->city }}</option>
                                                         @endforeach
                                                     </select>
@@ -49,10 +49,10 @@
                                                     <select class="form-select form-control"
                                                         aria-label="Default select example" name="stadium" required id="stadium">
                                                         <option value="">Select Stadium</option>
-                                                        @foreach ($stadium as $item)
-                                                            <option value="{{ $item->id }}"
-                                                                @if (isset($applicationview->stadium) && $applicationview->stadium == $item->id) selected @endif>
-                                                                {{ $item->studium_name }}</option>
+                                                        @foreach ($stadiums as $stadium)
+                                                            <option value="{{ $stadium->id }}"
+                                                                {{ ($applicationview->stadium ?? '') == $stadium->id ? 'selected' : '' }}>
+                                                                {{ $stadium->studium_name }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -83,7 +83,7 @@
                                                 <select class="form-control form-select" name="sub_type" id="sub_type" {{ $hasSubSports ? 'required' : '' }} required>
                                                     <option value="">Select/चुनें</option>
                                                     @foreach($subSports as $sub)
-                                                        <option value="{{ $sub->id }}" {{ ($basic_detail->sub_sport_type ?? '') == $sub->id ? 'selected' : '' }}>{{ $sub->sub_type }}</option>
+                                                        <option value="{{ $sub->id }}" {{ ($basic_detail->sub_type ?? '') == $sub->id ? 'selected' : '' }}>{{ $sub->sub_type }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\SmsMail;
 use App\Models\FacilityRegister;
+use App\Models\DivisionModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -316,6 +317,7 @@ class FacilityBookingController extends Controller
         }
 
         $districts = DB::table('cities')->where('state_id', '23')->orderBy('city')->get();
+        $stadiums = DB::table('studium_master')->get();
         $sports = DB::table('sport_type')->where('status', 1)->get();
 
         if ($request->method() == 'POST') {
@@ -569,7 +571,7 @@ class FacilityBookingController extends Controller
             $facility_booking_service_attachment =  DB::table('facility_booking_service_attachment')->insertGetId($facility_booking_service_attachment);
             return response()->json(['error' => false, 'msg' => 'Application Submitted successfully.', 'url' => route('facility_booking_application_preview', $Application_id)]);
         }
-        return view("facility_booking.application_form", compact('districts', 'sports'));
+        return view("facility_booking.application_form", compact('districts', 'stadiums', 'sports'));
     }
 
     public function application_update(Request $request, $id)
@@ -982,10 +984,24 @@ class FacilityBookingController extends Controller
                 '=',
                 'facility_booking_type_detail.id'
             )
+            ->leftJoin(
+                'hostel_div_district_mapping',
+                'hostel_div_district_mapping.district_id',
+                '=',
+                'facility_booking_service_detail.location'
+            )
+            ->leftJoin(
+                'cities',
+                'cities.id',
+                '=',
+                'facility_booking_service_detail.location'
+            )
             ->select(
                 'facility_booking_type_detail.id as id_application',
                 'facility_booking_type_detail.application_no',
                 'facility_booking_type_detail.service',
+                'cities.city as district_name',
+                'facility_booking_service_detail.location as district_id',
                 'facility_booking_register.name',
                 'facility_booking_register.email',
                 'facility_booking_register.mobile',
@@ -1020,6 +1036,132 @@ class FacilityBookingController extends Controller
             );
         }
 
+
+
+if ($request->filled('division_id')) {
+    $districtIds = DB::table('hostel_div_district_mapping')
+        ->where('division_id', $request->division_id)
+        ->pluck('district_id')
+        ->toArray();
+
+    $application->whereIn(
+        'facility_booking_service_detail.location',
+        $districtIds
+    );
+}
+
+if ($request->filled('district_id')) {
+    $application->where(
+        'facility_booking_service_detail.location',
+        $request->district_id
+    );
+}
+
+if ($request->filled('stadium')) {
+    $application->where(
+        'facility_booking_service_detail.stadium',
+        $request->stadium
+    );
+}
+
+if ($request->filled('status')) {
+    $status = (string)$request->status;
+    if ($status === '1') {
+        // Accepted
+        $application->where('facility_booking_type_detail.status', 1)
+            ->where(function ($q) {
+                $q->whereNull('facility_booking_type_detail.query_status')
+                  ->orWhere('facility_booking_type_detail.query_status', '!=', 1);
+            });
+    } elseif ($status === '2') {
+        // Rejected
+        $application->where('facility_booking_type_detail.status', 2);
+    } elseif ($status === '0') {
+        // Pending
+        $application->where(function ($q) {
+            $q->whereNull('facility_booking_type_detail.status')
+              ->orWhere('facility_booking_type_detail.status', 0);
+        })->where(function ($q) {
+            $q->whereNull('facility_booking_type_detail.query_status')
+              ->orWhere('facility_booking_type_detail.query_status', 0);
+        });
+    } elseif ($status === 'query_marked') {
+        // Query Marked
+        $application->where('facility_booking_type_detail.query_status', 1);
+    } elseif ($status === 're_submitted') {
+        // Re-Submitted
+        $application->where('facility_booking_type_detail.query_status', 2)
+            ->where(function ($q) {
+                $q->whereNull('facility_booking_type_detail.status')
+                  ->orWhereNotIn('facility_booking_type_detail.status', [1, 2]);
+            });
+    }
+}
+
+if ($request->filled('payment_status')) {
+    $payStatus = (string)$request->payment_status;
+    if ($payStatus === '1') {
+        // Success / Paid
+        $application->where('facility_booking_type_detail.status', 1)
+            ->where('facility_booking_type_detail.payment_status', 1);
+    } elseif ($payStatus === '0') {
+        // Pending Payment
+        $application->where('facility_booking_type_detail.status', 1)
+            ->where(function ($q) {
+                $q->whereNull('facility_booking_type_detail.payment_status')
+                  ->orWhere('facility_booking_type_detail.payment_status', '!=', 1);
+            })
+            ->where(function ($q) {
+                $q->whereNull('facility_booking_type_detail.fee_exemption_status')
+                  ->orWhere('facility_booking_type_detail.fee_exemption_status', '!=', 1);
+            });
+    } elseif ($payStatus === 'fee_exemption') {
+        // Fee Exemption
+        $application->where('facility_booking_type_detail.status', 1)
+            ->where('facility_booking_type_detail.fee_exemption_status', 1);
+    } elseif ($payStatus === 'na') {
+        // NA (Not Applicable / Not yet accepted)
+        $application->where(function ($q) {
+            $q->whereNull('facility_booking_type_detail.status')
+              ->orWhere('facility_booking_type_detail.status', '!=', 1);
+        });
+    }
+}
+
+        $divisions          =   DivisionModel::select('division_name', 'id')->get();
+        if ($request->filled('division_id')) {
+            $districts      =   DB::table('cities')
+                                ->join('hostel_div_district_mapping', 'cities.id', '=', 'hostel_div_district_mapping.district_id')
+                                ->where('hostel_div_district_mapping.division_id', $request->division_id)
+                                ->where('cities.state_id', '23')
+                                ->select('cities.city as city', 'cities.id as id')
+                                ->orderBy('cities.city', 'asc')
+                                ->get();
+        } else {
+            $districts      =   collect([]);
+        }
+        $stadiums           =   DB::table('studium_master')
+                                ->join('cities','studium_master.district_id','=','cities.id')
+                                ->where('cities.state_id','23')
+                                ->select('studium_master.*')
+                                ->get();
+
+ if(Auth::guard('admin')->user()->admin_role==2){
+            $application->where('hostel_div_district_mapping.division_id', Auth::guard('admin')->user()->division_id);
+            $districts      =   DB::table('cities')->join('hostel_div_district_mapping','cities.id','=','hostel_div_district_mapping.district_id')->where('hostel_div_district_mapping.division_id', Auth::guard('admin')->user()->division_id)->select('cities.city as city' , 'cities.id as id')->where('cities.state_id', '23')->orderBy('cities.city', 'asc')->get();
+            $stadiums       =   DB::table('studium_master')
+                                ->join('cities','studium_master.district_id','=','cities.id')
+                                ->join('hostel_div_district_mapping','cities.id','=','hostel_div_district_mapping.district_id')
+                                ->where('hostel_div_district_mapping.division_id', Auth::guard('admin')->user()->division_id)
+                                ->where('cities.state_id','23')
+                                ->select('studium_master.*')
+                                ->get();
+        }
+        if(Auth::guard('admin')->user()->admin_role==9){
+            $application->where('hostel_div_district_mapping.district_id', Auth::guard('admin')->user()->district_id);
+            $stadiums       =   DB::table('studium_master')->join('cities','studium_master.district_id','=','cities.id')->join('hostel_div_district_mapping','cities.id','=','hostel_div_district_mapping.district_id')->where('hostel_div_district_mapping.district_id', Auth::guard('admin')->user()->district_id)->where('cities.state_id','23')->get();
+        }
+
         // AJAX Request
         if ($request->ajax()) {
             $totalRecords = $application->count();
@@ -1032,24 +1174,28 @@ class FacilityBookingController extends Controller
                     $query->where('facility_booking_register.name', 'LIKE', "%{$search}%")
                         ->orWhere('facility_booking_register.email', 'LIKE', "%{$search}%")
                         ->orWhere('facility_booking_register.mobile', 'LIKE', "%{$search}%")
-                        ->orWhere('facility_booking_type_detail.application_no', 'LIKE', "%{$search}%");
+                        ->orWhere('facility_booking_type_detail.application_no', 'LIKE', "%{$search}%")
+                        ->orWhere('cities.city', 'LIKE', "%{$search}%");
                 });
             }
             $filteredRecords = $application->count();
 
             // Pagination
             $start  = $request->start ?? 0;
-            $length = $request->length ?? 10;
+            $length = $request->length ?? 25;
 
             // Ordering
             $columns = [
                 0 => 'facility_booking_type_detail.id',
                 1 => 'facility_booking_type_detail.application_no',
                 2 => 'facility_booking_type_detail.service',
-                3 => 'facility_booking_register.name',
-                4 => 'facility_booking_register.email',
-                5 => 'facility_booking_register.mobile',
-                6 => 'facility_booking_type_detail.status',
+                3 => 'cities.city',
+                4 => 'facility_booking_register.name',
+                5 => 'facility_booking_register.email',
+                6 => 'facility_booking_register.mobile',
+                7 => 'facility_booking_type_detail.final_submit_date',
+                8 => 'facility_booking_type_detail.status',
+                9 => 'facility_booking_type_detail.payment_status',
             ];
 
             $orderColumnIndex = $request->order[0]['column'] ?? 0;
@@ -1071,7 +1217,9 @@ class FacilityBookingController extends Controller
             ]);
         }
 
-        return view('facility_booking.admin_dashbboard', compact('type'));
+        $status = $request->input('status');
+        $payment_status = $request->input('payment_status');
+        return view('facility_booking.admin_dashbboard', compact('type','districts','divisions','stadiums','status','payment_status'));
     }
 
     // Updated preview
@@ -1185,7 +1333,8 @@ class FacilityBookingController extends Controller
         $application =  DB::table('facility_booking_register')
             ->leftJoin('facility_booking_type_detail', 'facility_booking_type_detail.user_id', '=', 'facility_booking_register.id')
             ->leftJoin('facility_booking_service_detail', 'facility_booking_service_detail.application_id', '=', 'facility_booking_type_detail.id')
-            ->select('facility_booking_type_detail.id as id_application', 'facility_booking_type_detail.*', 'facility_booking_register.*')
+            ->leftJoin('cities', 'cities.id', '=', 'facility_booking_service_detail.location')
+            ->select('facility_booking_type_detail.id as id_application', 'facility_booking_type_detail.*', 'facility_booking_register.*', 'cities.city as district_name')
             ->where('service', $type)
             ->where('facility_booking_type_detail.final_submit', 1);
 
@@ -1290,7 +1439,7 @@ class FacilityBookingController extends Controller
         ]);
 
         $start = (int) $req->input('start', 0);
-        $pageLength = (int) $req->input('length', 10);
+        $pageLength = (int) $req->input('length', 25);
         $draw = (int) $req->input('draw', 0);
 
         $query = DB::table('facility_booking_register as fbr')
@@ -1306,6 +1455,12 @@ class FacilityBookingController extends Controller
                 '=',
                 'fbtd.id'
             )
+            ->leftJoin(
+                'cities',
+                'cities.id',
+                '=',
+                'fbsd.location'
+            )
             ->select(
                 'fbtd.id as id_application',
                 'fbtd.accept_reject_date',
@@ -1315,6 +1470,7 @@ class FacilityBookingController extends Controller
                 'fbtd.application_no',
                 'fbtd.service',
                 'fbtd.booking_type',
+                'cities.city as district_name',
                 'fbr.name',
                 'fbr.email',
                 'fbr.mobile',
@@ -1363,8 +1519,64 @@ class FacilityBookingController extends Controller
                     ->orWhere('fbtd.booking_type', 'like', $term)
                     ->orWhere('fbr.name', 'like', $term)
                     ->orWhere('fbr.email', 'like', $term)
-                    ->orWhere('fbr.mobile', 'like', $term);
+                    ->orWhere('fbr.mobile', 'like', $term)
+                    ->orWhere('cities.city', 'like', $term);
             });
+        }
+
+        if ($req->filled('status')) {
+            $status = (string)$req->status;
+            if ($status === '1') {
+                $query->where('fbtd.status', 1)
+                    ->where(function ($q) {
+                        $q->whereNull('fbtd.query_status')
+                          ->orWhere('fbtd.query_status', '!=', 1);
+                    });
+            } elseif ($status === '2') {
+                $query->where('fbtd.status', 2);
+            } elseif ($status === '0') {
+                $query->where(function ($q) {
+                    $q->whereNull('fbtd.status')
+                      ->orWhere('fbtd.status', 0);
+                })->where(function ($q) {
+                    $q->whereNull('fbtd.query_status')
+                      ->orWhere('fbtd.query_status', 0);
+                });
+            } elseif ($status === 'query_marked') {
+                $query->where('fbtd.query_status', 1);
+            } elseif ($status === 're_submitted') {
+                $query->where('fbtd.query_status', 2)
+                    ->where(function ($q) {
+                        $q->whereNull('fbtd.status')
+                          ->orWhereNotIn('fbtd.status', [1, 2]);
+                    });
+            }
+        }
+
+        if ($req->filled('payment_status')) {
+            $payStatus = (string)$req->payment_status;
+            if ($payStatus === '1') {
+                $query->where('fbtd.status', 1)
+                    ->where('fbtd.payment_status', 1);
+            } elseif ($payStatus === '0') {
+                $query->where('fbtd.status', 1)
+                    ->where(function ($q) {
+                        $q->whereNull('fbtd.payment_status')
+                          ->orWhere('fbtd.payment_status', '!=', 1);
+                    })
+                    ->where(function ($q) {
+                        $q->whereNull('fbtd.fee_exemption_status')
+                          ->orWhere('fbtd.fee_exemption_status', '!=', 1);
+                    });
+            } elseif ($payStatus === 'fee_exemption') {
+                $query->where('fbtd.status', 1)
+                    ->where('fbtd.fee_exemption_status', 1);
+            } elseif ($payStatus === 'na') {
+                $query->where(function ($q) {
+                    $q->whereNull('fbtd.status')
+                      ->orWhere('fbtd.status', '!=', 1);
+                });
+            }
         }
 
         // Service filter

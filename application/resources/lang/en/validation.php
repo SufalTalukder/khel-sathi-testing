@@ -142,8 +142,8 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'profile_image' => [
+            'max' => 'The profile image must not be greater than 2 MB.',
         ],
     ],
 

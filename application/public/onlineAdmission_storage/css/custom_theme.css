@@ -1,4 +1,4 @@
-﻿@charset "utf-8";
+@charset "utf-8";
 /* CSS Document */
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800&display=swap');
 body {
@@ -1705,7 +1705,7 @@ input:checked + .slider .off {
 	padding: 4px 6px;
 }
 .rounded {
-	border-radius: 10.25rem !important;
+	border-radius: 0.25rem !important;
 }
 .field-icon {
 	float: right;

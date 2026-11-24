@@ -37,7 +37,8 @@
                                                                 Khel Bhawan Hazratganj Lucknow, Uttar Pradesh 226001
                                                             </h2>
                                                             <h5 style="text-align: center; margin:10px 0px 0px 0px; font-size:16pt; padding: 0px; color:#383838; font-weight: bold;">
-                                                                Registration of Private Coaching Academies/Associations
+                                                                {{-- Registration of Private Coaching Academies/Associations --}}
+                                                                Registration of Gyms & Swimming Pools
                                                             </h5>
                                                         </div>
                                                         <h6 style="text-align: center; margin:10px 0px 15px 0px; font-size:12pt; padding: 0px; color:#383838; font-weight: bold; text-decoration:underline;">

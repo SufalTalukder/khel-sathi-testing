@@ -261,7 +261,7 @@ width: 100%;
 
 
 
-                <table id="dataTable" class="table table_new datatable table-bordred table-hover bg-white">
+                <table id="dataTable" class="table table_new table-bordred table-hover bg-white">
                     <thead>
                         <tr>
                             <th>S.No.</th>
@@ -295,7 +295,7 @@ width: 100%;
                         @if (!empty($registrations))
                             @foreach ($registrations as $key => $registration)
                                 <tr>
-                                    <td>{{ $key + 1 }}</td>
+                                    <td>{{ method_exists($registrations, 'firstItem') ? ($registrations->firstItem() + $key) : ($key + 1) }}</td>
                                     <td class="text-center"><a
                                             href="{{ url('/collegeadmin/admission-detail/') }}/{{ $registration->register_id }}"
                                             class="btn btn-sm btn-dark rounded-pill border-0" target="_blank"><i
@@ -427,6 +427,20 @@ width: 100%;
                         @endif
                     </tbody>
                 </table>
+                @if(method_exists($registrations, 'links'))
+                <div class="row mt-3 mb-2 align-items-center">
+                    <div class="col-sm-6">
+                        <div class="dataTables_info text-muted fw-semibold">
+                            Showing {{ $registrations->firstItem() ?? 0 }} to {{ $registrations->lastItem() ?? 0 }} of {{ $registrations->total() }} entries
+                        </div>
+                    </div>
+                    <div class="col-sm-6 text-end">
+                        <div class="d-inline-block">
+                            {{ $registrations->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>

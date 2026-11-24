@@ -89,7 +89,7 @@
                                                                 class="text-danger">*</span></label>
                                                         <select name="year" required class="form-control form-select">
                                                             <option value=''>--select--</option>
-                                                            @for ($i = 2000; $i <= date('Y'); $i++)
+                                                            @for ($i = date('Y'); $i >=2020 ; $i--)
                                                                 {
                                                                 <option @if (isset($ed_data->year) && $ed_data->year == $i) selected @endif
                                                                     value={{ $i }}>{{ $i }}</option>

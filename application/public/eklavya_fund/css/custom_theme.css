@@ -1,4 +1,4 @@
-﻿.deptname h1,
+.deptname h1,
 .deptname h2 {
     font-weight: 900
 }
@@ -1466,7 +1466,7 @@ input:checked + .slider:before {
 }
 
 .rounded {
-    border-radius: 10.25rem !important
+    border-radius: 0.25rem !important;
 }
 
 .field-icon {

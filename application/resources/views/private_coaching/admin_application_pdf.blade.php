@@ -51,7 +51,8 @@
         </div>
 
         <h6 style="text-align: center; margin: 4px 0 0; font-size: 12pt; padding: 0; color: #000;">
-            Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools
+            {{-- Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools --}}
+            Registration of Gyms & Swimming Pools
         </h6>
         <h6
             style="text-align: center; margin: 2px 0 4px; font-size: 11pt; padding: 0; color: #000; text-decoration: underline;">
@@ -73,6 +74,7 @@
                 <tr>
                     <th>S.No.</th>
                     <th>Application No.</th>
+                    <th>District</th>
                     <th>Name</th>
                     <th>Designation</th>
                     <th>Institution Name</th>
@@ -88,6 +90,7 @@
                         <tr>
                             <td>{{ $key + 1 }}</td>
                             <td>{{ $item->application_no }}</td>
+                            <td>{{ !empty($item->district_name) ? repairHindi($item->district_name) : (!empty($item->district) ? districtName($item->district) : '-') }}</td>
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->designation }}</td>
                             <td>{{ $item->institute_name }}</td>

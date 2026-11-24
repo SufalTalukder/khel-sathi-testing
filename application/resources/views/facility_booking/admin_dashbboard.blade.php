@@ -22,21 +22,181 @@
                 class="btn btn-sm btn-primary float-end" target="_blank" rel="noopener noreferrer"> Export PDF</a>
         </h4>
     </div>
+
+
+
+
+    {{-- Booking Filters --}}
     <div class="card">
         <div class="card-body">
-            <div class="table-responsive table-bordred">
-                <table id="dataTableaa121" class="table table_new table-bordred table-hover bg-white">
-                    <thead>
+            <div class="mb-4">
+                <form class="row g-2 align-items-end" id="bookingFilterForm" method="post" action="{{ route('admin_facility_booking_dashboard', $type) }}">
+                    @csrf
+                    @if (Auth::guard('admin')->user()->admin_role == 1)
+                        <div class="col-md-2 col-sm-6">
+                            <div class="form-group mb-0">
+                                <label for="division_id">Division</label>
+                                <select name="division_id" id="division_id" class="form-select">
+                                    <option value="">Select Division</option>
+                                    @foreach ($divisions as $key => $item)
+                                        <option value="{{ $item->id }}"
+                                            {{ (string)request()->input('division_id') === (string)$item->id ? 'selected' : '' }}>
+                                            {{ $item->division_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    @endif
+                    @if (Auth::guard('admin')->user()->admin_role == 1 || Auth::guard('admin')->user()->admin_role == 2)
+                        <div class="col-md-2 col-sm-6">
+                            <div class="form-group mb-0">
+                                <label for="district_id">District</label>
+                                <select name="district_id" id="district_id" class="form-select">
+                                    <option value="">Select District</option>
+                                    @foreach ($districts as $key => $item)
+                                        <option value="{{ $item->id }}"
+                                            {{ (string)request()->input('district_id') === (string)$item->id ? 'selected' : '' }}>
+                                            {{ repairHindi($item->city) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    @endif
+                    <div class="col-md-2 col-sm-6">
+                        <div class="form-group mb-0">
+                            <label for="stadium">Stadium</label>
+                            <select name="stadium" id="stadium" class="form-select">
+                                <option value="">Select Stadium</option>
+                                @foreach ($stadiums as $key => $iten)
+                                    <option value="{{ $iten->id }}"
+                                        {{ (string)request()->input('stadium') === (string)$iten->id ? 'selected' : '' }}>
+                                        {{ $iten->studium_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2 col-sm-6">
+                        <div class="form-group mb-0">
+                            <label for="status">Application Status</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">All</option>
+                                <option value="1" {{ (string)request()->input('status') === '1' ? 'selected' : '' }}>Accepted</option>
+                                <option value="2" {{ (string)request()->input('status') === '2' ? 'selected' : '' }}>Rejected</option>
+                                <option value="0" {{ (string)request()->input('status') === '0' ? 'selected' : '' }}>Pending</option>
+                                <option value="query_marked" {{ request()->input('status') === 'query_marked' ? 'selected' : '' }}>Query Marked</option>
+                                <option value="re_submitted" {{ request()->input('status') === 're_submitted' ? 'selected' : '' }}>Re-Submitted</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2 col-sm-6">
+                        <div class="form-group mb-0">
+                            <label for="payment_status">Payment Status</label>
+                            <select name="payment_status" id="payment_status" class="form-select">
+                                <option value="">All</option>
+                                <option value="1" {{ (string)request()->input('payment_status') === '1' ? 'selected' : '' }}>Success / Paid</option>
+                                <option value="0" {{ (string)request()->input('payment_status') === '0' ? 'selected' : '' }}>Pending</option>
+                                <option value="fee_exemption" {{ request()->input('payment_status') === 'fee_exemption' ? 'selected' : '' }}>Fee Exemption</option>
+                                <option value="na" {{ request()->input('payment_status') === 'na' ? 'selected' : '' }}>NA</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2 col-sm-12 d-flex gap-2">
+                        <button type="button" id="applyBookingFilters" class="btn btn-primary flex-fill">Apply Filters</button>
+                        <button type="button" id="resetBookingFilters" class="btn btn-secondary flex-fill">Reset</button>
+                    </div>
+
+                </form>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <script>
+        var defaultDistrictHtml = $('#district_id').html();
+        var defaultStadiumHtml = $('#stadium').html();
+
+        $("#division_id").on("change", function() {
+            var division = $(this).val();
+            var district = $('#district_id').val();
+            var stadium = $('#stadium').val();
+            if (division) {
+                $.ajax({
+                    type: "GET",
+                    url: ajaxUrl + "/getCitybyDiv/" + division + '/' + (district || ''),
+                    success: function(html) {
+                        html = html.replace('Select City', 'Select District');
+                        $("#district_id").html(html);
+                    },
+                });
+                $.ajax({
+                    type: "GET",
+                    url: ajaxUrl + "/getStadiumbyDiv/" + division + '/' + (district || '') + '/' + (stadium || ''),
+                    success: function(html) {
+                        $("#stadium").html(html);
+                    },
+                });
+            } else {
+                $("#district_id").html('<option value="">Select District</option>').val('');
+                $("#stadium").html(defaultStadiumHtml).val('');
+            }
+        });
+
+        $("#district_id").on("change", function() {
+            var division = $('#division_id').val();
+            var district = $('#district_id').val();
+            var stadium = $('#stadium').val();
+            if (division || district) {
+                $.ajax({
+                    type: "GET",
+                    url: ajaxUrl + "/getStadiumbyDiv/" + (division || '0') + '/' + (district || '') + '/' + (stadium || ''),
+                    success: function(html) {
+                        $("#stadium").html(html);
+                    },
+                });
+            } else {
+                $("#stadium").html(defaultStadiumHtml).val('');
+            }
+        });
+
+        $('#applyBookingFilters').on('click', function() {
+            $('#dataTableaa121').DataTable().ajax.reload();
+        });
+
+        $('#resetBookingFilters').on('click', function() {
+            $('#division_id').val('');
+            $('#district_id').html('<option value="">Select District</option>').val('');
+            $('#stadium').html(defaultStadiumHtml).val('');
+            $('#status').val('');
+            $('#payment_status').val('');
+            $('#dataTableaa121').DataTable().ajax.reload();
+        });
+    </script>
+
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3 p-lg-4">
+            <div class="table-responsive">
+                <table id="dataTableaa121" class="table table--striped table-hover align-middle w-100 mb-0">
+                    <thead class="table-primary">
                         <tr>
 
                             <th>S.No.</th>
                             <th>Booking No.</th>
                             <th>Booking Type</th>
+                            <th>District</th>
                             <th>Name</th>
                             <th>Email ID</th>
                             <th class="text-center">Mobile No.</th>
-                            <th class="text-center">Status of Application</th>
                             <th class="text-center">Application Date</th>
+                            <th class="text-center">Status of Application</th>
                             <th class="text-center">Payment Status</th>
                             <th class="text-center">Action</th>
                         </tr>
@@ -62,9 +222,30 @@
                                             Stadium
                                         @endif
                                     </td>
+                                    <td>
+                                        {{ !empty($item->district_name) ? repairHindi($item->district_name) : (!empty($item->location) ? districtName($item->location) : '-') }}
+                                    </td>
                                     <td>{{ $item->name }}</td>
                                     <td>{{ $item->email }}</td>
                                     <td class="text-center">{{ $item->mobile }}</td>
+
+
+                                    <td class="text-center">
+
+                                        @if ($item->status == 1 && $item->final_submit == 1)
+                                            <br>{{ dmy($item->accept_reject_date) }}
+                                        @elseif ($item->status == 2 && $item->final_submit == 1)
+                                            <br>{{ dmy($item->accept_reject_date) }}
+                                        @elseif($item->final_submit == 1 && $item->query_status == 2)
+                                            {{ dmy($item->final_submit_date) }}
+                                        @elseif($item->final_submit == 1 && $item->query_status == 1)
+                                            {{ dmy($item->marked_on) }}
+                                        @elseif ($item->status == 1 && $item->final_submit == 1)
+                                            <br>{{ dmy($item->final_submit_date) }}
+                                        @else
+                                            <br>{{ dmy($item->final_submit_date) }}
+                                        @endif
+                                    </td>
 
 
                                     <td class="text-center">
@@ -82,27 +263,8 @@
                                                 Marked</button>
                                         @elseif ($item->status == 1 && $item->final_submit == 1)
                                             <span class="badge bg-primary ">Pending</span>
-
                                         @else
                                             <span class="badge bg-primary ">Pending</span>
-                                        @endif
-                                    </td>
-
-
-                                    <td class="text-center">
-
-                                        @if ($item->status == 1 && $item->final_submit == 1)
-                                            <br>{{ dmy($item->accept_reject_date) }}
-                                        @elseif ($item->status == 2 && $item->final_submit == 1)
-                                             <br>{{ dmy($item->accept_reject_date) }}
-                                        @elseif($item->final_submit == 1 && $item->query_status == 2)
-                                            {{ dmy($item->final_submit_date) }}
-                                        @elseif($item->final_submit == 1 && $item->query_status == 1)
-                                            {{ dmy($item->marked_on) }}
-                                        @elseif ($item->status == 1 && $item->final_submit == 1)
-                                            <br>{{ dmy($item->final_submit_date) }}
-                                        @else
-                                            <br>{{ dmy($item->final_submit_date) }}
                                         @endif
                                     </td>
 
@@ -117,8 +279,7 @@
                                             @if ($item->fee_exemption_status == 1)
                                                 <span class="badge bg-warning">Fee Exemption</span>
                                             @else
-                                                <span class="badge bg-primary ">Pending</span><br>
-                                                <strong> {{ $item->amount_to_be_paid }} INR. </strong>
+                                                <span class="badge bg-primary ">Pending</span>
                                             @endif
                                         @else
                                             NA
@@ -178,7 +339,8 @@
                                 <label class="placeholder">
                                     Message
                                 </label>
-                                <input type="text" class="form-control" value="" name="status_message" required>
+                                <input type="text" class="form-control" value="" name="status_message"
+                                    required>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -229,7 +391,7 @@
 
         $(document).ready(function() {
             $('#dataTableaa121').DataTable({
-                processing: true,
+                processing: false,
                 serverSide: true,
                 responsive: true,
                 scrollX: true,
@@ -238,20 +400,24 @@
                     url: "<?= url('admin/facility_booking/dashboard') ?>/" + id,
                     type: "POST",
                     data: function(d) {
-                        d._token = "<?= csrf_token() ?>";
+                        d._token = "{{ csrf_token() }}";
+                        d.division_id = $('#division_id').val() || '';
+                        d.district_id = $('#district_id').val() || '';
+                        d.stadium = $('#stadium').val() || '';
+                        d.status = $('#status').val() || '';
+                        d.payment_status = $('#payment_status').val() || '';
                     }
                 },
                 order: [
                     [0, 'desc']
                 ],
+                pageLength: 25,
+                iDisplayLength: 25,
                 lengthMenu: [
-                    [8, 10, 25, 50, 100],
-                    [8, 10, 25, 50, 100]
+                    [10, 25, 50, 100, 200, -1],
+                    [10, 25, 50, 100, 200, "All"]
                 ],
                 language: {
-                    processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>' +
-                        '<span class="sr-only">Loading...</span>',
-
                     lengthMenu: '_MENU_ Entries Per Page',
                     paginate: {
                         previous: 'Previous',
@@ -261,7 +427,7 @@
                 columnDefs: [{
                         searchable: false,
                         orderable: false,
-                        targets: [0, 8]
+                        targets: [0, 9, 10]
                     },
                     {
                         className: 'text-center',
@@ -308,6 +474,13 @@
                         }
                     },
                     {
+                        data: 'district_name',
+                        name: 'district_name',
+                        render: function(data, type, row) {
+                            return row.district_name ? row.district_name : '-';
+                        }
+                    },
+                    {
                         data: 'name',
                         name: 'name'
                     },
@@ -318,44 +491,6 @@
                     {
                         data: 'mobile',
                         name: 'mobile'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status',
-
-                        render: function(data, type, row) {
-
-                            if (row.status == 1 && row.final_submit == 1) {
-
-                                return `
-                            <span class="badge bg-success">Accepted</span><br>
-                        `;
-
-                            } else if (row.status == 2 && row.final_submit == 1) {
-
-                                return `
-                            <span class="badge bg-danger">Rejected</span><br>
-                        `;
-
-                            } else if (row.status == 1 && row.query_status == 2) {
-
-                                return `
-                            <span class="badge bg-warning">Re-Submitted</span><br>
-                        `;
-
-                            } else if (row.status == 1 && row.query_status == 1) {
-
-                                return `
-                            <span class="badge bg-info">Query Marked</span><br>
-                        `;
-
-                            } else {
-
-                                return `
-                            <span class="badge bg-primary">Pending</span><br>
-                        `;
-                            }
-                        }
                     },
                     {
                         data: 'date',
@@ -395,6 +530,25 @@
                         }
                     },
                     {
+                        data: 'status',
+                        name: 'status',
+
+                        render: function(data, type, row) {
+
+                            if (row.query_status == 1) {
+                                return `<span class="badge bg-info">Query Marked</span><br>`;
+                            } else if (row.query_status == 2 && (row.status != 1 && row.status != 2)) {
+                                return `<span class="badge bg-warning">Re-Submitted</span><br>`;
+                            } else if (row.status == 1 && row.final_submit == 1) {
+                                return `<span class="badge bg-success">Accepted</span><br>`;
+                            } else if (row.status == 2 && row.final_submit == 1) {
+                                return `<span class="badge bg-danger">Rejected</span><br>`;
+                            } else {
+                                return `<span class="badge bg-primary">Pending</span><br>`;
+                            }
+                        }
+                    },
+                    {
                         data: null,
                         name: 'payment_status',
 
@@ -421,8 +575,7 @@
                                 } else {
 
                                     return `
-                                <span class="badge bg-primary">Pending</span><br>
-                                <strong>${row.amount_to_be_paid} INR</strong>
+                                <span class="badge bg-primary">Pending</span>
                             `;
                                 }
 

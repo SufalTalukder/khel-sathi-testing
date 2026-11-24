@@ -7032,8 +7032,8 @@ class HostelTrailController extends Controller
         }
         $checkk = (int) $checkk;
 
-        ini_set("memory_limit", "512M");
-        ini_set('max_execution_time', 120);
+        ini_set("memory_limit", "2048M");
+        ini_set('max_execution_time', 600);
 
         $filter      = Session::get('filter_hostel', []);
         $sessionYear = config('app.session_year');
@@ -7070,8 +7070,56 @@ class HostelTrailController extends Controller
 
             $hostelList = DB::table('hostel_register as rg')
                 ->join('hostel_application_basic as basic', 'rg.id', '=', 'basic.hostel_register_id')
-                ->select('rg.*', 'basic.sports', 'basic.district_id', 'basic.sub_sport_type')
-                ->whereIn('rg.payment_status', [1, 2]);
+                ->leftJoin('cities', 'basic.district_id', '=', 'cities.id')
+                ->leftJoin('sport_master', 'basic.sports', '=', 'sport_master.id')
+                ->leftJoin('sub_sport_type', 'basic.sub_sport_type', '=', 'sub_sport_type.id')
+                ->select(
+                    'rg.*',
+                    'basic.sports',
+                    'basic.district_id',
+                    'basic.sub_sport_type',
+                    'cities.city as district_name',
+                    'sport_master.name as sport_name',
+                    'sub_sport_type.sub_type as subsport_name'
+                );
+
+            if (!empty($filter['sport_id'])) {
+                $hostelList->where('basic.sports', $filter['sport_id']);
+            }
+            if (!empty($filter['subsport'])) {
+                $hostelList->where('basic.sub_sport_type', $filter['subsport']);
+            }
+            if (!empty($filter['city_filter'])) {
+                $hostelList->where('basic.district_id', $filter['city_filter']);
+            }
+            if (!empty($filter['status_filter'])) {
+                $hostelList->where('rg.status', $filter['status_filter']);
+            }
+            if (!empty($filter['district_trial'])) {
+                $hostelList->where('rg.trial_one', $filter['district_trial']);
+            }
+            if (!empty($filter['division_trial'])) {
+                $hostelList->where('rg.trial_two', $filter['division_trial']);
+            }
+            if (!empty($filter['state_trial'])) {
+                $hostelList->where('rg.trial_three', $filter['state_trial']);
+            }
+            if (!empty($filter['gender'])) {
+                $hostelList->where('rg.gender', $filter['gender']);
+            }
+            if (isset($filter['cancelled']) && $filter['cancelled'] == 1) {
+                $hostelList->where('rg.cancel_status', 1);
+            } else {
+                $hostelList->whereNull('rg.cancel_status');
+            }
+            if (!empty($filter['payment_status'])) {
+                $hostelList->where('rg.payment_status', $filter['payment_status']);
+            } else {
+                $hostelList->whereIn('rg.payment_status', [1, 2]);
+            }
+            if (isset($filter['existing_student']) && $filter['existing_student'] == 1) {
+                $hostelList->where('rg.existing_student', $filter['existing_student']);
+            }
 
             if ($adminUser->division_id > 0 && !empty($divisionDistrictIds)) {
                 $hostelList->whereIn('basic.district_id', $divisionDistrictIds);
@@ -7080,8 +7128,9 @@ class HostelTrailController extends Controller
                 $hostelList->where('basic.district_id', $adminUser->district_id);
             }
 
+            $selectedYear = !empty($filter['session_year']) ? (string) $filter['session_year'] : $sessionYear;
             $hostelList = $hostelList
-                ->where('rg.session_year', $sessionYear)
+                ->where('rg.session_year', $selectedYear)
                 ->groupBy('rg.id')
                 ->get();
 
@@ -7111,10 +7160,17 @@ class HostelTrailController extends Controller
 
             $hostelList = DB::table('hostel_register as rg')
                 ->join('hostel_application_basic as basic', 'rg.id', '=', 'basic.hostel_register_id')
+                ->leftJoin('cities', 'basic.district_id', '=', 'cities.id')
+                ->leftJoin('sport_master', 'basic.sports', '=', 'sport_master.id')
+                ->leftJoin('sub_sport_type', 'basic.sub_sport_type', '=', 'sub_sport_type.id')
                 ->select(
                     'rg.*',
                     'basic.sports',
                     'basic.district_id',
+                    'basic.sub_sport_type',
+                    'cities.city as district_name',
+                    'sport_master.name as sport_name',
+                    'sub_sport_type.sub_type as subsport_name',
                     DB::raw('rg.physical_trial_four_marks + rg.skill_trial_four_marks AS total_mark')
                 )
                 ->where('rg.level', 4)
@@ -7172,10 +7228,17 @@ class HostelTrailController extends Controller
 
             $hostelList = DB::table('hostel_register as rg')
                 ->join('hostel_application_basic as basic', 'rg.id', '=', 'basic.hostel_register_id')
+                ->leftJoin('cities', 'basic.district_id', '=', 'cities.id')
+                ->leftJoin('sport_master', 'basic.sports', '=', 'sport_master.id')
+                ->leftJoin('sub_sport_type', 'basic.sub_sport_type', '=', 'sub_sport_type.id')
                 ->select(
                     'rg.*',
                     'basic.sports',
                     'basic.district_id',
+                    'basic.sub_sport_type',
+                    'cities.city as district_name',
+                    'sport_master.name as sport_name',
+                    'sub_sport_type.sub_type as subsport_name',
                     DB::raw('rg.physical_trial_one_marks + rg.skill_trial_one_marks AS total_mark')
                 )
                 ->where('rg.trial_one', 2)
@@ -7245,10 +7308,17 @@ class HostelTrailController extends Controller
 
             $hostelList = DB::table('hostel_register as rg')
                 ->join('hostel_application_basic as basic', 'rg.id', '=', 'basic.hostel_register_id')
+                ->leftJoin('cities', 'basic.district_id', '=', 'cities.id')
+                ->leftJoin('sport_master', 'basic.sports', '=', 'sport_master.id')
+                ->leftJoin('sub_sport_type', 'basic.sub_sport_type', '=', 'sub_sport_type.id')
                 ->select(
                     'rg.*',
                     'basic.sports',
                     'basic.district_id',
+                    'basic.sub_sport_type',
+                    'cities.city as district_name',
+                    'sport_master.name as sport_name',
+                    'sub_sport_type.sub_type as subsport_name',
                     DB::raw('rg.physical_trial_two_marks + rg.skill_trial_two_marks AS total_mark')
                 )
                 ->where('rg.level', 4)
@@ -7310,10 +7380,17 @@ class HostelTrailController extends Controller
 
             $hostelList = DB::table('hostel_register as rg')
                 ->join('hostel_application_basic as basic', 'rg.id', '=', 'basic.hostel_register_id')
+                ->leftJoin('cities', 'basic.district_id', '=', 'cities.id')
+                ->leftJoin('sport_master', 'basic.sports', '=', 'sport_master.id')
+                ->leftJoin('sub_sport_type', 'basic.sub_sport_type', '=', 'sub_sport_type.id')
                 ->select(
                     'rg.*',
                     'basic.sports',
                     'basic.district_id',
+                    'basic.sub_sport_type',
+                    'cities.city as district_name',
+                    'sport_master.name as sport_name',
+                    'sub_sport_type.sub_type as subsport_name',
                     DB::raw('rg.physical_trial_four_marks + rg.skill_trial_four_marks AS total_mark')
                 )
                 ->where('rg.level', 4)
@@ -7369,10 +7446,16 @@ class HostelTrailController extends Controller
 
             $hostelList = DB::table('hostel_register as rg')
                 ->join('hostel_application_basic as basic', 'rg.id', '=', 'basic.hostel_register_id')
+                ->leftJoin('cities', 'basic.district_id', '=', 'cities.id')
+                ->leftJoin('sport_master', 'basic.sports', '=', 'sport_master.id')
+                ->leftJoin('sub_sport_type', 'basic.sub_sport_type', '=', 'sub_sport_type.id')
                 ->select(
                     'rg.*',
                     'basic.*',
                     'basic.district_id',
+                    'cities.city as district_name',
+                    'sport_master.name as sport_name',
+                    'sub_sport_type.sub_type as subsport_name',
                     DB::raw('rg.physical_trial_three_marks + rg.skill_trial_three_marks AS total_mark')
                 )
                 ->where('rg.level', 4)
@@ -7420,10 +7503,16 @@ class HostelTrailController extends Controller
 
             $hostelList = DB::table('hostel_register as rg')
                 ->join('hostel_application_basic as basic', 'rg.id', '=', 'basic.hostel_register_id')
+                ->leftJoin('cities', 'basic.district_id', '=', 'cities.id')
+                ->leftJoin('sport_master', 'basic.sports', '=', 'sport_master.id')
+                ->leftJoin('sub_sport_type', 'basic.sub_sport_type', '=', 'sub_sport_type.id')
                 ->select(
                     'rg.*',
                     'basic.*',
                     'basic.district_id',
+                    'cities.city as district_name',
+                    'sport_master.name as sport_name',
+                    'sub_sport_type.sub_type as subsport_name',
                     DB::raw('rg.physical_trial_four_marks + rg.skill_trial_four_marks AS total_mark')
                 )
                 ->whereNotNull('rg.hostel_alloted_id')

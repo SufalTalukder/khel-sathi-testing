@@ -4,67 +4,23 @@
         <div class="pagebody removebg-color">
             <div class="row">
                 <div class="col-12">
-                    <div class="pageheader" id="menu-margin">
-                        <h4 class="mb-0">
+                    <div class="pageheader d-flex justify-content-between align-items-center flex-wrap" id="menu-margin" style="min-height: 48px;">
+                        <h4 class="mb-0 text-dark fw-bold">Application Preview</h4>
 
-                            Application Preview
-                            <button type="button" data-print="modal"
-                                class="btn btn-sm  btn-outline-primary ms-2 float-end rounded-pill"
-                                onclick="PrintDoc()"><span class="icons icon-printer"></span> Print</button>
+                        <div class="workflow-header-toolbar">
+                            @include('private_coaching.admin.workflow_actions', ['application' => $application, 'categoryValue' => 1])
 
                             <a href="{{ route('admin_private_coaching_dashboard') }}"
-                                class="btn btn-outline-danger btn-sm backbtn float-end rounded-pill"><span
-                                    class="icons icon-arrow-left"></span>Back to List</a>
-                            @if ($application->status == 1 && $application->final_submit == 1)
-                                <button type="button" class="btn btn-outline-success btn-sm float-end"> Accepted</button>
-                            @elseif ($application->status == 2 && $application->final_submit == 1)
-                                <button type="button" class="btn btn-outline-danger btn-sm float-end"> Rejected</button>
-                            @elseif (
-                                $application->final_submit == 1 &&
-                                    $application->query_status == 2 &&
-                                    Auth::guard('admin')->user()->admin_role != 17)
-                                <button type="button" class="btn btn-outline-primary btn-sm float-end">
-                                    Re-Submitted</button>
-                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#rejectModal"
-                                    class="btn btn-outline-danger btn-xs backbtn me-1 float-end">
-                                    Reject
-                                </a>
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#queryModal"
-                                    class="btn btn-outline-info btn-xs backbtn me-1 float-end">
-                                    Query Marked
-                                </a>
-                            @elseif($application->final_submit == 1 && $application->query_status == 1)
-                                <button type="button" data-bs-toggle="modal" data-bs-target="#queryModal"
-                                    class="btn btn-outline-warning btn-sm float-end"> Query
-                                    Marked</button>
-                            @else
-                                {{-- @if (Auth::guard('admin')->user()->admin_role == 17) --}}
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#acceptModal"
-                                    class="btn btn-outline-success btn-xs backbtn me-1 float-end">
-                                    Accept
-                                </a>
-                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#rejectModal"
-                                    class="btn btn-outline-danger btn-xs backbtn me-1 float-end">
-                                    Reject
-                                </a>
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#queryModal"
-                                    class="btn btn-outline-info btn-xs backbtn me-1 float-end">
-                                    Query
-                                </a>
-                                {{-- @else
-                                    <a href="#" data-bs-toggle="modal" data-bs-target="#queryModal"
-                                        class="btn btn-outline-info btn-xs backbtn me-1 float-end">
-                                        Query
-                                    </a>
-                                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#rejectModal"
-                                        class="btn btn-outline-danger btn-xs backbtn me-1 float-end">
-                                        Reject
-                                    </a>
-                                @endif --}}
-                            @endif
+                                class="btn btn-outline-danger btn-sm rounded-pill">
+                                <i class="fa fa-arrow-left"></i> Back to List
+                            </a>
 
-                        </h4>
-
+                            <button type="button" data-print="modal"
+                                class="btn btn-outline-primary btn-sm rounded-pill"
+                                onclick="PrintDoc()">
+                                <i class="fa fa-print"></i> Print
+                            </button>
+                        </div>
                     </div>
                     <div class="bhoechie-tab-container">
                         <div class="form-scroll">
@@ -95,7 +51,8 @@
                                                                 </h2>
                                                                 <h5
                                                                     style="text-align: center; margin:10px 0px 0px 0px; font-size:16pt; padding: 0px; color:#383838; font-weight: bold;">
-                                                                    Registration of Private Coaching Academies/Associations
+                                                                    {{-- Registration of Private Coaching Academies/Associations --}}
+                                                                    Registration of Gyms & Swimming Pools
                                                                 </h5>
                                                             </div>
                                                             <h6
@@ -523,75 +480,7 @@
 @push('custom-scripts')
 
 
-    <div class="modal fade" id="acceptModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="forwrdedLabel" aria-hidden="true">
 
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Accept</h5>
-
-                </div>
-                <form action="{{ route('admin_private_coaching_accepted_reject_status') }}" id="preregister"
-                    method="post" class="needs-validation" novalidate enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="row">
-                            <input type="hidden" name="application_id" value="{{ last(request()->segments()) }}">
-                            <input type="hidden" name="status" value="1">
-                            <input type="hidden" name="value" value="1">
-                            <div class="col-md-12 mb-3">
-                                <label>Remarks</label>
-                                <input type="text" class="form-control" name="remark" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
-
-                        <button type="submit" class="btn btn-outline-success">Submit</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-
-
-
-    <div class="modal fade" id="rejectModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="forwrdedLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Reject</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <form action="{{ route('admin_private_coaching_accepted_reject_status') }}" id="preregisterr"
-                    method="post" class="needs-validation" novalidate enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="modal-body">
-                            <div class="row">
-                                <input type="hidden" name="application_id" value="{{ last(request()->segments()) }}">
-                                <input type="hidden" name="status" value="2">
-                                <input type="hidden" name="value" value="1">
-                                <div class="col-md-12 mb-3">
-                                    <label>Remarks</label>
-                                    <input type="text" class="form-control" name="remark" required>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-
-                        <button type="submit" class="btn btn-outline-success">Submit</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
 
 
@@ -602,7 +491,7 @@
 
     <div class="modal fade" id="queryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
         aria-labelledby="forwrdedLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Query Marked</h5>
@@ -625,7 +514,7 @@
 
                                         <div class="row">
                                             <div class="col-md-12 mb-3">
-                                                <label>Query</label>
+                                                <label>Query <span class="text-danger">*</span></label>
                                                 <input type="text" name="remark" class="form-control" required>
                                             </div>
                                             <div class="col-md-12 mb-3">
@@ -686,7 +575,7 @@
 
                                 <div class="row">
                                     <div class="col-md-12 mb-3">
-                                        <label>Query</label>
+                                        <label>Query <span class="text-danger">*</span></label>
                                         <input type="text" name="remark" class="form-control" required>
                                     </div>
                                     <div class="col-md-12 mb-3">

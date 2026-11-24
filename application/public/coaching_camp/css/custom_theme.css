@@ -1,4 +1,4 @@
-﻿
+
 .ellipsis {
   white-space: nowrap;
   overflow: hidden;
@@ -204,7 +204,7 @@ legend small {
 .header {
     background-color: #fff;
     box-shadow: 0px 5px 25px rgba(0, 0, 0, 0.07);
-    position: fixed;
+    position: sticky;
     right: 0;
     left: 0;
     margin: 0px auto;
@@ -217,11 +217,38 @@ legend small {
     right: 250px;
 }
 
-.header .dash-logo {
+/* .header .dash-logo {
     max-width: 98%;
     margin-top: 2px;
+} */
+.dash-logo {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
 }
 
+@media (max-width: 767px) {
+    .header {
+        position: relative;
+    }
+    .header .modulebg {
+        width: 100%;
+        margin: 0;
+    }
+    .header .moudlename {
+        line-height: 20px;
+    }
+
+    .header .modulebg h1,
+    .header .modulebg h2 {
+        font-size: 12px;
+        line-height: 1.4;
+    }
+    .pagebody{
+        padding: 20px 0px 0px 0px!important;
+
+    }
+}
 .dashbg {
     background-color: rgb(233 233 233);
     /* background-image: url(../images/background9.jpg); */
@@ -373,7 +400,7 @@ legend small {
 .contentwraper {
     margin-right: 0px;
     transition-duration: .3s;
-    padding-top: 100px;
+    /* padding-top: 100px; */
     padding-bottom: 55px;
     /* background-image:url(../images/background9.png); */
     background-repeat: no-repeat;
@@ -2028,7 +2055,7 @@ input:checked+.slider .off {
 }
 
 .rounded {
-    border-radius: 10.25rem !important;
+    border-radius: 0.25rem !important;
 }
 
 .field-icon {

@@ -7,6 +7,8 @@
 		<div class="pageheader" id="menu-margin">
 			<h4 class="mb-0">List of Position Holder Award Applicant
             <a href="{{ url('darpan') }}"  class="btn btn-sm  btn-outline-primary ms-2 float-end " ><span class="icons icon-list"></span> Dashboard</a>
+            <a title="Print" class="btn btn btn-outline-success float-end" data-print="modal" onclick="PrintDoc()"><i
+                                class="icons icon-printer"></i> प्रिंट</a>
 			</h4>
 
 		</div>
@@ -72,7 +74,7 @@
 					</form>
 				</div>
 
-
+                <div id="prodiv">
 					<div class="table-responsive">
 						<table  id="dataTable" class="table table-striped table-bordered datatable">
 							<thead>
@@ -109,9 +111,23 @@
 						</table>
 
 					</div>
+                </div>
 			</div>
 		</div>
 
-
+<script>
+    function PrintDoc() {
+        // $('#dataTable_player').DataTable().destroy();
+        var toPrint = document.getElementById('prodiv');
+        //alert(toPrint);
+        var popupWin = window.open('', '_blank', 'left=100,top=100,width=1100,height=600,tollbar=0,scrollbars=1,status=0,resizable=1');
+        popupWin.document.open();
+        popupWin.document.write('<html><title>::Preview:Darpan Position Holder::</title><head><style>body{font-family:Arial} .noprint{display: none;} table{width:100%; border-collapse:collapse;} .table tr th, .table tr td{border:1px solid #000; padding:3px 5px; font-size: 12px; text-align: left;} th.table-warning{background-color: #dbdbdb;} .table-warning h3{margin: 0;}</style></head><body onload="window.print()">')
+        popupWin.document.write(toPrint.innerHTML);
+        popupWin.document.write('</body></html>');
+        popupWin.document.close();
+        // $('#dataTable_player').DataTable();
+    }
+</script>
 
 @endsection

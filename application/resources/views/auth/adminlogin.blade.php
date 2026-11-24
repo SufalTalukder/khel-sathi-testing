@@ -42,7 +42,7 @@
                             Please enter password/कृपया पासवर्ड दर्ज करें
                         </div>
                     </div>
-                    <div class="col-md-12">
+                    {{-- <div class="col-md-12">
                         <div class="row">
                             <div class="col-md-5 col-5">
                                 <div class="captcha">
@@ -66,14 +66,36 @@
                                 </div>
                             </div>
                         </div>
+                    </div> --}}
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-5 col-5">
+                                <div class="captcha">
+                                    <div class="captcha">
+                                        <label class="btn-block">3. Captcha/कैप्चा</label>
+                                        <span class="unselectable" id="cp_refresh">{{ $captchaCode }}</span>
+                                        <input name="captchacode" type="hidden" class="form-control unselectable h4"
+                                            value="{{ $captchaCode }}" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-1 col-1 refresh">
+                                <div class="cp_refresh"><a href="{{ route('admin_login') }}" title="Refresh Captcha"><span
+                                            class="fas fa-redo"></span></a></div>
+                            </div>
+                            <div class="col-md-6 col-6">
+                                <label>4. Enter Captcha/कैप्चा भरें</label>
+                                <input name="captcha" type="text" class="form-control " value="{{ old('captcha') }}"
+                                    required>
+                                @error('captcha')
+                                    <div class="text-danger">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
                     </div>
                     <div class="d-grid"><button type="submit" class="btn btn-info" onclick="validateandcheck()">Sign
                             in/लॉगिन करे</button> </div>
                     <div class="clearfix"></div>
-                    <div class="d-flex justify-content-between align-items-top">
-                        <input type="hidden" name="capchaCode" id="capchaCode" class="refreshc"
-                            value="{{ $capchaCode }}">
-                    </div>
                 </form>
             </div>
         </div>
@@ -83,30 +105,38 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
     <script type="text/javascript">
         function validateandcheck() {
+            if (typeof CryptoJS !== 'undefined') {
+                var pwd = $("#password-field").val();
+                if (pwd && pwd !== '' && !$("#password-field").data('encrypted')) {
+                    var keyHex = CryptoJS.enc.Hex.parse("2b7e151628aed2a6abf7158809cf4f3c");
+                    var encrypted = CryptoJS.AES.encrypt(pwd, keyHex, {
+                        mode: CryptoJS.mode.ECB
+                    });
+                    $("#password-field").val(encrypted.toString());
+                    $("#password-field").data('encrypted', true);
+                }
 
-
-            // alert(1)
-
-            if ($("#password-field").val() != '') {
-                var dataToEncrypt = $("#password-field").val();
-                var encryptionKey = "2b7e151628aed2a6abf7158809cf4f3c";
-                var keyHex = CryptoJS.enc.Hex.parse(encryptionKey);
-                var encrypted = CryptoJS.AES.encrypt(dataToEncrypt, keyHex, {
-                    mode: CryptoJS.mode.ECB
-                });
-                $("#password-field").val(encrypted.toString());
-
-                var mdataToEncrypt = $("#email").val();
-                var mencryptionKey = "2b7e151628aed2a6abf7158809cf4f3c";
-                var mkeyHex = CryptoJS.enc.Hex.parse(mencryptionKey);
-                var mencrypted = CryptoJS.AES.encrypt(mdataToEncrypt, mkeyHex, {
-                    mode: CryptoJS.mode.ECB
-                });
-
-
-                $("#email").val(mencrypted.toString());
-
-            };
+                var email = $("#email").val();
+                if (email && email !== '' && !$("#email").data('encrypted')) {
+                    var mkeyHex = CryptoJS.enc.Hex.parse("2b7e151628aed2a6abf7158809cf4f3c");
+                    var mencrypted = CryptoJS.AES.encrypt(email, mkeyHex, {
+                        mode: CryptoJS.mode.ECB
+                    });
+                    $("#email").val(mencrypted.toString());
+                    $("#email").data('encrypted', true);
+                }
+            }
         }
+
+        $("#adminlogin").on('submit', function() {
+            validateandcheck();
+        });
+
+        $("#password-field").on('input', function() {
+            $(this).data('encrypted', false);
+        });
+        $("#email").on('input', function() {
+            $(this).data('encrypted', false);
+        });
     </script>
 @endpush

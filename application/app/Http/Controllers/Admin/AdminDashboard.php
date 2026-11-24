@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Exports\ProjectExport;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use PDF;
@@ -573,10 +575,10 @@ class AdminDashboard extends Controller
                     ->map(fn($v) => (int) $v)
                     ->toArray();
                 $coaching_camp = DB::table('coaching_camp_register')
-                ->join('coaching_camp_basic_details','coaching_camp_register.id','=','coaching_camp_basic_details.user_id')
-                ->where('coaching_camp_basic_details.final_submit','=',1)
-                ->whereIn('coaching_camp_basic_details.stad_district', $districtList)
-                ->selectRaw("
+                    ->join('coaching_camp_basic_details', 'coaching_camp_register.id', '=', 'coaching_camp_basic_details.user_id')
+                    ->where('coaching_camp_basic_details.final_submit', '=', 1)
+                    ->whereIn('coaching_camp_basic_details.stad_district', $districtList)
+                    ->selectRaw("
                     COUNT(CASE WHEN coaching_camp_basic_details.final_submit = 1 THEN 1 END) AS total,
                     COUNT(CASE WHEN coaching_camp_basic_details.status = null THEN 1 END) AS total_pending,
                     COUNT(CASE WHEN coaching_camp_basic_details.status = 1 THEN 1 END) AS total_accepted,
@@ -585,10 +587,10 @@ class AdminDashboard extends Controller
                 break;
             case 9:
                 $coaching_camp = DB::table('coaching_camp_register')
-                ->join('coaching_camp_basic_details','coaching_camp_register.id','=','coaching_camp_basic_details.user_id')
-                ->where('coaching_camp_basic_details.final_submit','=',1)
-                ->where('coaching_camp_basic_details.stad_district', $districtId)
-                ->selectRaw("
+                    ->join('coaching_camp_basic_details', 'coaching_camp_register.id', '=', 'coaching_camp_basic_details.user_id')
+                    ->where('coaching_camp_basic_details.final_submit', '=', 1)
+                    ->where('coaching_camp_basic_details.stad_district', $districtId)
+                    ->selectRaw("
                     COUNT(CASE WHEN coaching_camp_basic_details.final_submit = 1 THEN 1 END) AS total,
                     COUNT(CASE WHEN coaching_camp_basic_details.status = null THEN 1 END) AS total_pending,
                     COUNT(CASE WHEN coaching_camp_basic_details.status = 1 THEN 1 END) AS total_accepted,
@@ -684,11 +686,33 @@ class AdminDashboard extends Controller
         ));
     }
 
-    public function user_manager()
-    {
-        $users = DB::table('admin')->orderBy('id', 'DESC')->get();
-        return view('admin.user.userslist', compact('users'));
+    // public function user_manager(Request $request)
+    // {
+    //   $admin_role = DB::table('admin')
+    //                 ->join('urm_role_manager', 'admin.admin_role', '=', 'urm_role_manager.id')
+    //                 ->select('urm_role_manager.id', 'urm_role_manager.role_name')->distinct()->get();
+
+    //     $users = DB::table('admin')->orderBy('id', 'DESC')->get();
+    //     return view('admin.user.userslist', compact('users','admin_role'));
+    // }
+public function user_manager(Request $request)
+{
+    $admin_roles = DB::table('urm_role_manager')
+        ->select('id', 'role_name')
+        ->orderBy('role_name', 'ASC')
+        ->get();
+
+    $query = DB::table('admin')
+        ->orderBy('id', 'DESC');
+
+    if (!empty($request->admin_role)) {
+        $query->whereIn('admin_role', $request->admin_role);
     }
+
+    $users = $query->get();
+
+    return view('admin.user.userslist', compact('users', 'admin_roles'));
+}
     public function user_manager_add()
     {
 
@@ -774,7 +798,7 @@ class AdminDashboard extends Controller
     public function role_mapping()
     {
         $module = DB::table('urm_module_manager')->where('module_status', 1)->orderBy('menu_order', 'ASC')->get();
-        $roles  = DB::table('admin_role')->orderBy('id', 'ASC')->get();
+        $roles  = DB::table('urm_role_manager')->orderBy('id', 'ASC')->get();
         $users  = DB::table('admin')->where('status', 1)->orderBy('username', 'ASC')->get();
         return view('admin.user.role_mapping', compact('module', 'roles', 'users'));
     }
@@ -986,8 +1010,394 @@ class AdminDashboard extends Controller
 
     public function adminprofile()
     {
+        $admin = Auth::guard('admin')->user();
+        $roleName = DB::table('urm_role_manager')->where('id', $admin->admin_role)->value('role_name') ?? 'Admin';
 
-        return view('admin.profile');
+        // Assigned Division / District names
+        $assignedDivision = null;
+        if (!empty($admin->division_id)) {
+            $assignedDivision = DB::table('hostel_division_master')->where('id', $admin->division_id)->value('division_name');
+        }
+        $assignedDistrict = null;
+        if (!empty($admin->district_id)) {
+            $assignedDistrict = DB::table('cities')->where('id', $admin->district_id)->value('city');
+        }
+
+        // Only RSO (Role 2) and DSO/SO (Role 9) manage Stadiums & Infrastructures
+        $isFieldOfficer = in_array((int) $admin->admin_role, [2, 9]);
+        $stadiums = collect();
+        $firstStadium = null;
+        $infrastructures = collect();
+        $officerDistricts = collect();
+
+        if ($isFieldOfficer) {
+            $stadiumQuery = DB::table('studium_master')
+                ->leftJoin('cities', 'studium_master.district_id', '=', 'cities.id')
+                ->select(
+                    'studium_master.id',
+                    'studium_master.studium_name',
+                    'studium_master.address',
+                    'studium_master.latitude',
+                    'studium_master.longitude',
+                    'studium_master.district_id',
+                    'studium_master.division_id',
+                    'cities.city as district_name'
+                );
+
+            if ($admin->admin_role == 2 && !empty($admin->division_id)) {
+                $stadiumQuery->where('studium_master.division_id', $admin->division_id);
+
+                $officerDistricts = DB::table('hostel_div_district_mapping')
+                    ->join('cities', 'hostel_div_district_mapping.district_id', '=', 'cities.id')
+                    ->where('hostel_div_district_mapping.division_id', $admin->division_id)
+                    ->select('cities.id', 'cities.city')
+                    ->orderBy('cities.city', 'asc')
+                    ->get();
+                if ($officerDistricts->isEmpty()) {
+                    $officerDistricts = DB::table('cities')->where('state_id', 23)->orderBy('city', 'asc')->get();
+                }
+            } elseif ($admin->admin_role == 9 && !empty($admin->district_id)) {
+                $stadiumQuery->where('studium_master.district_id', $admin->district_id);
+
+                $officerDistricts = DB::table('cities')
+                    ->where('id', $admin->district_id)
+                    ->select('id', 'city')
+                    ->get();
+            } else {
+                $officerDistricts = DB::table('cities')->where('state_id', 23)->orderBy('city', 'asc')->get();
+            }
+
+            $stadiums = $stadiumQuery->orderBy('studium_master.studium_name', 'asc')->get();
+
+            $firstStadium = $stadiums->first();
+            $stadiumIds = $stadiums->pluck('id')->toArray();
+            $infrastructures = collect();
+            if (!empty($stadiumIds)) {
+                $infrastructures = DB::table('stadium_infrastructures')
+                    ->whereIn('stadium_id', $stadiumIds)
+                    ->where('status', 1)
+                    ->orderBy('stadium_id', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get();
+            }
+        }
+
+        return view('admin.profile', compact('admin', 'roleName', 'assignedDivision', 'assignedDistrict', 'stadiums', 'firstStadium', 'infrastructures', 'isFieldOfficer', 'officerDistricts'));
+    }
+
+    public function updateOfficerProfile(Request $request)
+    {
+        $adminId = Auth::guard('admin')->id();
+
+        $request->validate([
+            'salutation'    => 'nullable|string|max:20',
+            'name'          => 'required|string|max:200',
+            'designation'   => 'required|string|max:100',
+            'mobile'        => 'required|digits:10',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'profile_image.max'   => 'The profile image must not be greater than 2 MB.',
+            'profile_image.image' => 'The profile image must be an image file.',
+            'profile_image.mimes' => 'The profile image must be a file of type: jpeg, png, jpg, webp.',
+            'name.required'       => 'The name field is required.',
+            'designation.required' => 'The designation field is required.',
+            'mobile.required'     => 'The mobile number is required.',
+            'mobile.digits'       => 'Mobile number must be exactly 10 digits.',
+        ]);
+
+        $updateData = [
+            'name'        => $request->name,
+            'designation' => $request->designation,
+            'mobile'      => $request->mobile,
+        ];
+
+        if ($request->has('salutation')) {
+            $updateData['salutation'] = $request->salutation;
+        }
+
+        if ($request->input('remove_profile_image') == '1') {
+            $currentImage = DB::table('admin')->where('id', $adminId)->value('profile_image');
+            if (!empty($currentImage) && file_exists(public_path($currentImage))) {
+                @unlink(public_path($currentImage));
+            }
+            $updateData['profile_image'] = null;
+        } elseif ($request->hasFile('profile_image')) {
+            $file = $request->file('profile_image');
+            $ext = $file->getClientOriginalExtension();
+            $filename = 'officer_' . $adminId . '_' . time() . '.' . $ext;
+            $destinationPath = public_path('uploads/admin_profile');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+            $file->move($destinationPath, $filename);
+            $updateData['profile_image'] = 'uploads/admin_profile/' . $filename;
+        }
+
+        DB::table('admin')->where('id', $adminId)->update($updateData);
+
+        if ($request->ajax()) {
+            $updatedAdmin = DB::table('admin')->where('id', $adminId)->first();
+            $hasCustom = !empty($updatedAdmin->profile_image) && file_exists(public_path($updatedAdmin->profile_image));
+            return response()->json([
+                'error'            => false,
+                'msg'              => 'Officer details updated successfully.',
+                'image'            => $hasCustom ? asset($updatedAdmin->profile_image) : asset('assets_admin/images/logo.png'),
+                'has_custom_image' => $hasCustom,
+                'name'             => !empty($updatedAdmin->name) ? $updatedAdmin->name : ($updatedAdmin->username ?? 'Admin'),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Officer details updated successfully.');
+    }
+
+    public function getStadiumDetails(Request $request)
+    {
+        $stadiumId = $request->stadium_id;
+        $stadium = DB::table('studium_master')->where('id', $stadiumId)->first();
+        if (!$stadium) {
+            return response()->json(['error' => true, 'msg' => 'Stadium not found.'], 404);
+        }
+
+        $infrastructures = DB::table('stadium_infrastructures')
+            ->where('stadium_id', $stadiumId)
+            ->where('status', 1)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        return response()->json([
+            'error'           => false,
+            'stadium'         => $stadium,
+            'infrastructures' => $infrastructures,
+        ]);
+    }
+
+    public function updateStadiumDetails(Request $request)
+    {
+        $request->validate([
+            'stadium_id'   => 'required|exists:studium_master,id',
+            'studium_name' => 'required|string|max:255',
+            'address'      => 'nullable|string',
+            'latitude'     => 'nullable|string|max:100',
+            'longitude'    => 'nullable|string|max:100',
+        ]);
+
+        DB::table('studium_master')->where('id', $request->stadium_id)->update([
+            'studium_name' => $request->studium_name,
+            'address'      => $request->address,
+            'latitude'     => $request->latitude,
+            'longitude'    => $request->longitude,
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'error'        => false,
+                'msg'          => 'Stadium details updated successfully.',
+                'stadium_id'   => $request->stadium_id,
+                'studium_name' => $request->studium_name,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Stadium details updated successfully.');
+    }
+
+    public function createStadiumByOfficer(Request $request)
+    {
+        $admin = Auth::guard('admin')->user();
+        if (!in_array((int) $admin->admin_role, [2, 9])) {
+            return response()->json(['error' => true, 'msg' => 'Unauthorized action.'], 403);
+        }
+
+        $request->validate([
+            'studium_name' => 'required|string|max:200',
+            'district_id'  => 'required|exists:cities,id',
+            'address'      => 'nullable|string',
+            'latitude'     => 'nullable|string|max:100',
+            'longitude'    => 'nullable|string|max:100',
+        ], [
+            'studium_name.required' => 'Stadium name is required.',
+            'district_id.required'  => 'District is required.',
+        ]);
+
+        $divisionId = null;
+        if (!empty($admin->division_id)) {
+            $divisionId = $admin->division_id;
+        } else {
+            $divisionId = DB::table('hostel_div_district_mapping')
+                ->where('district_id', $request->district_id)
+                ->value('division_id');
+        }
+
+        $newId = DB::table('studium_master')->insertGetId([
+            'studium_name' => trim($request->studium_name),
+            'district_id'  => $request->district_id,
+            'division_id'  => $divisionId,
+            'address'      => $request->address,
+            'latitude'     => $request->latitude,
+            'longitude'    => $request->longitude,
+            'created_at'   => now(),
+        ]);
+
+        $newStadium = DB::table('studium_master')
+            ->leftJoin('cities', 'studium_master.district_id', '=', 'cities.id')
+            ->where('studium_master.id', $newId)
+            ->select(
+                'studium_master.id',
+                'studium_master.studium_name',
+                'studium_master.address',
+                'studium_master.latitude',
+                'studium_master.longitude',
+                'studium_master.district_id',
+                'studium_master.division_id',
+                'cities.city as district_name'
+            )
+            ->first();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'error'   => false,
+                'msg'     => 'New stadium created successfully.',
+                'stadium' => $newStadium,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'New stadium created successfully.');
+    }
+
+    public function deleteInfrastructure(Request $request, $id)
+    {
+        $infra = DB::table('stadium_infrastructures')->where('id', $id)->first();
+        if (!$infra) {
+            return response()->json(['error' => true, 'msg' => 'Item not found.'], 404);
+        }
+
+        DB::table('stadium_infrastructures')->where('id', $id)->delete();
+
+        if ($request->ajax()) {
+            return response()->json(['error' => false, 'msg' => 'Infrastructure deleted successfully.']);
+        }
+
+        return redirect()->back()->with('success', 'Infrastructure deleted successfully.');
+    }
+
+    public function saveAllInfrastructures(Request $request)
+    {
+        $admin = Auth::guard('admin')->user();
+        $isFieldOfficer = in_array((int) $admin->admin_role, [2, 9]);
+
+        if (!$isFieldOfficer) {
+            return response()->json(['error' => true, 'msg' => 'Unauthorized access.'], 403);
+        }
+
+        $items = $request->input('infrastructures', []);
+        if (!is_array($items) || empty($items)) {
+            return response()->json(['error' => true, 'msg' => 'No infrastructure data provided to save.'], 422);
+        }
+
+        // Get allowed stadium IDs under officer jurisdiction
+        $stadiumQuery = DB::table('studium_master')->select('id');
+        if ($admin->admin_role == 2 && !empty($admin->division_id)) {
+            $stadiumQuery->where('division_id', $admin->division_id);
+        } elseif ($admin->admin_role == 9 && !empty($admin->district_id)) {
+            $stadiumQuery->where('district_id', $admin->district_id);
+        }
+        $allowedStadiumIds = $stadiumQuery->pluck('id')->toArray();
+
+        // Ensure schema columns are TEXT and updated_by exists (safely self-heals in case migration hasn't run on production)
+        try {
+            if (Schema::hasTable('stadium_infrastructures')) {
+                if (!Schema::hasColumn('stadium_infrastructures', 'updated_by')) {
+                    Schema::table('stadium_infrastructures', function ($table) {
+                        $table->unsignedBigInteger('updated_by')->nullable()->after('available_games');
+                    });
+                }
+                DB::statement("ALTER TABLE stadium_infrastructures MODIFY infrastructure_name TEXT NOT NULL, MODIFY available_games TEXT NULL");
+            }
+        } catch (\Throwable $e) {}
+
+        $hasUpdatedBy = Schema::hasTable('stadium_infrastructures') && Schema::hasColumn('stadium_infrastructures', 'updated_by');
+
+        DB::beginTransaction();
+        try {
+            $savedCount = 0;
+            foreach ($items as $item) {
+                $stadiumId = !empty($item['stadium_id']) ? (int) $item['stadium_id'] : null;
+                $infraName = isset($item['infrastructure_name']) ? trim($item['infrastructure_name']) : '';
+                $games = isset($item['available_games']) ? trim($item['available_games']) : null;
+                $id = !empty($item['id']) ? (int) $item['id'] : null;
+
+                if (empty($stadiumId)) {
+                    DB::rollBack();
+                    return response()->json(['error' => true, 'msg' => 'Please select a stadium for all rows.'], 422);
+                }
+
+                if (empty($infraName)) {
+                    DB::rollBack();
+                    return response()->json(['error' => true, 'msg' => 'Please enter an infrastructure name for all rows.'], 422);
+                }
+
+                // If officer has restricted stadiums, check if stadium is valid
+                if (!empty($allowedStadiumIds) && !in_array($stadiumId, $allowedStadiumIds)) {
+                    continue;
+                }
+
+                if ($id) {
+                    // Update existing record
+                    $updateData = [
+                        'stadium_id'          => $stadiumId,
+                        'infrastructure_name' => $infraName,
+                        'available_games'     => $games,
+                        'updated_at'          => now(),
+                    ];
+                    if ($hasUpdatedBy) {
+                        $updateData['updated_by'] = $admin ? $admin->id : null;
+                    }
+                    DB::table('stadium_infrastructures')->where('id', $id)->update($updateData);
+                    $savedCount++;
+                } else {
+                    // Insert new record (multiple infrastructures allowed per stadium)
+                    $insertData = [
+                        'stadium_id'          => $stadiumId,
+                        'infrastructure_name' => $infraName,
+                        'available_games'     => $games,
+                        'status'              => 1,
+                        'created_at'          => now(),
+                        'updated_at'          => now(),
+                    ];
+                    if ($hasUpdatedBy) {
+                        $insertData['updated_by'] = $admin ? $admin->id : null;
+                    }
+                    DB::table('stadium_infrastructures')->insert($insertData);
+                    $savedCount++;
+                }
+            }
+
+            DB::commit();
+
+            // Fetch fresh list of all infrastructures for officer's stadiums
+            $freshQuery = DB::table('stadium_infrastructures')
+                ->where('status', 1);
+
+            if (!empty($allowedStadiumIds)) {
+                $freshQuery->whereIn('stadium_id', $allowedStadiumIds);
+            }
+
+            $freshInfrastructures = $freshQuery
+                ->orderBy('stadium_id', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            return response()->json([
+                'error'           => false,
+                'msg'             => $savedCount > 0 ? "Saved {$savedCount} infrastructure record(s) successfully." : "No changes were needed.",
+                'infrastructures' => $freshInfrastructures,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => true,
+                'msg'   => 'Failed to save infrastructures: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function exportExcel(Request $request)
@@ -1034,11 +1444,23 @@ class AdminDashboard extends Controller
                 ->where($table . '.is_forwarded_by_association', '=', 1);
         } else if ($request->form_type == 7) {
 
+            $querySub = DB::table('query_master')
+                ->select(
+                    'application_no',
+                    DB::raw('COUNT(*) as total_queries'),
+                    DB::raw('SUM(CASE WHEN is_closed = 0 OR is_closed IS NULL THEN 1 ELSE 0 END) as open_queries'),
+                    DB::raw('SUM(CASE WHEN is_closed = 1 THEN 1 ELSE 0 END) as closed_queries')
+                )
+                ->where('form_type', 7)
+                ->groupBy('application_no');
+
             $queryData = DB::table($table)
                 ->join('sport_welfare_registration_master', 'sport_welfare_registration_master.id', '=', $table . '.user_id')
                 ->join('sport_type', 'sport_type.id', '=', 'sport_welfare_registration_master.sport_type')
+                ->leftJoinSub($querySub, 'qm', function ($join) use ($table) {
+                    $join->on('qm.application_no', '=', $table . '.application_no');
+                })
                 ->select($table . '.*', 'sport_welfare_registration_master.fullname', 'sport_welfare_registration_master.father_name', 'sport_welfare_registration_master.email', 'sport_welfare_registration_master.permanent_district', 'sport_welfare_registration_master.permanent_address', 'sport_welfare_registration_master.mobile', 'sport_type.name as sportName')
-
                 ->where($table . '.final_submit', '=', 1);
         }
         //  else if($request->form_type == 6 && Auth::guard('admin')->user()->admin_role == 4){
@@ -1061,7 +1483,7 @@ class AdminDashboard extends Controller
                 ->join('direct_recruitment_sport_achievement', 'direct_recruitment_sport_achievement.application_no', '=', $table . '.application_no')
                 ->join('applicant_post_master', 'applicant_post_master.application_no', '=', $table . '.application_no')
                 ->join('sport_type', 'sport_type.id', '=', 'sport_welfare_registration_master.sport_type')
-            // ->join('applicant_post_master', 'applicant_post_master.user_id', '=', $table.'.user_id')
+                // ->join('applicant_post_master', 'applicant_post_master.user_id', '=', $table.'.user_id')
                 ->select('sport_welfare_registration_master.*', $table . '.*', 'sport_type.name as sportName');
             if ($request->seg4 != "") {
                 $queryData->where('applicant_post_master.post_name', $request->seg);
@@ -1090,7 +1512,6 @@ class AdminDashboard extends Controller
             if (Auth::guard('admin')->user()->admin_role == 4) {
                 $queryData->where($table . '.is_forwarded_by_rso', '=', 4);
             }
-
         } else {
             $queryData = DB::table($table)
                 ->join('sport_welfare_registration_master', 'sport_welfare_registration_master.id', '=', $table . '.user_id')
@@ -1135,7 +1556,29 @@ class AdminDashboard extends Controller
         }
 
         if ($request->status_filter != '') {
-            $queryData->where($table . '.form_status', "$request->status_filter");
+            if ($request->form_type == 7) {
+                if ($request->status_filter === 'pending' || $request->status_filter === '0') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where(function ($q) {
+                            $q->whereNull('qm.total_queries')
+                                ->orWhere('qm.total_queries', '=', 0);
+                        });
+                } elseif ($request->status_filter === 'query_raised') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where('qm.open_queries', '>', 0);
+                } elseif ($request->status_filter === 'query_resolved') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where('qm.total_queries', '>', 0)
+                        ->where(function ($q) {
+                            $q->whereNull('qm.open_queries')
+                                ->orWhere('qm.open_queries', '=', 0);
+                        });
+                } else {
+                    $queryData->where($table . '.form_status', "$request->status_filter");
+                }
+            } else {
+                $queryData->where($table . '.form_status', "$request->status_filter");
+            }
         }
 
         if ($request->project_filter != '') {
@@ -1309,10 +1752,23 @@ class AdminDashboard extends Controller
             //     // $queryData->where('sport_welfare_registration_master.permanent_district', Auth::guard('admin')->user()->district_id);
             // }
 
+            $querySub = DB::table('query_master')
+                ->select(
+                    'application_no',
+                    DB::raw('COUNT(*) as total_queries'),
+                    DB::raw('SUM(CASE WHEN is_closed = 0 OR is_closed IS NULL THEN 1 ELSE 0 END) as open_queries'),
+                    DB::raw('SUM(CASE WHEN is_closed = 1 THEN 1 ELSE 0 END) as closed_queries')
+                )
+                ->where('form_type', 7)
+                ->groupBy('application_no');
+
             $queryData = DB::table($table)
                 ->join('sport_welfare_registration_master', 'sport_welfare_registration_master.id', '=', $table . '.user_id')
                 ->join('eklavya_krida_kosh_award', 'eklavya_krida_kosh_award.user_id', '=', $table . '.user_id')
                 ->join('sport_type', 'sport_type.id', '=', 'sport_welfare_registration_master.sport_type')
+                ->leftJoinSub($querySub, 'qm', function ($join) use ($table) {
+                    $join->on('qm.application_no', '=', $table . '.application_no');
+                })
                 ->select($table . '.*', 'sport_welfare_registration_master.fullname', 'sport_welfare_registration_master.father_name', 'sport_welfare_registration_master.permanent_district', 'sport_welfare_registration_master.email', 'sport_type.name as sportName', 'sport_welfare_registration_master.permanent_address', 'sport_welfare_registration_master.mobile')
                 ->where($table . '.final_submit', '=', 1);
 
@@ -1379,7 +1835,6 @@ class AdminDashboard extends Controller
             if (Auth::guard('admin')->user()->admin_role == 4) {
                 $queryData->where($table . '.is_forwarded_by_rso', '=', 4);
             }
-
         } else {
             $queryData = DB::table($table)
                 ->join('sport_welfare_registration_master', 'sport_welfare_registration_master.id', '=', $table . '.user_id')
@@ -1418,7 +1873,29 @@ class AdminDashboard extends Controller
         }
 
         if ($request->status_filter != '') {
-            $queryData->where($table . '.form_status', "$request->status_filter");
+            if ($request->form_type == 7) {
+                if ($request->status_filter === 'pending' || $request->status_filter === '0') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where(function ($q) {
+                            $q->whereNull('qm.total_queries')
+                                ->orWhere('qm.total_queries', '=', 0);
+                        });
+                } elseif ($request->status_filter === 'query_raised') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where('qm.open_queries', '>', 0);
+                } elseif ($request->status_filter === 'query_resolved') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where('qm.total_queries', '>', 0)
+                        ->where(function ($q) {
+                            $q->whereNull('qm.open_queries')
+                                ->orWhere('qm.open_queries', '=', 0);
+                        });
+                } else {
+                    $queryData->where($table . '.form_status', "$request->status_filter");
+                }
+            } else {
+                $queryData->where($table . '.form_status', "$request->status_filter");
+            }
         }
 
         if ($request->project_filter != '') {
@@ -1666,11 +2143,29 @@ class AdminDashboard extends Controller
         $eklavya_competition = DB::table('eklavya_competition')->orderBy('name', 'ASC')->get();
         return view('admin.eklavya_competition', compact('eklavya_competition'));
     }
-    public function userManagerStatus($id)
+
+    // Modified userManagerStatus function
+    public function userManagerStatus($id = null)
     {
-        $status = DB::table('admin')->where('id', $id)->first()->status;
-        DB::table('admin')->where('id', $id)->update(["status" => $status == 1 ? 2 : 1]);
-        $msg = $status == 0 ? "Enabled" : "Disabled";
-        return response()->json(['error' => false, "msg" => 'User Successfully .' . $msg]);
+        if (empty($id)) {
+            return response()->json(['error' => true, "msg" => "User not found."]);
+        }
+
+        $userRole = DB::table('admin')->where('id', '=', $id)->first();
+        if (empty($userRole)) {
+            return response()->json(['error' => true, "msg" => "User not found."]);
+        }
+
+        $status = $userRole->status;
+
+        // If user is Super Admin / Admin (role 1 or 5) and currently active, they cannot be disabled
+        if (($userRole->admin_role == 1 || $userRole->admin_role == 5) && $status == 1) {
+            return response()->json(['error' => true, "msg" => "You can't disable this user."]);
+        }
+
+        $newStatus = $status == 1 ? 0 : 1;
+        DB::table('admin')->where('id', '=', $id)->update(["status" => $newStatus]);
+        $msg = $newStatus == 1 ? "Enabled" : "Disabled";
+        return response()->json(['error' => false, "msg" => 'User ' . $msg . ' Successfully']);
     }
 }

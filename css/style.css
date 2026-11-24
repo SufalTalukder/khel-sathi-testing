@@ -742,18 +742,11 @@ section {
 }
 
 .banner:after {
-	content: "";
-	position: absolute;
-	right: -42%;
-	top: 0;
-	background: #fff;
-	width: 59%;
-	height: 101%;
-	transform: skewX(33deg);
+	display: none !important;
 }
 
-.banner {
-	width: 64%;
+.banner-2 {
+	display: none !important;
 }
 
 .leader li:nth-child(5) {
@@ -1547,13 +1540,22 @@ color: #fff;
 
 .news-head {
     background-color: #831142;
-    padding: 3px;
-    height: 52px;
+    padding: 0 14px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 6px;
 }
 .news-head a {
     color: white;
-    line-height: 42px;
-    font-size: 20px;
+    line-height: 48px;
+    font-size: 15.5px;
+    text-decoration: none;
+}
+.news-head a:hover {
+    color: #ffcc02;
+    text-decoration: underline;
 }
 .fa-twitter::before {
   content: url(../images/twitter.png);
@@ -2662,4 +2664,373 @@ margin: 10px;
     text-align: center;
     font-weight: 600;
     font-size: 18px;
+}
+
+/* -------------------------------------------------------------------------
+   KHEL SATHI MODERN HERO & SWIPER CAROUSEL (WITH PROGRESS TOGGLE BUTTONS)
+   ------------------------------------------------------------------------- */
+.ks-navbar-spacer {
+    height: 11.2em;
+}
+
+@media (max-width: 992px) {
+    .ks-navbar-spacer {
+        height: 14.5em;
+    }
+}
+
+@media (max-width: 600px) {
+    .ks-navbar-spacer {
+        height: 12.8em;
+    }
+}
+
+/* Hero Container */
+.ks-hero-container {
+    max-width: 1560px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 5;
+}
+
+/* Full Width Carousel Frame */
+.ks-carousel-wrapper {
+    position: relative;
+    border-radius: 26px;
+    overflow: hidden;
+    background: #0f172a;
+    box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    height: 530px;
+}
+
+.ks-carousel-inner {
+    height: 100%;
+    border-radius: 26px;
+}
+
+.ks-slide-img-wrapper {
+    position: relative;
+    width: 100%;
+    height: 530px;
+    overflow: hidden;
+}
+
+@media (max-width: 992px) {
+    .ks-carousel-wrapper,
+    .ks-slide-img-wrapper {
+        height: 430px;
+    }
+}
+
+@media (max-width: 576px) {
+    .ks-carousel-wrapper,
+    .ks-slide-img-wrapper {
+        height: 330px;
+    }
+}
+
+.ks-slide-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+    transition: transform 6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.carousel-item.active .ks-slide-img {
+    transform: scale(1.04);
+}
+
+.ks-slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.04) 0%, rgba(15, 23, 42, 0.22) 45%, rgba(15, 23, 42, 0.88) 100%);
+    display: flex;
+    align-items: flex-end;
+    padding: 24px 32px 78px 32px;
+    z-index: 2;
+}
+
+.ks-slide-caption-box {
+    background: rgba(15, 23, 42, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    padding: 14px 22px;
+    max-width: 720px;
+    color: #ffffff;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+    animation: ksFadeInUp 0.5s ease;
+}
+
+@keyframes ksFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ks-slide-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    background: rgba(249, 115, 22, 0.95);
+    color: #ffffff;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+}
+
+.ks-slide-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+    line-height: 1.35;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.ks-slide-sub {
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .ks-slide-overlay {
+        padding: 18px 20px 72px 20px;
+    }
+    .ks-slide-caption-box {
+        max-width: 95%;
+        padding: 10px 14px;
+    }
+    .ks-slide-title {
+        font-size: 1.02rem;
+    }
+    .ks-slide-sub {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .ks-slide-overlay {
+        padding: 14px 14px 68px 14px;
+    }
+    .ks-slide-caption-box {
+        padding: 8px 12px;
+    }
+    .ks-slide-title {
+        font-size: 0.92rem;
+    }
+}
+
+/* Carousel Navigation Controls (Floating Glassmorphic Arrows) */
+.ks-control-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.85) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    color: #0f172a !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    opacity: 0.92;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 25;
+    cursor: pointer;
+}
+
+.ks-control-btn:focus,
+.ks-control-btn:hover {
+    background: #ffffff !important;
+    color: #ea580c !important;
+    transform: translateY(-50%) scale(1.12);
+    opacity: 1;
+    box-shadow: 0 12px 28px rgba(234, 88, 12, 0.45);
+}
+
+.ks-control-prev {
+    left: 20px;
+}
+
+.ks-control-next {
+    right: 20px;
+}
+
+@media (max-width: 576px) {
+    .ks-control-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 14px;
+    }
+    .ks-control-prev {
+        left: 10px;
+    }
+    .ks-control-next {
+        right: 10px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   SWIPER-STYLE STORY PROGRESS TOGGLE BUTTONS
+   ------------------------------------------------------------------------- */
+.ks-story-pagination {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50px;
+    padding: 6px 14px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+    max-width: 95%;
+}
+
+.ks-story-pill {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 50px;
+    padding: 5px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    color: rgba(255, 255, 255, 0.72);
+    outline: none !important;
+    user-select: none;
+}
+
+.ks-story-pill:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.ks-story-pill.is-active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.ks-pill-num {
+    font-size: 0.74rem;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    line-height: 1;
+}
+
+.ks-pill-bar {
+    position: relative;
+    width: 48px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    overflow: hidden;
+    display: block;
+}
+
+.ks-pill-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #f97316 0%, #fbbf24 100%);
+    border-radius: 4px;
+    transition: none;
+}
+
+/* Active pill progress fill animation (5000ms) */
+.ks-story-pill.is-active .ks-pill-fill {
+    animation: ksStoryProgress 5s linear forwards;
+}
+
+/* Pause progress fill when user hovers over the carousel */
+.ks-carousel-wrapper:hover .ks-story-pill.is-active .ks-pill-fill {
+    animation-play-state: paused;
+}
+
+/* Past slides stay 100% filled */
+.ks-story-pill.is-past .ks-pill-fill {
+    width: 100% !important;
+    animation: none !important;
+    background: #ffffff;
+}
+
+/* Future slides stay 0% */
+.ks-story-pill:not(.is-active):not(.is-past) .ks-pill-fill {
+    width: 0% !important;
+    animation: none !important;
+}
+
+@keyframes ksStoryProgress {
+    from {
+        width: 0%;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .ks-story-pagination {
+        gap: 5px;
+        padding: 5px 10px;
+        bottom: 16px;
+    }
+    .ks-story-pill {
+        padding: 3px 6px;
+        gap: 5px;
+    }
+    .ks-pill-bar {
+        width: 28px;
+        height: 3.5px;
+    }
+    .ks-pill-num {
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ks-story-pagination {
+        gap: 4px;
+        padding: 4px 8px;
+        bottom: 12px;
+    }
+    .ks-story-pill {
+        padding: 2px 4px;
+    }
+    .ks-pill-bar {
+        width: 22px;
+    }
+    .ks-pill-num {
+        display: none;
+    }
 }

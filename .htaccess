@@ -44,8 +44,9 @@
     RewriteRule ^ - [F,L]
 
     # -----------------------------------------------
-    # [FIX 4] Force HTTPS
+    # [FIX 4] Force HTTPS (Only for live domain khelsathi.in)
     # -----------------------------------------------
+    RewriteCond %{HTTP_HOST} ^(www\.)?khelsathi\.in [NC]
     RewriteCond %{HTTPS} off
     RewriteCond %{REQUEST_URI} !^/\.git [NC]
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

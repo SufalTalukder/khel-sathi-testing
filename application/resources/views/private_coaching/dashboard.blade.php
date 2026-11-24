@@ -4,26 +4,29 @@
     <div class="container-fluid pagecontentbody">
         <div class="tab-content">
             <div class="pagebody removebg-color">
-                <div class="col-md-12 pageheader pb-2">
-                    <div class="row">
-                        <div class="col-md-10">
-                            <h4 class="mb-0">Applicant Details</h4>
-                        </div>
-                        <div class="col-md-2 d-grid">
-                            <a class="btn btn-outline-success" href="{{ route('private_apply_for') }}">
-                                <i class="fa fa-plus"></i>&nbsp; Apply For
-                            </a>
-                        </div>
+                <div class="pageheader d-flex justify-content-between align-items-center flex-wrap" id="menu-margin" style="padding: 14px 0; margin-bottom: 22px; border-bottom: 1px solid #e2e8f0;">
+                    <div>
+                        <h4 class="mb-1 text-dark fw-bold" style="font-size: 1.25rem;">
+                            <i class="fa fa-th-list text-primary me-2"></i> Applicant Details / आवेदक विवरण
+                        </h4>
+                        <small class="text-muted">View all your submitted applications, inspection schedules, fee status, and certificates.</small>
+                    </div>
+                    <div class="mt-2 mt-md-0">
+                        <a class="btn btn-success btn-sm rounded-pill px-4 shadow-sm" href="{{ route('private_apply_for') }}" style="font-weight: 600;">
+                            <i class="fa fa-plus me-1"></i> Apply For
+                        </a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-body">
+                <div class="card shadow-sm border-0 mb-4" style="border-radius: 14px; background: #ffffff;">
+                    <div class="card-body p-4">
                         @if(
                                 $academyApplication->isEmpty() && $associationApplication->isEmpty() &&
                                 $swimmingApplication->isEmpty() && $gymApplication->isEmpty()
                             )
-                            <div class="alert alert-info">No applications found.</div>
+                            <div class="alert alert-info border-0 rounded-3 text-center py-4 my-2">
+                                <i class="fa fa-info-circle fa-lg me-2"></i> No applications found. Click <strong>Apply For</strong> above to submit a new application.
+                            </div>
                         @else
                             <table class="table table-bordred table-hover bg-white">
                                 <thead>
@@ -57,24 +60,7 @@
                                             <td>{{ $item->mobile }}</td>
                                   
 
-                                            <td class="text-center">
-                                                @if($item->final_submit == 1)
-                                                    @if ($item->status == 1 )
-                                                        <button class="btn btn-outline-success btn-sm">Accepted</button>
-                                                    @elseif ($item->status == 2 )
-                                                        <button class="btn btn-outline-danger btn-sm">Rejected</button>
-                                                    @elseif($item->query_status == 2)
-                                                        <button class="btn btn-outline-primary btn-sm">Re-Submitted</button>
-                                                    @elseif($item->query_status == 1)
-                                                        <button class="btn btn-outline-warning btn-sm">Query Marked</button>
-                                                    @else
-                                                        <span class="badge bg-success">Submitted</span>
-                                                    @endif
-                                                @else
-                                                    <span class="badge bg-primary">Pending</span>
-                                                @endif
-                                            </td>
-
+                                            @include('private_coaching.applicant_status_cell', ['item' => $item, 'type' => 'academy'])
                                             <td class="text-center">
                                                 <a class="btn btn-xs btn-outline-primary"
                                                     href="{{ route('academies_application_preview', $item->id) }}">
@@ -103,23 +89,7 @@
                                             <td>{{ $item->mobile }}</td>
                           
 
-                                            <td class="text-center">
-                                                @if($item->final_submit == 1)
-                                                    @if ($item->status == 1 )
-                                                        <button class="btn btn-outline-success btn-sm">Accepted</button>
-                                                    @elseif ($item->status == 2 )
-                                                        <button class="btn btn-outline-danger btn-sm">Rejected</button>
-                                                    @elseif($item->query_status == 2)
-                                                        <button class="btn btn-outline-primary btn-sm">Re-Submitted</button>
-                                                    @elseif($item->query_status == 1)
-                                                        <button class="btn btn-outline-warning btn-sm">Query Marked</button>
-                                                    @else
-                                                        <span class="badge bg-success">Submitted</span>
-                                                    @endif
-                                                @else
-                                                    <span class="badge bg-primary">Pending</span>
-                                                @endif
-                                            </td>
+                                            @include('private_coaching.applicant_status_cell', ['item' => $item, 'type' => 'association'])
 
                                             <td class="text-center">
                                                 <a class="btn btn-xs btn-outline-primary"
@@ -149,23 +119,7 @@
                                             <td>{{ $item->mobile }}</td>
                                        
 
-                                            <td class="text-center">
-                                                @if($item->final_submit == 1)
-                                                    @if ($item->status == 1 )
-                                                        <button class="btn btn-outline-success btn-sm">Accepted</button>
-                                                    @elseif ($item->status == 2 )
-                                                        <button class="btn btn-outline-danger btn-sm">Rejected</button>
-                                                    @elseif($item->query_status == 2)
-                                                        <button class="btn btn-outline-primary btn-sm">Re-Submitted</button>
-                                                    @elseif($item->query_status == 1)
-                                                        <button class="btn btn-outline-warning btn-sm">Query Marked</button>
-                                                    @else
-                                                        <span class="badge bg-success">Submitted</span>
-                                                    @endif
-                                                @else
-                                                    <span class="badge bg-primary">Pending</span>
-                                                @endif
-                                            </td>
+                                            @include('private_coaching.applicant_status_cell', ['item' => $item, 'type' => 'swimming'])
 
                                             <td class="text-center">
                                                 <a class="btn btn-xs btn-outline-primary"
@@ -195,23 +149,7 @@
                                             <td>{{ $item->mobile }}</td>
                                    
 
-                                            <td class="text-center">
-                                                @if($item->final_submit == 1)
-                                                    @if ($item->status == 1 )
-                                                        <button class="btn btn-outline-success btn-sm">Accepted</button>
-                                                    @elseif ($item->status == 2 )
-                                                        <button class="btn btn-outline-danger btn-sm">Rejected</button>
-                                                    @elseif($item->query_status == 2)
-                                                        <button class="btn btn-outline-primary btn-sm">Re-Submitted</button>
-                                                    @elseif($item->query_status == 1)
-                                                        <button class="btn btn-outline-warning btn-sm">Query Marked</button>
-                                                    @else
-                                                        <span class="badge bg-success">Submitted</span>
-                                                    @endif
-                                                @else
-                                                    <span class="badge bg-primary">Pending</span>
-                                                @endif
-                                            </td>
+                                            @include('private_coaching.applicant_status_cell', ['item' => $item, 'type' => 'gym'])
 
                                             <td class="text-center">
                                                 <a class="btn btn-xs btn-outline-primary"

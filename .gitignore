@@ -79,3 +79,10 @@ bkp/
 ############################################
 
 /application/storage/
+/vendor/
+vendor/
+/scratch/
+scratch/
+.vs/
+*.backup.*
+

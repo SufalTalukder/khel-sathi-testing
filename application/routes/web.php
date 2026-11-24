@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\CollegeSportsMapController;
 use App\Http\Controllers\Admin\StudiumMasterController;
 use App\Http\Controllers\Admin\OnlineAdmissionDetailController;
 use App\Http\Controllers\Admin\MessageBoard;
+use App\Http\Controllers\Admin\PMGatiShaktiController;
 use App\Http\Controllers\Controller;
 
 use App\Http\Controllers\DirectRecruitment;
@@ -441,12 +442,12 @@ Route::group(['prefix' => 'admin', 'middleware' => ['IsAdmin']], function () {
      * Admin User Route
      */
 
-  // Route::get('registered-users', [RegisteredUser::class, 'registeredUsers'])->name('regUser');
-  // Route::get('users-manage',     [RegisteredUser::class, 'usermanage'])->name('usermanage');
-  // Route::get('usersStatus/{id}', [RegisteredUser::class, 'usersStatus'])->name('usersStatus');
-  // Route::get('edit-user/{id}',   [RegisteredUser::class, 'edituser'])->name('edituser');
-  // Route::post('updateUser',      [RegisteredUser::class, 'updateUser'])->name('updateUser');
-  // Route::get('deleteUser/{id}', [RegisteredUser::class, 'deleteUser'])->name('deleteUser');
+    // Route::get('registered-users', [RegisteredUser::class, 'registeredUsers'])->name('regUser');
+    // Route::get('users-manage',     [RegisteredUser::class, 'usermanage'])->name('usermanage');
+    // Route::get('usersStatus/{id}', [RegisteredUser::class, 'usersStatus'])->name('usersStatus');
+    // Route::get('edit-user/{id}',   [RegisteredUser::class, 'edituser'])->name('edituser');
+    // Route::post('updateUser',      [RegisteredUser::class, 'updateUser'])->name('updateUser');
+    Route::get('deleteUser/{id}', [RegisteredUser::class, 'deleteUser'])->name('deleteUser');
 
   // Route::get('userslist',        [RegisteredUser::class, 'userslist'])->name('userslist');
 
@@ -695,7 +696,7 @@ Route::group(['prefix' => 'department', 'middleware' => ['IsDepartment']], funct
 Route::get('department/login',     [Adminathentication::class, 'd_form_login']);
 Route::post('department/login',     [Adminathentication::class, 'd_login'])->name('d_login');
 
-Route::get('admin/login',     [Adminathentication::class, 'form_login']);
+Route::get('admin/login',     [Adminathentication::class, 'form_login'])->name('admin_login');
 Route::post('admin/login',     [Adminathentication::class, 'login'])->name('adminlogin');
 
 Route::match(['GET', 'POST'], 'admin/forgot-password', [Adminathentication::class, 'forgot'])->name('adminforgot');
@@ -724,6 +725,12 @@ Route::get('admin/change-password',    [Adminathentication::class, 'changePasswo
 // Route::group(['prefix' => 'rso'], function () {
 Route::group(['prefix' => 'admin', 'middleware' => ['IsAdmin']], function () {
     Route::get('profile',     [AdminDashboard::class, 'adminprofile'])->name('adminprofile')->middleware('StopScriptTags');
+    Route::post('profile/update-officer', [AdminDashboard::class, 'updateOfficerProfile'])->name('adminUpdateOfficerProfile');
+    Route::get('profile/stadium-details', [AdminDashboard::class, 'getStadiumDetails'])->name('adminGetStadiumDetails');
+    Route::post('profile/update-stadium', [AdminDashboard::class, 'updateStadiumDetails'])->name('adminUpdateStadiumDetails');
+    Route::post('profile/create-stadium', [AdminDashboard::class, 'createStadiumByOfficer'])->name('adminCreateStadiumByOfficer');
+    Route::post('profile/save-all-infrastructures', [AdminDashboard::class, 'saveAllInfrastructures'])->name('adminSaveAllInfrastructures');
+    Route::delete('profile/delete-infrastructure/{id}', [AdminDashboard::class, 'deleteInfrastructure'])->name('adminDeleteInfrastructure');
     // Route::get('login',     [Adminathentication::class, 'rso_form_login']);
     // Route::post('rso_login',     [Adminathentication::class, 'rso_login'])->name('rso_login');
     Route::get('rsoDashboard',        [DashboardController::class, 'rsoDashboard'])->name('rsoDashboard')->middleware('StopScriptTags');
@@ -1072,6 +1079,8 @@ Route::any('darpan/monthly/{id?}',        [darpanController::class, 'monthly']);
 
 Route::any('darpan/position/{id?}/{dist?}',        [darpanController::class, 'position']);
 Route::any('darpan/district_position/{id?}',        [darpanController::class, 'district_position']);
+Route::any('darpan/dummy_position/{id?}/{dist?}',        [darpanController::class, 'dummy_position']);
+Route::any('darpan/dummy_district_position/{id?}',        [darpanController::class, 'dummy_district_position']);
 
 // Route::any('/darpanData',  [darpanController::class, 'darpanData'])->name('darpanData');
 
@@ -1473,7 +1482,7 @@ Route::middleware('IsUsers')->group(function () {
     // Route::get('awarddelete/{id}', [EklavyaKreedaKoshController::class, 'awarddelete']);
     Route::post('bank_detail_store', [EklavyaKreedaKoshController::class, 'bank_detail_store'])->name('eklavya_kreeda_kosh_bank_detail_store');
     Route::get('applicationpreview/{id}', [EklavyaKreedaKoshController::class, 'applicationpreview'])->name('eklavya_kreeda_kosh_applicationpreview')->middleware('StopScriptTags');
-    Route::get('eklavya_kreeda_kosh/final_submit/{id}', [EklavyaKreedaKoshController::class, 'applicant_applicationFinalSubmit']);
+    Route::match(['get', 'post'], 'eklavya_kreeda_kosh/final_submit/{id?}', [EklavyaKreedaKoshController::class, 'applicant_applicationFinalSubmit'])->name('eklavya_kreeda_kosh_final_submit');
 });
 
 //FacilityBooking
@@ -1526,7 +1535,7 @@ Route::group(['prefix' => 'coaching_camp'], function () {
     Route::post('/forgotStore', [CoachingCampController::class, 'forgotStore'])->name('coaching_camp_forgotStore');
 });
 
-Route::group(['prefix' => 'coaching_camp', 'middleware' => ['CoachingCamp','prevent-back-history']], function () {
+Route::group(['prefix' => 'coaching_camp', 'middleware' => ['CoachingCamp', 'prevent-back-history']], function () {
     Route::get('/change_password', [CoachingCampController::class, 'coaching_camp_change_password'])->name('coaching_camp_change_password');
     Route::get('/application_form', [CoachingCampController::class, 'coaching_camp_application_form'])->name('coaching_camp_application_form');
     Route::get('/application_preview', [CoachingCampController::class, 'coaching_camp_application_preview'])->name('coaching_camp_application_preview');
@@ -1566,7 +1575,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['IsAdmin']], function () {
 
 // -- profile_card for admin------
 
-Route::group(['prefix' => 'admin','middleware' => ['IsAdmin']], function () {
+Route::group(['prefix' => 'admin', 'middleware' => ['IsAdmin']], function () {
 
     Route::get('/profile_card', [ProfileCardController::class, 'profile_card_form'])
         ->name('profile_card_form');
@@ -1741,8 +1750,6 @@ Route::any('download_hostel_pdftest/{checkk}', [HostelTrailController::class, 'd
 Route::get('update_payment_status/{application_no}', [RajkoshController::class, 'update_payment_status'])->name('update_payment_status');
 
 
-
-
 //fcaility booking  rakesh
 
 
@@ -1784,7 +1791,6 @@ Route::any('facility_booking/payment_receipt/{id}', [FacilityBookingController::
 Route::any('facility_booking/payment_response_test', [RajkoshController::class, 'facility_booking_payment_response_test'])->name('facility_booking_payment_response_test');
 
 Route::any('admin/facility_booking/facilityBookingAjax/{id?}', [FacilityBookingController::class, 'facilityBookingAjax'])->name('facilityBookingAjax');
-
 Route::group(['prefix' => 'admin/facility_booking', 'middleware' => ['IsAdmin', 'IsMapping']], function () {
     Route::any('/dashboard/{id}', [FacilityBookingController::class, 'admin_dashboard'])->name('admin_facility_booking_dashboard');
     Route::any('/preview/{id}', [FacilityBookingController::class, 'admin_application_preview'])->name('admin_facility_booking_preview');
@@ -1873,6 +1879,11 @@ Route::group(['prefix' => 'admin/private_coaching', 'middleware' => ['IsAdmin']]
     Route::any('/admin_swimming_pool_preview/{id?}', [PrivateCoachingController::class, 'admin_swimming_pool_preview']);
 
     Route::any('/private_forward', [PrivateCoachingController::class, 'private_forward'])->name('admin_private_forward');
+    Route::any('/mark_inspection_date', [PrivateCoachingController::class, 'mark_inspection_date'])->name('admin_private_coaching_mark_inspection_date');
+    Route::any('/inspection_report_submit', [PrivateCoachingController::class, 'inspection_report_submit'])->name('admin_private_coaching_inspection_report_submit');
+    Route::any('/mark_fee_paid', [PrivateCoachingController::class, 'mark_fee_paid'])->name('admin_private_coaching_mark_fee_paid');
+    Route::any('/upload_certificate', [PrivateCoachingController::class, 'upload_certificate'])->name('admin_private_coaching_upload_certificate');
+    Route::any('/report', [PrivateCoachingController::class, 'report'])->name('admin_private_coaching_report');
 });
 
 
@@ -1893,7 +1904,9 @@ Route::group(['prefix' => 'admin', 'middleware' => ['IsAdmin']], function () {
 });
 
 
-
+Route::group(['prefix' => 'admin/pm_gatishakti/', 'middleware' => ['IsAdmin', 'IsMapping']], function () {
+    Route::any('/dashboard', [PMGatiShaktiController::class, 'dashboard'])->name('pm_gatishakti_dashboard');
+});
 
 
 Route::group(['prefix' => 'collegeadmin', 'middleware' => ['IsAdmin']], function () {});
@@ -1917,15 +1930,3 @@ Route::group(['prefix' => 'eklavyaFund'], function () {
         Route::get('/logout', [EklavyaFundController::class, 'logout']);
     });
 });
-
-
-
-
-
-
-
-
-
-
-
-

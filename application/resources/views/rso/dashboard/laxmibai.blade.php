@@ -214,7 +214,7 @@
                             <tr>
 
                                 <td>
-                                    {{ $key + 1 }}
+                                    {{ method_exists($details, 'firstItem') ? ($details->firstItem() + $key) : ($key + 1) }}
                                 </td>
 
                                 <td>
@@ -303,6 +303,21 @@
                     </tbody>
 
                 </table>
+
+                @if(method_exists($details, 'links'))
+                <div class="row mt-3 mb-2 align-items-center">
+                    <div class="col-sm-6">
+                        <div class="dataTables_info text-muted fw-semibold">
+                            Showing {{ $details->firstItem() ?? 0 }} to {{ $details->lastItem() ?? 0 }} of {{ $details->total() }} entries
+                        </div>
+                    </div>
+                    <div class="col-sm-6 text-end">
+                        <div class="d-inline-block">
+                            {{ $details->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
+                        </div>
+                    </div>
+                </div>
+                @endif
 
             </div>
 

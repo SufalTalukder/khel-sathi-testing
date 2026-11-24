@@ -122,6 +122,7 @@
                                     <label for="gender">Gender</label>
                                     <div class="dropdown-check-list">
                                         <select name="gender" id="gender" class="form-select">
+                                            <option value=''>All</option>
                                             <option value="1">Male</option>
                                             <option value="2">Female</option>
                                         </select>
@@ -133,6 +134,7 @@
                                     <label for="user_type">User Type</label>
                                     <div class="dropdown-check-list">
                                         <select name="user_type" id="user_type" class="form-select">
+                                            <option value=''>All</option>
                                             <option value="1">Below 18</option>
                                             <option value="2">Above 18</option>
                                         </select>
@@ -238,18 +240,27 @@
                                     @elseif($item->form_status == 0)
                                         <span class="badge bg-danger rounded-pill">Application Rejected </span>
                                     @elseif ($item->form_status == 1)
+
                                         @if ($item->payment_status_coaching_fee == 1 && $item->validity>=date('Y-m-d') && $item->active == 1 )
                                             <span class="badge bg-success rounded-pill">Active</span>
+                                        @elseif ($item->payment_status_coaching_fee == 1 && $item->payment_date_coaching_fee!=null)
+                                            @if($item->validity<$item->payment_date_coaching_fee)
+                                                <span class="badge bg-warning rounded-pill">Reactivation Pending</span>
+                                            @endif
                                         @elseif ($item->payment_status_coaching_fee == 1 && $item->active == 0 && $item->payment_amount_coaching == null)
                                             <span class="badge bg-warning rounded-pill">Activation Pending</span>
                                         @elseif ($item->payment_status_coaching_fee == 1 && $item->payment_status == null )
                                             <span class="badge bg-info rounded-pill">Coaching Fees Paid</span>
                                             <span class="badge bg-info rounded-pill">Protsahan Samiti Fees Pending</span>
-                                        @elseif ($item->payment_status_coaching_fee == 1 && $item->validity<date('Y-m-d') )
+                                        @elseif ($item->payment_status_coaching_fee == 1 && $item->validity!=null && $item->validity<date('Y-m-d') )
                                             <span class="badge bg-warning rounded-pill">Validity Expired</span>
+                                        @elseif ($item->payment_status_coaching_fee == 1 && $item->validity==null && $item->payment_amount_coaching!=null)
+                                            <span class="badge bg-warning rounded-pill">Activation Pending</span>
                                         @else
-                                            <span class="badge bg-success rounded-pill">Application Approved</span> <br>
+                                            <span class="badge bg-success rounded-pill">Application Approved</span><br>
                                         @endif
+                                    @else 
+                                        <span class="badge bg-warning rounded-pill">Validity Expired</span>
                                     @endif
                                 </td>
                                 <td>

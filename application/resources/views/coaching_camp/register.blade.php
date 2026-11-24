@@ -2,11 +2,17 @@
 @section('content')
     <div class="pt-4 pb-5 login-form">
         <div class="text-center text-md-center mt-md-0">
-            <h3 class="mb-0"> Applicant’s Registration/आवेदक का पंजीकरण</h3>
-            <div class="d-flex justify-content-center align-items-center mt-2"><span class="fw-normal"> <a
-                        href="{{ route('coaching_camp_login') }}" class="fw-bold text-primary">Already Registered ? Click Here
-                        to Login<br>
-                        पहले से ही पंजीकृत? लॉगिन करने हेतु यहां क्लिक करें</a></span> </div>
+            <h3 class="mb-2"> Applicant’s Registration/आवेदक का पंजीकरण</h3>
+            <div class="auth-login-callout my-2 text-center">
+                <div class="d-inline-block p-2 px-3 rounded-3" style="background: #f0fdf4; border: 1.5px dashed #16a34a; box-shadow: 0 2px 8px rgba(22, 163, 74, 0.1);">
+                    <div style="font-size: 0.82rem; color: #475569; font-weight: 600; margin-bottom: 4px;">
+                        Already Registered? / क्या पहले से पंजीकृत हैं?
+                    </div>
+                    <a href="{{ route('coaching_camp_login') }}" class="btn btn-sm btn-success rounded-pill px-4 py-1 fw-bold text-white shadow-sm" style="font-size: 0.88rem; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); border: none;">
+                        <i class="fas fa-sign-in-alt me-1"></i> Click Here to Login / अभी लॉगिन करें &rarr;
+                    </a>
+                </div>
+            </div>
         </div>
         <form action="{{ route('coaching_camp_regsiter_store') }}" id="submitform" class="mt-2 needs-validation" novalidate
             method="post">

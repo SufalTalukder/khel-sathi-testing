@@ -52,8 +52,8 @@
                                                                 </h2>
                                                                 <h5
                                                                     style="text-align: center; margin:10px 0px 0px 0px; font-size:16pt; padding: 0px; color:#383838; font-weight: bold;">
-                                                                    Registration of Pvt. Coaching Academies / Associations
-                                                                    ,Gyms, Swimming Pools
+                                                                    {{-- Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools --}}
+                                                                    Registration of Gyms & Swimming Pools
                                                                 </h5>
                                                             </div>
                                                             <h6

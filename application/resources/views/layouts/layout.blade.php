@@ -47,6 +47,27 @@
 		.menuheader-width {
 			left: 0;
 		}
+
+        /* Global BlockUI Permanent Override: Kill legacy grey box and busy.gif */
+        .blockUI.blockMsg.blockPage,
+        .blockUI.blockOverlay {
+            display: none !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        .blockUI img[src*="busy.gif"],
+        img[src*="busy.gif"] {
+            display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        .blockUI.blockMsg.blockPage>h1 {
+            display: none !important;
+        }
 	</style>
 	<link href="{{ url('admin') }}/css/select2.min.css" rel="stylesheet" media="all" />
 	<script type="text/javascript" src="{{ asset('/public') }}/assets_admin/js/jquery-min.js"></script>
@@ -115,8 +136,9 @@
 	<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
 	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+	<x-global_loader/>
 	<script type="text/javascript" src="{{ url('admin') }}/js/toast.js"></script>
-	<script type="text/javascript" src="{{ url('admin') }}/js/custom.js"></script>
+	<script type="text/javascript" src="{{ url('admin') }}/js/custom.js?v={{ time() }}"></script>
 
 
 	<x-message />

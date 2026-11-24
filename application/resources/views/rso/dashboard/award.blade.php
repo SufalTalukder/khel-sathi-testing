@@ -21,8 +21,8 @@
                                     <tr>
                                         <td colspan="2">
                                             <div class="table-responsive">
-                                                <table class="table table-bordered table-hover bg-white datatable mb-3"
-                                                    id="dataTable" cellpadding="3">
+                                                <table class="table table-bordered table-hover bg-white mb-3"
+                                                    id="printDummyTable" cellpadding="3">
                                                     <thead>
                                                         <tr>
                                                             <th>S.No.</th>
@@ -134,14 +134,12 @@
                             <div class="col-md-6">
                                 <label>Show
                                     <select name="table_length" id="table_length" class="table-form-control ">
-                                        <option value="100000">All</option>
-                                        <option value="5">5</option>
+                                        <option value="25" selected>25</option>
                                         <option value="10">10</option>
-                                        <option value="25">25</option>
                                         <option value="50">50</option>
                                         <option value="100">100</option>
                                         <option value="200">200</option>
-                                        <!-- <option value="-1">All</option> -->
+                                        <option value="100000">All</option>
                                     </select> entries
                                 </label>
                             </div>

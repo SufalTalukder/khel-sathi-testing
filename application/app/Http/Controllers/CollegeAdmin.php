@@ -148,7 +148,7 @@ class CollegeAdmin extends Controller
 
         $registrations->where('rg.session_year', '2026');
 
-        $data = $registrations->where('payment_response.status', 'success')->groupBy('rg.id')->orderBy('rg.fullname', 'asc')->get();
+        $data = $registrations->where('payment_response.status', 'success')->groupBy('rg.id')->orderBy('rg.fullname', 'asc')->paginate(25);
         return view('collegeadmin.dashboard', ['registrations' => $data, 'sports' => $sports, 'district' => $district, 'divisions' => $divisions, 'division' => $division, 'trial_venue' => $trial_venue]);
     }
 
@@ -357,7 +357,7 @@ class CollegeAdmin extends Controller
             }
         }
 
-        $data = $registrations->where('rg.session_year', config('app.session_year'))->where('payment_response.status', 'success')->groupBy('rg.id')->orderBy('rg.fullname', 'asc')->get();
+        $data = $registrations->where('rg.session_year', config('app.session_year'))->where('payment_response.status', 'success')->groupBy('rg.id')->orderBy('rg.fullname', 'asc')->paginate(25);
 
         return view('collegeadmin.dashboard', ['registrations' => $data, 'sports' => $sports, 'district' => $district, 'divisions' => $divisions, 'division' => $division, 'trial_venue' => $trial_venue]);
     }
@@ -485,7 +485,7 @@ class CollegeAdmin extends Controller
             }
         }
 
-        $data = $registrations->where('rg.session_year', config('app.session_year'))->where('payment_response.status', 'success')->groupBy('rg.id')->orderBy('rg.fullname', 'asc')->get();
+        $data = $registrations->where('rg.session_year', config('app.session_year'))->where('payment_response.status', 'success')->groupBy('rg.id')->orderBy('rg.fullname', 'asc')->paginate(25);
 
         return view('collegeadmin.dashboard', ['registrations' => $data, 'sports' => $sports, 'status' => 1, 'district' => $district, 'divisions' => $divisions, 'division' => $division]);
     }
@@ -546,7 +546,7 @@ class CollegeAdmin extends Controller
             }
         }
 
-        $data = $registrations->where('rg.session_year', config('app.session_year'))->where('payment_response.status', 'success')->groupBy('rg.id')->orderBy('rg.fullname', 'asc')->get();
+        $data = $registrations->where('rg.session_year', config('app.session_year'))->where('payment_response.status', 'success')->groupBy('rg.id')->orderBy('rg.fullname', 'asc')->paginate(25);
 
         return view('collegeadmin.dashboard', ['registrations' => $data, 'sports' => $sports, 'status' => 3, 'district' => $district, 'divisions' => $divisions, 'division' => $division]);
     }

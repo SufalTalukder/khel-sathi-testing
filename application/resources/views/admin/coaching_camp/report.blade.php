@@ -34,8 +34,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="mb-4">
-                        <form class="row" method="post" action="{{ route('coaching_camp_report') }}">
-                            @csrf
+                        <form class="row" method="get" action="{{ route('coaching_camp_report') }}">
                             @if(Auth::guard('admin')->user()->admin_role==1)
                                 <div class="col-md-3">
                                     <div class="form-group">
@@ -97,6 +96,7 @@
                                     <label for="gender">Gender</label>
                                     <div class="dropdown-check-list">
                                         <select name="gender" id="gender" class="form-select">
+                                            <option value="">All</option>
                                             <option value="1">Male</option>
                                             <option value="2">Female</option>
                                         </select>

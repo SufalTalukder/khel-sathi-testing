@@ -17,14 +17,28 @@ if (file_exists("connection.php")) {
 <?php
 // DB connection
 try {
-    $pdo = new PDO(
-        'mysql:host=127.0.0.1;port=3306;dbname=dbaseomninet_sportdbn13022026',
-        'root',
-        '',
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
+    try {
+        $pdo = new PDO(
+            'mysql:host=127.0.0.1;port=3306;dbname=dbaseomninet_sportdbn13022026',
+            'root',
+            '',
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+    } catch (PDOException $e) {
+        $pdo = new PDO(
+            'mysql:host=127.0.0.1;port=3306;dbname=dbaseomninet_sportdbn13022026',
+            'root',
+            'root',
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+    }
 } catch (PDOException $e) {
-    die("<p>DB Error: " . $e->getMessage() . "</p>");
+    $pdo = null;
+    $notices = [];
+    $govtorders = [];
+    $documents = [];
+    $yearbook = null;
+    $budgetbook = null;
 }
 
 // Fetched for notice type = 1
@@ -155,6 +169,1140 @@ try {
         .logo-2 img {
             max-width: 80%;
         }
+
+        /* -------------------------------------------------------------------------
+           Navbar Elements Spacing & Full Responsive Layout (Desktop, Tablet, Mobile)
+           ------------------------------------------------------------------------- */
+        .glass-navbar {
+            position: fixed;
+            top: 15px;
+            left: 1.5%;
+            width: 97%;
+            z-index: 9999;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .glass-navbar .navbar-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .glass-navbar .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            text-decoration: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .glass-navbar .brand-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .glass-navbar .navbar-chad {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .glass-navbar .navbar-chad-item {
+            margin: 0 !important;
+        }
+
+        /* Nav Buttons Base */
+        .glass-navbar .nav-btn {
+            white-space: nowrap;
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+
+        /* Department Login CTA Button - Orange Gradient Highlight */
+        .glass-navbar .nav-btn.nav-btn-login {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+            box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35) !important;
+            border: 1px solid rgba(255, 255, 255, 0.35) !important;
+            color: #ffffff !important;
+        }
+
+        .glass-navbar .nav-btn.nav-btn-login:hover {
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+            box-shadow: 0 4px 14px rgba(234, 88, 12, 0.5) !important;
+            color: #ffffff !important;
+        }
+
+        /* Dropdown Menu Glass Styling */
+        .glass-navbar .dropdown-menu {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 14px;
+            box-shadow: 0 12px 32px rgba(31, 38, 135, 0.16);
+            padding: 8px 0;
+            min-width: 260px;
+            z-index: 10000;
+        }
+
+        .glass-navbar .dropdown-item {
+            padding: 9px 16px;
+            font-size: 0.84rem;
+            font-weight: 500;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            white-space: normal;
+        }
+
+        .glass-navbar .dropdown-item:hover {
+            background: linear-gradient(90deg, #ede9fe 0%, #fae8ff 100%);
+            color: #6b21a8;
+            padding-left: 20px;
+        }
+
+        /* 1. Large Desktop Screens (>= 1450px) */
+        @media (min-width: 1450px) {
+            .glass-navbar {
+                padding: 14px 28px;
+            }
+            .glass-navbar .navbar-chad {
+                gap: 10px !important;
+            }
+            .glass-navbar .nav-btn {
+                padding: 0.72em 1.15em !important;
+                font-size: 0.88rem !important;
+            }
+            .glass-navbar .navbar-logo {
+                width: 78px;
+                height: 78px;
+            }
+            .glass-navbar .portal-title {
+                font-size: 1.55rem;
+            }
+            .glass-navbar .department-title {
+                font-size: 1.1rem;
+            }
+            .glass-navbar .government-title {
+                font-size: 0.82rem;
+            }
+        }
+
+        /* 2. Standard Laptops & Medium Desktops (1200px - 1449px, e.g. 1366x768, 1280x800) */
+        @media (min-width: 1200px) and (max-width: 1449px) {
+            .glass-navbar {
+                padding: 10px 18px !important;
+                gap: 10px !important;
+            }
+            .glass-navbar .navbar-brand {
+                gap: 10px !important;
+            }
+            .glass-navbar .navbar-logo {
+                width: 62px !important;
+                height: 62px !important;
+            }
+            .glass-navbar .brand-divider {
+                height: 55px !important;
+            }
+            .glass-navbar .portal-title {
+                font-size: 1.25rem !important;
+                letter-spacing: 0.3px !important;
+            }
+            .glass-navbar .department-title {
+                font-size: 0.88rem !important;
+            }
+            .glass-navbar .government-title {
+                font-size: 0.72rem !important;
+            }
+            .glass-navbar .navbar-chad {
+                gap: 8px !important;
+            }
+            .glass-navbar .nav-btn {
+                padding: 0.72em 1.15em !important;
+                font-size: 0.86rem !important;
+                gap: 0.45em !important;
+                border-radius: 0.85em !important;
+            }
+            .glass-navbar .nav-btn i {
+                font-size: 0.95em !important;
+            }
+        }
+
+        /* 3. Tablets (Portrait & Landscape: 768px - 1199px, e.g. iPad 1024px, 820px, 768px) */
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .glass-navbar {
+                padding: 12px 20px !important;
+                top: 10px !important;
+            }
+            .glass-navbar .navbar-brand {
+                gap: 12px !important;
+            }
+            .glass-navbar .navbar-logo {
+                width: 60px !important;
+                height: 60px !important;
+            }
+            .glass-navbar .brand-divider {
+                height: 54px !important;
+            }
+            .glass-navbar .portal-title {
+                font-size: 1.25rem !important;
+            }
+            .glass-navbar .department-title {
+                font-size: 0.88rem !important;
+            }
+            .glass-navbar .government-title {
+                font-size: 0.72rem !important;
+            }
+            .glass-navbar .navbar-toggler {
+                padding: 8px 12px !important;
+                background: rgba(255, 255, 255, 0.45) !important;
+                border: 1px solid rgba(255, 255, 255, 0.75) !important;
+                border-radius: 12px !important;
+            }
+            .glass-navbar .navbar-collapse {
+                max-height: calc(85vh - 85px) !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                margin-top: 12px !important;
+                padding-top: 12px !important;
+                border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+            }
+            .glass-navbar .navbar-chad {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+                width: 100% !important;
+            }
+            .glass-navbar .navbar-chad-item {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .glass-navbar .nav-btn {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 0.8em 1em !important;
+                font-size: 0.88rem !important;
+            }
+            .glass-navbar .dropdown-menu {
+                position: static !important;
+                float: none !important;
+                width: 100% !important;
+                margin-top: 6px !important;
+            }
+        }
+
+        /* 4. Mobile Devices (<= 767px, e.g. iPhone, Samsung Galaxy, Pixel) */
+        @media (max-width: 767px) {
+            .glass-navbar {
+                padding: 10px 14px !important;
+                border-radius: 18px !important;
+                top: 8px !important;
+                left: 2% !important;
+                width: 96% !important;
+            }
+            .glass-navbar .navbar-container {
+                padding: 0 !important;
+            }
+            .glass-navbar .navbar-brand {
+                gap: 9px !important;
+                max-width: calc(100% - 54px) !important;
+            }
+            .glass-navbar .navbar-logo {
+                width: 46px !important;
+                height: 46px !important;
+                flex-shrink: 0 !important;
+            }
+            .glass-navbar .brand-divider {
+                height: 42px !important;
+                margin: 0 1px !important;
+            }
+            .glass-navbar .portal-title {
+                font-size: 1.05rem !important;
+                line-height: 1.2 !important;
+                letter-spacing: 0.3px !important;
+            }
+            .glass-navbar .department-title {
+                font-size: 0.78rem !important;
+                line-height: 1.2 !important;
+            }
+            .glass-navbar .government-title {
+                font-size: 0.68rem !important;
+                line-height: 1.2 !important;
+            }
+            .glass-navbar .navbar-toggler {
+                padding: 6px 8px !important;
+                background: rgba(255, 255, 255, 0.45) !important;
+                border: 1px solid rgba(255, 255, 255, 0.7) !important;
+                border-radius: 10px !important;
+            }
+            .glass-navbar .navbar-collapse {
+                max-height: calc(82vh - 72px) !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                margin-top: 10px !important;
+                padding: 10px 2px 14px !important;
+                border-top: 1px solid rgba(255, 255, 255, 0.35) !important;
+            }
+            .glass-navbar .navbar-chad {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+            .glass-navbar .navbar-chad-item {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .glass-navbar .nav-btn {
+                width: 100% !important;
+                justify-content: flex-start !important;
+                padding: 0.75em 1em !important;
+                font-size: 0.86rem !important;
+                border-radius: 12px !important;
+                box-sizing: border-box !important;
+            }
+            .glass-navbar .dropdown-menu {
+                position: static !important;
+                float: none !important;
+                width: 100% !important;
+                margin-top: 6px !important;
+            }
+            .glass-navbar .dropdown-item {
+                padding: 10px 14px !important;
+                font-size: 0.84rem !important;
+            }
+        }
+
+        /* 5. Extra Small / Foldable Screens (<= 380px) */
+        @media (max-width: 380px) {
+            .glass-navbar .navbar-logo {
+                width: 38px !important;
+                height: 38px !important;
+            }
+            .glass-navbar .brand-divider {
+                height: 36px !important;
+            }
+            .glass-navbar .portal-title {
+                font-size: 0.92rem !important;
+            }
+            .glass-navbar .department-title {
+                font-size: 0.70rem !important;
+            }
+            .glass-navbar .government-title {
+                display: none !important;
+            }
+            .glass-navbar .nav-btn {
+                font-size: 0.82rem !important;
+                padding: 0.65em 0.85em !important;
+            }
+        }
+
+        /* Header & Hero Banner Responsive Spacer */
+        .ks-header-banner-spacer {
+            display: block;
+            width: 100%;
+        }
+
+        @media (min-width: 1200px) {
+            .ks-header-banner-spacer {
+                height: 8.8em;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .ks-header-banner-spacer {
+                height: 7.2em;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .ks-header-banner-spacer {
+                height: 5.6em;
+            }
+        }
+
+        /* -------------------------------------------------------------------------
+           Khel Sathi Hero Carousel - Bestest Auto-Swipe & User Mockup Dot-to-Pill Indicators
+           ------------------------------------------------------------------------- */
+        .banner-2,
+        .banner_line1,
+        .banner_line2,
+        .banner_line3,
+        .banner-2 img {
+            display: none !important;
+        }
+
+        .banner {
+            width: 100% !important;
+            max-width: 100% !important;
+            position: relative !important;
+            overflow: hidden !important;
+            float: none !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 5 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .banner:after {
+            display: none !important;
+        }
+
+        #khelSathiHeroCarousel {
+            position: relative !important;
+            width: 100% !important;
+            height: clamp(340px, 44vw, 540px) !important;
+            overflow: hidden !important;
+            background: #071322 !important;
+            display: block !important;
+        }
+
+        #khelSathiHeroCarousel .carousel-inner {
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+        }
+
+        #khelSathiHeroCarousel .carousel-item {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1), transform 1.2s cubic-bezier(0.25, 1, 0.5, 1) !important;
+            transform: scale(1.03) !important;
+            display: block !important;
+            margin: 0 !important;
+            pointer-events: none !important;
+            z-index: 1 !important;
+        }
+
+        #khelSathiHeroCarousel .carousel-item.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: scale(1) !important;
+            pointer-events: auto !important;
+            z-index: 3 !important;
+        }
+
+        #khelSathiHeroCarousel .carousel-item img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center top !important;
+            display: block !important;
+        }
+
+        /* Subtle dark vignette gradient at the bottom so indicators stand out */
+        #khelSathiHeroCarousel .carousel-overlay-gradient {
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 130px !important;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.2) 65%, transparent 100%) !important;
+            pointer-events: none !important;
+            z-index: 10 !important;
+        }
+
+        /* Minimalist Dot-to-Pill Indicators Capsule (Matching User's Mockup) */
+        #khelSathiHeroCarousel .carousel-indicators-capsule {
+            position: absolute !important;
+            bottom: 24px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            margin: 0 !important;
+            padding: 7px 16px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 9px !important;
+            background: rgba(15, 23, 42, 0.68) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 999px !important;
+            z-index: 999 !important;
+            list-style: none !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+            user-select: none !important;
+        }
+
+        /* Inactive Dots (User mockup: light grey circular dots) */
+        #khelSathiHeroCarousel .carousel-indicators-capsule button {
+            display: block !important;
+            width: 9px !important;
+            height: 9px !important;
+            border-radius: 50% !important;
+            background: rgba(255, 255, 255, 0.5) !important;
+            border: none !important;
+            outline: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            cursor: pointer !important;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            z-index: 1000 !important;
+        }
+
+        #khelSathiHeroCarousel .carousel-indicators-capsule button:hover {
+            background: #ffffff !important;
+            transform: scale(1.3) !important;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.8) !important;
+        }
+
+        /* Active Pill (User mockup: elongated pill with rounded capsule ends) */
+        #khelSathiHeroCarousel .carousel-indicators-capsule button.active {
+            width: 44px !important;
+            height: 9px !important;
+            border-radius: 999px !important;
+            background: rgba(255, 255, 255, 0.28) !important;
+            border: 1px solid rgba(255, 255, 255, 0.45) !important;
+            cursor: default !important;
+            transform: none !important;
+            position: relative !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+        }
+
+        /* Progress Fill inside Active Pill */
+        #khelSathiHeroCarousel .carousel-indicators-capsule button.active .pill-progress-fill {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            height: 100% !important;
+            min-height: 9px !important;
+            width: 0% !important;
+            background: #ffffff !important;
+            border-radius: 999px !important;
+            box-shadow: 0 0 10px #ffffff, 0 0 4px #ffffff !important;
+            z-index: 1001 !important;
+            pointer-events: none !important;
+        }
+
+        /* Modern Floating Navigation Arrows */
+        #khelSathiHeroCarousel .ks-carousel-nav {
+            position: absolute !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 50% !important;
+            background: rgba(0, 0, 0, 0.45) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            color: #ffffff !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 22px !important;
+            cursor: pointer !important;
+            z-index: 999 !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            opacity: 0.75 !important;
+            text-decoration: none !important;
+        }
+
+        #khelSathiHeroCarousel:hover .ks-carousel-nav {
+            opacity: 1 !important;
+        }
+
+        #khelSathiHeroCarousel .ks-carousel-nav.prev {
+            left: 22px !important;
+        }
+
+        #khelSathiHeroCarousel .ks-carousel-nav.next {
+            right: 22px !important;
+        }
+
+        #khelSathiHeroCarousel .ks-carousel-nav:hover {
+            opacity: 1 !important;
+            background: #ea580c !important;
+            border-color: #ea580c !important;
+            transform: translateY(-50%) scale(1.1) !important;
+            box-shadow: 0 4px 18px rgba(234, 88, 12, 0.6) !important;
+            color: #ffffff !important;
+        }
+
+        @media (max-width: 768px) {
+            #khelSathiHeroCarousel {
+                height: 270px !important;
+            }
+            #khelSathiHeroCarousel .ks-carousel-nav {
+                width: 38px !important;
+                height: 38px !important;
+                font-size: 17px !important;
+                opacity: 0.85 !important;
+            }
+            #khelSathiHeroCarousel .ks-carousel-nav.prev { left: 10px !important; }
+            #khelSathiHeroCarousel .ks-carousel-nav.next { right: 10px !important; }
+            #khelSathiHeroCarousel .carousel-indicators-capsule {
+                bottom: 14px !important;
+                padding: 5px 12px !important;
+                gap: 7px !important;
+            }
+            #khelSathiHeroCarousel .carousel-indicators-capsule button {
+                width: 7px !important;
+                height: 7px !important;
+            }
+            #khelSathiHeroCarousel .carousel-indicators-capsule button.active {
+                width: 28px !important;
+                height: 7px !important;
+            }
+        }
+
+        /* -------------------------------------------------------------------------
+           About the Department & Official Portals Section (Exact Grid Alignment & Compact Spacing)
+           ------------------------------------------------------------------------- */
+        .ks-about-dept-section {
+            margin-top: 6px !important;
+            margin-bottom: 6px !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Seamless vertical rhythm with Online Services / Leaders below */
+        .ks-about-dept-section + .process_area {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+
+        .ks-about-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 13px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: relative;
+            transition: all 0.25s ease;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Subtle left accent line matching .title h2 (Maroon to Gold) */
+        .ks-about-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #99134d 0%, #ffcb67 100%);
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+
+        /* Left Content */
+        .ks-about-content {
+            padding-right: 10px;
+        }
+
+        .ks-about-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .ks-about-badge .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: #99134d;
+            border-radius: 50%;
+        }
+
+        .ks-about-badge .badge-text {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #99134d;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            font-family: "Roboto Condensed", sans-serif;
+        }
+
+        .ks-about-badge .badge-line {
+            width: 26px;
+            height: 2px;
+            background: #ffcb67;
+            display: inline-block;
+        }
+
+        .ks-about-heading {
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: #99134d;
+            line-height: 1.25;
+            margin-bottom: 5px;
+            font-family: "Roboto Condensed", sans-serif;
+            letter-spacing: -0.2px;
+        }
+
+        .ks-about-heading .highlight-dept {
+            color: #f06c27;
+            display: inline;
+        }
+
+        .ks-about-description {
+            font-size: 0.86rem;
+            line-height: 1.52;
+            color: #4b5563;
+            margin: 0;
+            font-weight: 400;
+            text-align: justify;
+        }
+
+        .ks-about-description .highlight-strong {
+            color: #99134d;
+            font-weight: 700;
+        }
+
+        /* Right Content - Compact Official Portals */
+        .ks-portals-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .ks-portals-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #99134d;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 2px;
+            font-family: "Roboto Condensed", sans-serif;
+        }
+
+        .ks-portals-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Portal Link Buttons (Compact & Styled to match site) */
+        .ks-portal-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #faf8f9;
+            border: 1px solid #ebdbe2;
+            border-radius: 8px;
+            padding: 7px 12px;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+
+        .ks-portal-btn:hover {
+            transform: translateY(-2px);
+            border-color: #99134d;
+            box-shadow: 0 3px 12px rgba(153, 19, 77, 0.14);
+            background: #ffffff;
+        }
+
+        .ks-portal-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .ks-icon-dept {
+            background: rgba(153, 19, 77, 0.09);
+            color: #99134d;
+        }
+
+        .ks-portal-btn:hover .ks-icon-dept {
+            background: #99134d;
+            color: #ffffff;
+        }
+
+        .ks-icon-dir {
+            background: rgba(240, 108, 39, 0.1);
+            color: #f06c27;
+        }
+
+        .ks-portal-btn:hover .ks-icon-dir {
+            background: #f06c27;
+            color: #ffffff;
+        }
+
+        .ks-portal-details {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .ks-portal-sublabel {
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            line-height: 1.1;
+        }
+
+        .ks-portal-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 1px 0;
+            line-height: 1.2;
+            font-family: "Roboto Condensed", sans-serif;
+            transition: color 0.2s ease;
+        }
+
+        .ks-portal-btn:hover .ks-portal-name {
+            color: #99134d;
+        }
+
+        .ks-portal-domain {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.72rem;
+            color: #99134d;
+            font-weight: 500;
+            line-height: 1.1;
+        }
+
+        .ks-portal-arrow {
+            color: #cbd5e1;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .ks-portal-btn:hover .ks-portal-arrow {
+            color: #99134d;
+            transform: translateX(3px);
+        }
+
+        /* -------------------------------------------------------------------------
+           Comprehensive Responsive Breakpoints (Desktop, Laptop, Tablet, Mobile)
+           ------------------------------------------------------------------------- */
+        /* Large Desktop (>= 1450px) */
+        @media (min-width: 1450px) {
+            .ks-about-card {
+                padding: 14px 22px;
+            }
+            .ks-about-heading {
+                font-size: 1.22rem;
+            }
+            .ks-about-description {
+                font-size: 0.88rem;
+            }
+        }
+
+        /* Standard Laptop & Desktop (1200px - 1449px) */
+        @media (min-width: 1200px) and (max-width: 1449px) {
+            .ks-about-card {
+                padding: 12px 18px;
+            }
+            .ks-about-heading {
+                font-size: 1.15rem;
+            }
+            .ks-about-description {
+                font-size: 0.85rem;
+                line-height: 1.5;
+            }
+        }
+
+        /* Medium Desktop & Landscape Tablet (992px - 1199px) */
+        @media (min-width: 992px) and (max-width: 1199px) {
+            .ks-about-card {
+                padding: 12px 16px;
+            }
+            .ks-about-heading {
+                font-size: 1.10rem;
+            }
+            .ks-about-description {
+                font-size: 0.83rem;
+                line-height: 1.48;
+            }
+            .ks-portal-btn {
+                padding: 6px 10px;
+                gap: 8px;
+            }
+            .ks-portal-name {
+                font-size: 0.84rem;
+            }
+        }
+
+        /* Portrait Tablets (768px - 991px) */
+        @media (min-width: 768px) and (max-width: 991px) {
+            .ks-about-dept-section {
+                margin: 6px 0 8px 0 !important;
+            }
+            .ks-about-card {
+                padding: 12px 16px;
+            }
+            .ks-about-content {
+                padding-right: 0;
+                margin-bottom: 8px;
+            }
+            .ks-about-heading {
+                font-size: 1.12rem;
+            }
+            .ks-about-description {
+                font-size: 0.84rem;
+                line-height: 1.5;
+                text-align: left;
+            }
+            /* Two buttons side-by-side on tablet to save vertical space */
+            .ks-portals-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .ks-portal-btn {
+                padding: 7px 10px;
+            }
+        }
+
+        /* Mobile Screens (<= 767px) */
+        @media (max-width: 767px) {
+            .ks-about-dept-section {
+                margin: 6px 0 8px 0 !important;
+            }
+            .ks-about-card {
+                padding: 12px 14px;
+                border-radius: 10px;
+                box-shadow: -7px 1px 30px rgba(0, 0, 0, 0.08);
+            }
+            .ks-about-content {
+                padding-right: 0;
+                margin-bottom: 8px;
+            }
+            .ks-about-heading {
+                font-size: 1.05rem;
+                margin-bottom: 4px;
+            }
+            .ks-about-description {
+                font-size: 0.82rem;
+                line-height: 1.48;
+                text-align: left;
+            }
+            .ks-portals-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .ks-portal-btn {
+                padding: 6px 10px;
+                gap: 8px;
+            }
+            .ks-portal-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.85rem;
+            }
+            .ks-portal-name {
+                font-size: 0.82rem;
+            }
+            .ks-portal-sublabel {
+                font-size: 0.60rem;
+            }
+            .ks-portal-domain {
+                font-size: 0.68rem;
+            }
+        }
+
+        /* Extra Small Mobile (<= 380px) */
+        @media (max-width: 380px) {
+            .ks-about-card {
+                padding: 8px 10px;
+            }
+            .ks-about-heading {
+                font-size: 0.98rem;
+            }
+            .ks-about-description {
+                font-size: 0.78rem;
+                line-height: 1.42;
+            }
+            .ks-portal-name {
+                font-size: 0.78rem;
+            }
+        }
+
+        /* -------------------------------------------------------------------------
+           Notice Bar (Latest Notices Ticker with Fixed Badge & Responsive Layout)
+           ------------------------------------------------------------------------- */
+        .ks-news-head-container {
+            position: relative;
+            z-index: 9;
+        }
+
+        .news-head {
+            background-color: #831142 !important;
+            height: 48px !important;
+            display: flex !important;
+            align-items: center !important;
+            padding: 0 14px !important;
+            overflow: hidden !important;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            width: 100% !important;
+        }
+
+        .news-head-badge {
+            display: inline-flex !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+            color: #ffffff !important;
+            user-select: none;
+            z-index: 2;
+            padding-right: 4px;
+        }
+
+        .news-head-badge .fa-bullhorn {
+            font-size: 17px !important;
+            color: #ffffff !important;
+            margin-right: 8px !important;
+            line-height: 1 !important;
+        }
+
+        .news-head-badge .news-head-title {
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.3px !important;
+            color: #ffffff !important;
+            font-family: inherit !important;
+            line-height: 1 !important;
+        }
+
+        .news-head-badge .news-head-divider {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            margin-left: 14px !important;
+            margin-right: 12px !important;
+            height: 24px !important;
+            user-select: none;
+        }
+
+        .news-head-badge .news-head-divider span {
+            display: block !important;
+            width: 2px !important;
+            height: 100% !important;
+            background-color: #ffffff !important;
+            opacity: 0.9 !important;
+            border-radius: 1px;
+        }
+
+        .news-head-marquee {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+        }
+
+        .news-head-marquee marquee {
+            display: block !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 48px !important;
+        }
+
+        .news-head a {
+            color: #ffffff !important;
+            line-height: 48px !important;
+            font-size: 15.5px !important;
+            font-weight: 500 !important;
+            text-decoration: none !important;
+            transition: color 0.2s ease;
+        }
+
+        .news-head a:hover {
+            color: #ffcc02 !important;
+            text-decoration: underline !important;
+        }
+
+        /* Tablet (max-width: 768px) */
+        @media (max-width: 768px) {
+            .news-head {
+                height: 44px !important;
+                padding: 0 10px !important;
+            }
+            .news-head-badge .fa-bullhorn {
+                font-size: 15px !important;
+                margin-right: 6px !important;
+            }
+            .news-head-badge .news-head-title {
+                font-size: 13.5px !important;
+            }
+            .news-head-badge .news-head-divider {
+                gap: 5px !important;
+                margin-left: 10px !important;
+                margin-right: 10px !important;
+                height: 20px !important;
+            }
+            .news-head-badge .news-head-divider span {
+                width: 1.5px !important;
+            }
+            .news-head-marquee marquee {
+                line-height: 44px !important;
+            }
+            .news-head a {
+                font-size: 14px !important;
+                line-height: 44px !important;
+            }
+        }
+
+        /* Mobile (max-width: 480px) */
+        @media (max-width: 480px) {
+            .news-head {
+                height: 40px !important;
+                padding: 0 8px !important;
+            }
+            .news-head-badge .fa-bullhorn {
+                font-size: 13px !important;
+                margin-right: 5px !important;
+            }
+            .news-head-badge .news-head-title {
+                font-size: 12px !important;
+            }
+            .news-head-badge .news-head-divider {
+                gap: 4px !important;
+                margin-left: 7px !important;
+                margin-right: 8px !important;
+                height: 18px !important;
+            }
+            .news-head-marquee marquee {
+                line-height: 40px !important;
+            }
+            .news-head a {
+                font-size: 12.5px !important;
+                line-height: 40px !important;
+            }
+        }
     </style>
 </head>
 
@@ -186,7 +1334,7 @@ try {
                 </div>
             </div>
         </header> -->
-        <nav class="navbar navbar-expand-lg glass-navbar">
+        <nav class="navbar navbar-expand-xl glass-navbar">
 
             <div class="container-fluid px-1 px-sm-3 navbar-container">
                 <div class="navbar-brand">
@@ -232,10 +1380,10 @@ try {
                 <!-- NAVIGATION -->
 
                 <div
-                    class="collapse navbar-collapse justify-content-center mt-3 justify-content-lg-end"
+                    class="collapse navbar-collapse justify-content-center mt-2 mt-xl-0 justify-content-xl-end"
                     id="mainNavbar"
                 >
-                <div class="d-flex navbar-chad" style="align-items:center">
+                <div class="navbar-chad">
 
 
                     <!-- LOGIN -->
@@ -290,7 +1438,7 @@ try {
 
                     </div>
                     <a href="pdf/Contact_Details.pdf" target="_blank" class="nav-btn navbar-chad-item" ><i class="fa fa-phone"></i>Contact Details </a>
-                    <a href="application/public/admin/login" target="_blank" class="nav-btn navbar-chad-item">
+                    <a href="application/public/admin/login" target="_blank" class="nav-btn nav-btn-login navbar-chad-item">
 
                         <i class="fa fa-user"></i>
 
@@ -305,50 +1453,50 @@ try {
             </div>
 
         </nav>
-        <div style="height:11.1em"></div>
+        <div class="ks-header-banner-spacer"></div>
 
-        <div class="banner-2">
-	        <div class="uplogo ms-3"><img style="max-width: 114px;" src="images/H_202408231636066070.jpg" /></div>
-
-            <div class="banner_line2">
-                <div class="banner_line2_1"></div>
-                <div class="banner_line2_2"></div>
-                <div class="banner_line2_3"></div>
-                <div class="banner_line2_4"></div>
-                <div class="banner_line2_5"></div>
-                <div class="banner_line2_6"></div>
-                <div class="banner_line2_7"></div>
-            </div>
-            <div class="banner_line3"></div>
-            <img src="images/banner_18.png" />
-        </div>
         <div class="banner">
-            <div id="carouselExampleInterval" class="carousel slide" data-bs-ride="carousel">
-                <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active"
-                        aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"
-                        aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2"
-                        aria-label="Slide 3"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="3"
-                        aria-label="Slide 4"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="4"
-                        aria-label="Slide 5"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="5"
-                        aria-label="Slide 6"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="7"
-                        aria-label="Slide 7"></button>
+            <div id="khelSathiHeroCarousel" class="carousel slide" data-bs-ride="false">
+                <div class="carousel-overlay-gradient"></div>
+                
+                <!-- Minimalist Dot-to-Pill Indicators Capsule (Matching User's Mockup) -->
+                <div class="carousel-indicators-capsule">
+                    <!-- Dynamic JS will manage dots and smooth progress pill -->
                 </div>
+                
                 <div class="carousel-inner">
-                    <div class="carousel-item active"><img src="images/banner-3.jpg" class="d-block w-100" alt="..."></div>
-                    <div class="carousel-item"><img src="images/banner-1-khel.jpg" class="d-block w-100" alt="..."></div>
-                    <div class="carousel-item"><img src="images/banner-2-khel.jpg" class="d-block w-100" alt="..."></div>
-                    <div class="carousel-item"><img src="images/banner-3-khel.jpg" class="d-block w-100" alt="..."></div>
-                    <div class="carousel-item"><img src="images/banner-4-khel.jpg" class="d-block w-100" alt="..."></div>
-                    <div class="carousel-item"><img src="images/banner-5-khel-1.jpg" class="d-block w-100" alt="..."></div>
-                    <div class="carousel-item"><img src="images/banner-2-khel.jpg" class="d-block w-100" alt="..."></div>
+                    <div class="carousel-item active">
+                        <img src="images/banner-3.jpg" alt="Hon’ble Chief Minister Yogi Adityanath - Sports Inauguration">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="images/banner-1-khel.jpg" alt="State Sports Initiatives Uttar Pradesh">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="images/banner-2-khel.jpg" alt="Youth Sports Development">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="images/banner-3-khel.jpg" alt="World Class Sports Infrastructure UP">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="images/banner-4-khel.jpg" alt="Excellence in Sports UP">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="images/banner-5-khel-1.jpg" alt="Khel Sathi Mission">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="images/banner-1.jpg" alt="Department of Sports Uttar Pradesh">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="images/banner-2.jpg" alt="Sports Tournaments and Events UP">
+                    </div>
                 </div>
+
+                <a class="ks-carousel-nav prev" href="javascript:void(0)" role="button" aria-label="Previous Slide">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                <a class="ks-carousel-nav next" href="javascript:void(0)" role="button" aria-label="Next Slide">
+                    <i class="fa fa-angle-right"></i>
+                </a>
             </div>
         </div>
         <div class="banner_news">
@@ -358,76 +1506,157 @@ try {
             </ul>
         </div>
     </section>
-    <br>
-    <div class="container">
+    <div class="container ks-news-head-container" style="margin-top: 6px;">
         <div class="row">
-            <div class="news-head" style="text-align: center;">
-                <div class="col-md-12">
-                    <marquee behavior="scroll">
-                        <?php
-                        try {
-                            if (empty($notices)) {
-                                echo '<a class="external"></li>';
-                            } else {
-                                foreach ($notices as $notice) {
-                                    $title    = htmlspecialchars($notice['title']);
-                                    $file     = htmlspecialchars($notice['file_name']);
-                                    $date     = $notice['file_date']
-                                        ? date('d-m-Y', strtotime($notice['file_date']))
-                                        : '—';
-                                    $fileUrl  = 'uploads/notices/' . $file;
+            <div class="col-12">
+                <div class="news-head">
+                    <div class="news-head-badge">
+                        <i class="fa fa-bullhorn" aria-hidden="true"></i>
+                        <span class="news-head-title">Latest Notices</span>
+                        <span class="news-head-divider" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </div>
+                    <div class="news-head-marquee">
+                        <marquee behavior="scroll" onmouseover="this.stop();" onmouseout="this.start();">
+                            <?php
+                            try {
+                                if (empty($notices)) {
+                                    echo '<a class="external"></li>';
+                                } else {
+                                    foreach ($notices as $notice) {
+                                        $title    = htmlspecialchars($notice['title']);
+                                        $file     = htmlspecialchars($notice['file_name']);
+                                        $date     = $notice['file_date']
+                                            ? date('d-m-Y', strtotime($notice['file_date']))
+                                            : '—';
+                                        $fileUrl  = 'uploads/notices/' . $file;
 
-                                    echo '
-                            <a href="' . $fileUrl . '" target="_blank" rel="noopener" class="external">&nbsp;<strong>' . $title . '</strong> </a> &nbsp;|&nbsp;
-                          ';
+                                        echo '
+                                <a href="' . $fileUrl . '" target="_blank" rel="noopener" class="external">&nbsp;<strong>' . $title . '</strong> </a> &nbsp;|&nbsp;
+                              ';
+                                    }
                                 }
+                            } catch (PDOException $e) {
+                                echo '<li class="list-group-item text-danger">Error: ' . $e->getMessage() . '</li>';
                             }
-                        } catch (PDOException $e) {
-                            echo '<li class="list-group-item text-danger">Error: ' . $e->getMessage() . '</li>';
-                        }
-                        ?>
-                        <!-- <a href="" target="_blank" rel="noopener" class="external">&nbsp;<strong></strong> </a> &nbsp;|&nbsp; -->
-                        <!-- 
-      <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202509101517411744.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notice for Invitation for Applications – Laxman Award / Rani Laxmi Bai Award for the Year 2024-25</strong> </a> &nbsp;|&nbsp;
+                            ?>
+                            <!-- <a href="" target="_blank" rel="noopener" class="external">&nbsp;<strong></strong> </a> &nbsp;|&nbsp; -->
+                            <!-- 
+          <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202509101517411744.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notice for Invitation for Applications – Laxman Award / Rani Laxmi Bai Award for the Year 2024-25</strong> </a> &nbsp;|&nbsp;
 
-      <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202508052323354426.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>First College Allotment Order 2025-26</strong> </a> &nbsp;|&nbsp;
+          <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202508052323354426.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>First College Allotment Order 2025-26</strong> </a> &nbsp;|&nbsp;
 
-      <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202507091325561091.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notification Regarding Issuance of Admission Letters for Selected Players in Residential Sports Hostels 2025-26</strong> </a> &nbsp;|&nbsp;
+          <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202507091325561091.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notification Regarding Issuance of Admission Letters for Selected Players in Residential Sports Hostels 2025-26</strong> </a> &nbsp;|&nbsp;
 
-      <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202506251822410050.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Sports College Lucknow: Age Verification Report Notice for Selected Players (Class 6 & 7, Session 2025-26)</strong> </a> &nbsp;|&nbsp;
+          <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202506251822410050.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Sports College Lucknow: Age Verification Report Notice for Selected Players (Class 6 & 7, Session 2025-26)</strong> </a> &nbsp;|&nbsp;
 
-      <a href="pdf/pre-Trial-2025-26-result-all-games_040625.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Pre Trial Result 2025-26 Sports College Admission</strong> </a> &nbsp;|&nbsp;
+          <a href="pdf/pre-Trial-2025-26-result-all-games_040625.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Pre Trial Result 2025-26 Sports College Admission</strong> </a> &nbsp;|&nbsp;
 
-      <a href="pdf/Final-Trial-2025-26-all-games_040625.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Final Trial Result 2025-26 </strong> </a> &nbsp;|&nbsp;
+          <a href="pdf/Final-Trial-2025-26-all-games_040625.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Final Trial Result 2025-26 </strong> </a> &nbsp;|&nbsp;
 
 
 
 
-      <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202505051657132602.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notification Regarding Revised List of Pre Trial Result (2025-26) for Volleyball</strong> </a> &nbsp;|&nbsp;
+          <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202505051657132602.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notification Regarding Revised List of Pre Trial Result (2025-26) for Volleyball</strong> </a> &nbsp;|&nbsp;
 
-    <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202505011323534033.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notification Regarding Pre Trial Result (2025-26)</strong> </a> &nbsp;|&nbsp;
+        <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202505011323534033.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notification Regarding Pre Trial Result (2025-26)</strong> </a> &nbsp;|&nbsp;
 
 
 
 
 
 
-        <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202503221123510959.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Information regarding Admission to Sports Colleges for Classes 6, 7, 8, and 9 in Session 2025-26</strong> </a> &nbsp;|&nbsp; <a href="pdf/notice_270125.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notice regarding the Hostel Admission Application 2025-26</strong> </a> &nbsp;|&nbsp; <a href="pdf/img20241122_13591883.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Regarding applications for the appointment of International-level players/coaches for training in hostels</strong> </a> &nbsp;|&nbsp; <a href="pdf/Khel-Niti.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notice Regarding Sports Policy </strong> </a> &nbsp;|&nbsp; <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202409231559324871.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notice for the Direct Recruitment Application 2024-25</strong> </a> &nbsp;|&nbsp; <a href="pdf/award_210924.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Regarding Laxman/Rani Laxmibai Award 2023-24.</strong> </a> &nbsp;|&nbsp; <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202408081737467010.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>एकलव्य  क्रीड़ा  कोष नियमावली - २०२१ के अधीन आवेदन करने हेतु आवश्यक बिंदु |</strong> </a> &nbsp;|&nbsp;
+            <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202503221123510959.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Information regarding Admission to Sports Colleges for Classes 6, 7, 8, and 9 in Session 2025-26</strong> </a> &nbsp;|&nbsp; <a href="pdf/notice_270125.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notice regarding the Hostel Admission Application 2025-26</strong> </a> &nbsp;|&nbsp; <a href="pdf/img20241122_13591883.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Regarding applications for the appointment of International-level players/coaches for training in hostels</strong> </a> &nbsp;|&nbsp; <a href="pdf/Khel-Niti.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notice Regarding Sports Policy </strong> </a> &nbsp;|&nbsp; <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202409231559324871.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Notice for the Direct Recruitment Application 2024-25</strong> </a> &nbsp;|&nbsp; <a href="pdf/award_210924.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>Regarding Laxman/Rani Laxmibai Award 2023-24.</strong> </a> &nbsp;|&nbsp; <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202408081737467010.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>एकलव्य  क्रीड़ा  कोष नियमावली - २०२१ के अधीन आवेदन करने हेतु आवश्यक बिंदु |</strong> </a> &nbsp;|&nbsp;
 
-        <a href="pdf/img20240719_17013493.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>छात्रावास प्रवेश हेतु चयनित आवेदकों की द्वितीय सूची के संबंध में कार्यालय आदेश।</strong> </a>
-    &nbsp;|&nbsp;
-      <a href="pdf/C_202406141749461046.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>छात्रावास प्रवेश 2024-2025 के लिए शॉर्टलिस्ट किए गए आवेदकों के लिए सम्बंधित सूचना </strong> </a>> -->
+            <a href="pdf/img20240719_17013493.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>छात्रावास प्रवेश हेतु चयनित आवेदकों की द्वितीय सूची के संबंध में कार्यालय आदेश।</strong> </a>
+        &nbsp;|&nbsp;
+          <a href="pdf/C_202406141749461046.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>छात्रावास प्रवेश 2024-2025 के लिए शॉर्टलिस्ट किए गए आवेदकों के लिए सम्बंधित सूचना </strong> </a>> -->
 
-                    </marquee>
-
-                    <!-- <marquee behavior="alternate">
-          <a href="https://upsports.gov.in/site/writereaddata/UploadNews/pdf/C_202403211814369541.pdf" target="_blank" rel="noopener" class="external">&nbsp;<strong>स्पोर्ट्स कॉलेज प्रारम्भिक चयन परीक्षा 2024-25 परिणाम सम्बन्धी सूचना </strong> </a>
-        </marquee>> -->
+                        </marquee>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="main">
+        <!-- ABOUT THE DEPARTMENT & OFFICIAL PORTALS SECTION -->
+        <section class="ks-about-dept-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="ks-about-card">
+                            <div class="row align-items-center g-3 m-0">
+                                <!-- Left: Department Overview -->
+                                <div class="col-lg-7 col-md-12 ps-0 pe-lg-3 pe-0">
+                                    <div class="ks-about-content">
+                                        <div class="ks-about-badge">
+                                            <span class="badge-dot"></span>
+                                            <span class="badge-text">ABOUT THE DEPARTMENT</span>
+                                            <span class="badge-line"></span>
+                                        </div>
+                                        <h2 class="ks-about-heading">
+                                            Who We Are — <span class="highlight-dept">Department of Sports, Uttar Pradesh</span>
+                                        </h2>
+                                        <p class="ks-about-description">
+                                            After Independence, sports activities in Uttar Pradesh were managed by the Sports Council. In 1974, the <strong class="highlight-strong">Department of Sports, Uttar Pradesh</strong>, was established following the Council's acquisition, marking the beginning of a dedicated institutional framework for the development and promotion of sports across the state.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Right: Official Portal Link Buttons -->
+                                <div class="col-lg-5 col-md-12 px-0">
+                                    <div class="ks-portals-wrapper">
+                                        <div class="ks-portals-label"><i class="fa fa-globe"></i> Official Portals</div>
+
+                                        <div class="ks-portals-grid">
+                                            <!-- Button 1: Sports Department -->
+                                            <a href="https://upsports.gov.in/" target="_blank" rel="noopener noreferrer" 
+                                               class="ks-portal-btn" 
+                                               title="Official Website of Sports Department (External Portal)"
+                                               aria-label="Official Website of Sports Department - External link opens in a new window">
+                                                <div class="ks-portal-icon ks-icon-dept">
+                                                    <i class="fa fa-university"></i>
+                                                </div>
+                                                <div class="ks-portal-details">
+                                                    <span class="ks-portal-sublabel">Official Website</span>
+                                                    <h4 class="ks-portal-name">Sports Department</h4>
+                                                    <span class="ks-portal-domain">upsports.gov.in <i class="fa fa-external-link ms-1"></i></span>
+                                                </div>
+                                                <div class="ks-portal-arrow">
+                                                    <i class="fa fa-chevron-right"></i>
+                                                </div>
+                                            </a>
+
+                                            <!-- Button 2: Sports Directorate -->
+                                            <a href="https://upsports.gov.in/sportsdirectorate" target="_blank" rel="noopener noreferrer" 
+                                               class="ks-portal-btn" 
+                                               title="Official Website of Sports Directorate (External Portal)"
+                                               aria-label="Official Website of Sports Directorate - External link opens in a new window">
+                                                <div class="ks-portal-icon ks-icon-dir">
+                                                    <i class="fa fa-sitemap"></i>
+                                                </div>
+                                                <div class="ks-portal-details">
+                                                    <span class="ks-portal-sublabel">Official Website</span>
+                                                    <h4 class="ks-portal-name">Sports Directorate</h4>
+                                                    <span class="ks-portal-domain">upsports.gov.in/sportsdirectorate <i class="fa fa-external-link ms-1"></i></span>
+                                                </div>
+                                                <div class="ks-portal-arrow">
+                                                    <i class="fa fa-chevron-right"></i>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- /ABOUT THE DEPARTMENT & OFFICIAL PORTALS SECTION -->
+
         <section class="process_area mb-120 mobile-res-mb">
             <div class="container">
                 <div class="row">
@@ -562,8 +1791,10 @@ try {
                                             </svg>
                                         </div>
                                         <div class="process_content">
-                                            <h4>Online Registration</h4>
-                                            <p>For Private Coaching, Academies/ Associations, Gyms & Swimming Pools</p>
+                                            <!-- <h4>Online Registration</h4> -->
+                                            <!-- <p>For Private Coaching, Academies/ Associations, Gyms & Swimming Pools</p> -->
+                                            <h4>Private Institutions Registration</h4>
+                                            <p>For Gyms & Swimming Pools</p>
                                         </div>
                                     </div>
                                 </a>
@@ -751,7 +1982,7 @@ try {
                                             >
                                             <div class="document-title">'.htmlspecialchars($yearbook['title']).'</div>
                                         </a>
-                                        <script>console.log('.$yearbook.');</script>
+                                        <script>console.log('.json_encode($yearbook).');</script>
                                         ';
                                         
                                     ?>
@@ -775,7 +2006,7 @@ try {
                                             >
                                             <div class="document-title">'.htmlspecialchars($budgetbook['title']).'</div>
                                         </a>
-                                        <script>console.log('.$budgetbook.');</script>
+                                        <script>console.log('.json_encode($budgetbook).');</script>
                                         ';
                                         
                                     ?>
@@ -3781,6 +5012,185 @@ try {
             </div>
         </div>
     </div>
+
+    <!-- Khel Sathi Hero Carousel: Auto-Swipe & Minimalist Dot-to-Pill Progress Engine -->
+    <script>
+        (function() {
+            var carousel = document.getElementById('khelSathiHeroCarousel');
+            if (!carousel) return;
+
+            var items = carousel.querySelectorAll('.carousel-item');
+            var capsule = carousel.querySelector('.carousel-indicators-capsule');
+            var total = items.length;
+            var duration = 4800; // 4.8 seconds per slide
+            var currentIndex = 0;
+            var startTime = performance.now();
+            var animFrame = null;
+            var isPaused = false;
+            var pausedElapsed = 0;
+
+            // Generate indicators matching user's mockup: circular dots + 1 active elongated pill
+            function buildIndicators() {
+                capsule.innerHTML = '';
+                for (var i = 0; i < total; i++) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.setAttribute('aria-label', 'Slide ' + (i + 1));
+                    if (i === currentIndex) {
+                        btn.className = 'active';
+                        var fill = document.createElement('span');
+                        fill.className = 'pill-progress-fill';
+                        btn.appendChild(fill);
+                    }
+                    (function(idx) {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            goToSlide(idx);
+                        });
+                    })(i);
+                    capsule.appendChild(btn);
+                }
+            }
+
+            function updatePill() {
+                var buttons = capsule.querySelectorAll('button');
+                for (var i = 0; i < buttons.length; i++) {
+                    if (i === currentIndex) {
+                        buttons[i].className = 'active';
+                        buttons[i].innerHTML = '<span class="pill-progress-fill" style="width:0%"></span>';
+                    } else {
+                        buttons[i].className = '';
+                        buttons[i].innerHTML = '';
+                    }
+                }
+            }
+
+            function startTimer() {
+                if (animFrame) cancelAnimationFrame(animFrame);
+                var startTime = performance.now();
+
+                function frame(now) {
+                    var elapsed = now - startTime;
+                    var progress = Math.min(elapsed / duration, 1);
+                    var activeBtn = capsule.querySelector('button.active');
+                    if (activeBtn) {
+                        var fill = activeBtn.querySelector('.pill-progress-fill');
+                        if (!fill) {
+                            fill = document.createElement('span');
+                            fill.className = 'pill-progress-fill';
+                            activeBtn.appendChild(fill);
+                        }
+                        fill.style.width = (progress * 100) + '%';
+                    }
+
+                    if (progress < 1) {
+                        animFrame = requestAnimationFrame(frame);
+                    } else {
+                        nextSlide();
+                    }
+                }
+                animFrame = requestAnimationFrame(frame);
+            }
+
+            function goToSlide(targetIdx) {
+                if (animFrame) cancelAnimationFrame(animFrame);
+                targetIdx = (targetIdx + total) % total;
+                if (targetIdx === currentIndex && items[currentIndex].classList.contains('active')) {
+                    startTimer();
+                    return;
+                }
+
+                items[currentIndex].classList.remove('active');
+                currentIndex = targetIdx;
+                items[currentIndex].classList.add('active');
+
+                updatePill();
+                startTimer();
+            }
+
+            function nextSlide() {
+                goToSlide(currentIndex + 1);
+            }
+
+            function prevSlide() {
+                goToSlide(currentIndex - 1);
+            }
+
+            // Arrow controls
+            var prevBtn = carousel.querySelector('.ks-carousel-nav.prev');
+            var nextBtn = carousel.querySelector('.ks-carousel-nav.next');
+            if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); prevSlide(); });
+            if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); nextSlide(); });
+
+            // Touch swipe support for mobile devices
+            var touchStartX = 0;
+            var touchStartY = 0;
+            carousel.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            carousel.addEventListener('touchend', function(e) {
+                if (e.changedTouches.length === 1) {
+                    var diffX = touchStartX - e.changedTouches[0].clientX;
+                    var diffY = touchStartY - e.changedTouches[0].clientY;
+                    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+                        if (diffX > 0) {
+                            nextSlide();
+                        } else {
+                            prevSlide();
+                        }
+                    }
+                }
+            }, { passive: true });
+
+            // Keyboard navigation
+            carousel.setAttribute('tabindex', '0');
+            carousel.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') { prevSlide(); }
+                else if (e.key === 'ArrowRight') { nextSlide(); }
+            });
+
+            // Initialize
+            buildIndicators();
+            startTimer();
+        })();
+
+        // Dynamic spacer adjustment to guarantee clean breathing space on desktop & tablet
+        (function() {
+            function adjustHeaderBannerSpacer() {
+                var spacer = document.querySelector('.ks-header-banner-spacer');
+                var nav = document.querySelector('.glass-navbar');
+                if (!spacer || !nav) return;
+
+                // Mobile view is strictly kept untouched as confirmed by user
+                if (window.innerWidth <= 768) {
+                    spacer.style.height = '';
+                    return;
+                }
+
+                // Reset inline style first so CSS takes effect, then measure
+                spacer.style.height = '';
+
+                var navRect = nav.getBoundingClientRect();
+                var desiredGap = 10; // Subtle, neat gap below navbar
+                var neededSpacerHeight = navRect.bottom + desiredGap;
+
+                if (neededSpacerHeight > spacer.offsetHeight) {
+                    spacer.style.height = Math.ceil(neededSpacerHeight) + 'px';
+                }
+            }
+
+            window.addEventListener('resize', adjustHeaderBannerSpacer);
+            window.addEventListener('load', adjustHeaderBannerSpacer);
+            document.addEventListener('DOMContentLoaded', adjustHeaderBannerSpacer);
+            setTimeout(adjustHeaderBannerSpacer, 100);
+            setTimeout(adjustHeaderBannerSpacer, 300);
+            setTimeout(adjustHeaderBannerSpacer, 600);
+        })();
+    </script>
 </body>
 
 </html>

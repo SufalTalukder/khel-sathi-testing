@@ -132,6 +132,7 @@
                     <th>S.No.</th>
                     <th>Application No.</th>
                     <th>Service Type</th>
+                    <th>District</th>
                     <th>Applicant Name</th>
                     <th>Email ID</th>
                     <th style="text-align:center;">Mobile No.</th>
@@ -158,6 +159,9 @@
                                     Stadium
                                 @endif
                             </td>
+                            <td>
+                                {{ !empty($item->district_name) ? repairHindi($item->district_name) : (!empty($item->location) ? districtName($item->location) : '-') }}
+                            </td>
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->email }}</td>
                             <td style="text-align:center;">{{ $item->mobile }}</td>
@@ -183,8 +187,7 @@
                                     @if ($item->fee_exemption_status == 1)
                                         Fee Exemption
                                     @else
-                                        Pending<br>
-                                        <strong>{{ $item->amount_to_be_paid }} INR.</strong>
+                                        Pending
                                     @endif
                                 @else
                                     NA

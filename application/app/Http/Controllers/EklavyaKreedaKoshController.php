@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-Use Carbon\Carbon;
+use Carbon\Carbon;
 
 
 class EklavyaKreedaKoshController extends Controller
@@ -482,7 +482,20 @@ class EklavyaKreedaKoshController extends Controller
     {
         //    dd($sport_competition);
         $user = User::where('id', Auth::id())->first();
-        $dob = ((explode('/', $user->dob))[2]);
+        $dob = null;
+        if (!empty($user->dob)) {
+            try {
+                $dob = Carbon::parse(str_replace('/', '-', $user->dob))->format('Y');
+            } catch (\Exception $e) {
+                $parts = preg_split('[/\\-]', $user->dob);
+                if (count($parts) >= 3) {
+                    $dob = (strlen($parts[0]) == 4) ? $parts[0] : $parts[2];
+                }
+            }
+        }
+        if (!$dob || !is_numeric($dob)) {
+            $dob = Carbon::now()->subYears(60)->year;
+        }
         $sport_competition = DB::table('sport_competition_level_master')->get();
         $summary = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id',  Auth::id())->first();
         $selected_sport = DB::table('sport_welfare_registration_master')->select('sport_type')->where('id', Auth::id())->get()[0]->sport_type;
@@ -493,12 +506,20 @@ class EklavyaKreedaKoshController extends Controller
         $eklavya_data = false;
         $award_data = false;
         $date = Carbon::now()->subYears(2)->startOfYear();
-        $twoyearsback= $date->toDateString();
+        $twoyearsback = $date->toDateString();
         if ($req->id) {
             $eklavya_data = DB::table('eklavya_krida_kosh_basic_detail')->select('*')->where('user_id', Auth::id())->where('application_no', $req->id)->first();
             $award_data = DB::table('eklavya_krida_kosh_award')->select('*')->where('user_id', Auth::id())->where('application_no', $req->id)->get();
+            if ($eklavya_data && $eklavya_data->final_submit == 1) {
+                $openQueries = DB::table('query_master')->where('form_type', 7)->where('application_no', $eklavya_data->application_no)->where(function ($q) {
+                    $q->where('is_closed', 0)->orWhereNull('is_closed');
+                })->count();
+                if ($eklavya_data->form_status != 2 && $openQueries == 0) {
+                    return redirect()->route('eklavya_kreeda_kosh_applicationpreview', $eklavya_data->application_no);
+                }
+            }
         }
-        return view('eklavya_kreeda_kosh.award_bank_detail', compact('dob', 'sports', 'award', 'summary', 'sport_competition', 'selected_sport', 'eklavya_data', 'award_data', 'competition', 'event','twoyearsback'));
+        return view('eklavya_kreeda_kosh.award_bank_detail', compact('dob', 'sports', 'award', 'summary', 'sport_competition', 'selected_sport', 'eklavya_data', 'award_data', 'competition', 'event', 'twoyearsback'));
     }
 
     public function awardStore(Request $req)
@@ -585,48 +606,48 @@ class EklavyaKreedaKoshController extends Controller
         $user_basic = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->first();
 
         if ($req->hasFile('front_page_of_passbook')) {
-            if (isset($user_basic)) {
+            if (isset($user_basic) && !empty($user_basic->front_page_of_passbook)) {
                 $front_page_of_passbooke = "public/eklavya_krida_kosh/front_page_of_passbook/" . $user_basic->front_page_of_passbook;
 
-                if ($req->hasFile('front_page_of_passbook') && File::exists($front_page_of_passbooke)) {
+                if (File::exists($front_page_of_passbooke)) {
                     File::delete($front_page_of_passbooke);
                 }
             }
             $front_page_of_passbook = moveFile('eklavya_krida_kosh/front_page_of_passbook', $req->front_page_of_passbook);
             $data['front_page_of_passbook'] = $front_page_of_passbook;
-
-            if ($req->hasFile('high_school_certificate')) {
-                $high_school_certificate = moveFile('eklavya_krida_kosh/high_school_certificate', $req->high_school_certificate);
-                $data['high_school_certificate'] = $high_school_certificate;
-            }
-            if ($req->hasFile('domicile_certificate')) {
-                $domicile_certificate = moveFile('eklavya_krida_kosh/domicile_certificate', $req->domicile_certificate);
-                $data['domicile_certificate'] = $domicile_certificate;
-            }
-
-            if ($req->hasFile('highest_qualification_certificate')) {
-                $highest_qualification_certificate = moveFile('eklavya_krida_kosh/highest_qualification_certificate', $req->highest_qualification_certificate);
-                $data['highest_qualification_certificate'] = $highest_qualification_certificate;
-            }
-
-            if ($req->hasFile('notary_affidavit_doc')) {
-                $notary_affidavit_doc = moveFile('eklavya_krida_kosh/notary_affidavit_doc', $req->notary_affidavit_doc);
-                $data['notary_affidavit_doc'] = $notary_affidavit_doc;
-            }
-
-            //  Diploma Files Upload
-            if ($req->hasFile('diploma_fee_bank_receipt')) {
-                $diploma_fee_bank_receipt = moveFile('eklavya_krida_kosh/diploma_fee_bank_receipt', $req->diploma_fee_bank_receipt);
-                $data['diploma_fee_bank_receipt'] = $diploma_fee_bank_receipt;
-            }
-
-            if ($req->hasFile('diploma_semester_certificate')) {
-                $diploma_semester_certificate = moveFile('eklavya_krida_kosh/diploma_semester_certificate', $req->diploma_semester_certificate);
-                $data['diploma_semester_certificate'] = $diploma_semester_certificate;
-            }
-
-            DB::table('eklavya_krida_kosh_basic_detail')->insertGetId($data);
         }
+
+        if ($req->hasFile('high_school_certificate')) {
+            $high_school_certificate = moveFile('eklavya_krida_kosh/high_school_certificate', $req->high_school_certificate);
+            $data['high_school_certificate'] = $high_school_certificate;
+        }
+        if ($req->hasFile('domicile_certificate')) {
+            $domicile_certificate = moveFile('eklavya_krida_kosh/domicile_certificate', $req->domicile_certificate);
+            $data['domicile_certificate'] = $domicile_certificate;
+        }
+
+        if ($req->hasFile('highest_qualification_certificate')) {
+            $highest_qualification_certificate = moveFile('eklavya_krida_kosh/highest_qualification_certificate', $req->highest_qualification_certificate);
+            $data['highest_qualification_certificate'] = $highest_qualification_certificate;
+        }
+
+        if ($req->hasFile('notary_affidavit_doc')) {
+            $notary_affidavit_doc = moveFile('eklavya_krida_kosh/notary_affidavit_doc', $req->notary_affidavit_doc);
+            $data['notary_affidavit_doc'] = $notary_affidavit_doc;
+        }
+
+        //  Diploma Files Upload
+        if ($req->hasFile('diploma_fee_bank_receipt')) {
+            $diploma_fee_bank_receipt = moveFile('eklavya_krida_kosh/diploma_fee_bank_receipt', $req->diploma_fee_bank_receipt);
+            $data['diploma_fee_bank_receipt'] = $diploma_fee_bank_receipt;
+        }
+
+        if ($req->hasFile('diploma_semester_certificate')) {
+            $diploma_semester_certificate = moveFile('eklavya_krida_kosh/diploma_semester_certificate', $req->diploma_semester_certificate);
+            $data['diploma_semester_certificate'] = $diploma_semester_certificate;
+        }
+
+        DB::table('eklavya_krida_kosh_basic_detail')->insertGetId($data);
 
         return response()->json(['error' => false, 'msg' => 'Award Detail Added Successfully', "url" => url('applicationpreview/' . $applicationNo)]);
     }
@@ -693,15 +714,14 @@ class EklavyaKreedaKoshController extends Controller
 
         $user_basic = DB::table('eklavya_krida_kosh_basic_detail')->where('application_no', $req->application_no)->where('user_id', Auth::id())->first();
         if ($req->hasFile('front_page_of_passbook')) {
-            if (isset($user_basic)) {
+            if (isset($user_basic) && !empty($user_basic->front_page_of_passbook)) {
                 $front_page_of_passbooke = "public/eklavya_krida_kosh/front_page_of_passbook/" . $user_basic->front_page_of_passbook;
-                if ($req->hasFile('front_page_of_passbook') && File::exists($front_page_of_passbooke)) {
+                if (File::exists($front_page_of_passbooke)) {
                     File::delete($front_page_of_passbooke);
                 }
-            } else {
-                $front_page_of_passbook = moveFile('eklavya_krida_kosh/front_page_of_passbook', $req->front_page_of_passbook);
-                $data['front_page_of_passbook'] = $front_page_of_passbook;
             }
+            $front_page_of_passbook = moveFile('eklavya_krida_kosh/front_page_of_passbook', $req->front_page_of_passbook);
+            $data['front_page_of_passbook'] = $front_page_of_passbook;
         } else {
             $data['front_page_of_passbook'] = $req->front_page_of_passbook1;
         }
@@ -726,11 +746,35 @@ class EklavyaKreedaKoshController extends Controller
         } else {
             $data['highest_qualification_certificate'] = $req->highest_qualification_certificate1;
         }
+
         if ($req->hasFile('notary_affidavit_doc')) {
             $notary_affidavit_doc = moveFile('eklavya_krida_kosh/notary_affidavit_doc', $req->notary_affidavit_doc);
             $data['notary_affidavit_doc'] = $notary_affidavit_doc;
+        } else if ($req->notary_affidavit_doc1) {
+            $data['notary_affidavit_doc'] = $req->notary_affidavit_doc1;
         }
 
+        if ($req->purpose == 'Diploma Scholarship') {
+            $data['diploma_institute'] = $req->diploma_institute;
+            $data['diploma_session'] = $req->diploma_session;
+            $data['diploma_course'] = $req->diploma_course;
+
+            if ($req->hasFile('diploma_fee_bank_receipt')) {
+                $diploma_fee_bank_receipt = moveFile('eklavya_krida_kosh/diploma_fee_bank_receipt', $req->diploma_fee_bank_receipt);
+                $data['diploma_fee_bank_receipt'] = $diploma_fee_bank_receipt;
+            } else if ($req->old_diploma_fee_bank_receipt) {
+                $data['diploma_fee_bank_receipt'] = $req->old_diploma_fee_bank_receipt;
+            }
+
+            if ($req->hasFile('diploma_semester_certificate')) {
+                $diploma_semester_certificate = moveFile('eklavya_krida_kosh/diploma_semester_certificate', $req->diploma_semester_certificate);
+                $data['diploma_semester_certificate'] = $diploma_semester_certificate;
+            } else if ($req->old_diploma_semester_certificate) {
+                $data['diploma_semester_certificate'] = $req->old_diploma_semester_certificate;
+            }
+        }
+
+        $data['created_at'] = DB::raw('created_at');
         DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->where('application_no', $req->application_no)->update($data);
 
 
@@ -788,12 +832,7 @@ class EklavyaKreedaKoshController extends Controller
 
     //      DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->update($data);
     //      return response()->json(['error' => false, 'msg' => 'Award And Detail Added successfully','url'=>route('eklavya_kreeda_kosh_applicationpreview')]);
-
-
     // }
-
-
-
 
     public function applicationpreview($appNo = "")
     {
@@ -834,28 +873,56 @@ class EklavyaKreedaKoshController extends Controller
             ->where('la.application_no', $appNo)
             ->first();
 
+        $actualAppNo = !empty($appNo) ? $appNo : ($articles ? $articles->application_no : "");
+
         $sport_achievement = DB::table('eklavya_krida_kosh_award as ekka')
             ->join('position_event_master as pem', 'ekka.event_name', '=', 'pem.id')
             ->join('position_competition_master as pcm', 'ekka.competition_name', '=', 'pcm.id')
             ->select('ekka.*', 'pcm.name as comp', 'pem.name as event')
             ->where('user_id', Auth::id())
-            ->where('application_no', $appNo)
+            ->where('application_no', $actualAppNo)
             ->get();
 
-        //     $applicationview = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->first();
-        $queryData = DB::table('query_master')->where('form_type', 7)->where('user_id', Auth::id())->where('application_no', $appNo)->orderBy('id', 'DESC')->get();
-        //    $award = DB::table('eklavya_krida_kosh_award')->where('user_id',  Auth::id())->get();
+        $queryData = DB::table('query_master')->where('form_type', 7)->where('application_no', $actualAppNo)->orderBy('id', 'DESC')->get();
+        $total_queries = $queryData->count();
+        $open_queries = $queryData->filter(function ($item) {
+            return ($item->is_closed == 0 || is_null($item->is_closed));
+        })->count();
 
-        return view('eklavya_kreeda_kosh.application_preview', compact('articles', 'sport_achievement', 'queryData'));
+        return view('eklavya_kreeda_kosh.application_preview', compact('articles', 'sport_achievement', 'queryData', 'total_queries', 'open_queries'));
     }
+
     public function applicant_applicationFinalSubmit($appNo = "")
     {
+        $userId = Auth::id();
+        $appNo = trim((string)$appNo);
 
-        // DB::table('eklavya_krida_kosh_registration')->where('id', Auth::id())->update(['status_preview'=> 2, 'application_no'=> date('Y').sprintf("%08d",  Auth::id()), 'final_submit_date'=> date("Y/m/d"), 'application_status'=> 1]);
-        $check = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', Auth::id())->where('application_no', $appNo)->update([
-            'final_submit' => 1,
-            'is_editable' => 2,
-        ]);
-        return response()->json(['error' => false, 'msg' => 'Final Submitted  Successfully', 'url' => route('dashboard')]);
+        if (empty($appNo)) {
+            $latest = DB::table('eklavya_krida_kosh_basic_detail')->where('user_id', $userId)->orderBy('id', 'desc')->first();
+            if ($latest) {
+                $appNo = $latest->application_no;
+            }
+        }
+
+        $check = DB::table('eklavya_krida_kosh_basic_detail')
+            ->where('user_id', $userId)
+            ->where('application_no', $appNo)
+            ->update([
+                'final_submit' => 1,
+                'is_editable' => 2,
+                'created_at' => DB::raw('created_at'),
+            ]);
+
+        if (class_exists(\App\Events\StatusChangeLog::class)) {
+            try {
+                \App\Events\StatusChangeLog::dispatch(7, $userId, "", "Form Submitted", "sport_welfare_registration_master");
+            } catch (\Throwable $e) {
+                // Ignore log dispatch error
+            }
+        }
+
+        $msg = 'Application Final Submitted Successfully / आवेदन सफलतापूर्वक अंतिम रूप से जमा किया गया।';
+        session()->flash('success', $msg);
+        return response()->json(['error' => false, 'msg' => $msg, 'url' => url('dashboard')]);
     }
 }

@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -246,7 +247,56 @@ class darpanController extends Controller
     //     $cities = DB::table('cities')->where('state_id', 23)->orderBy('city', 'ASC')->get();
     //     return view('darpan.monthly', compact('data','cities','city','year'));
     // }
+    public function position_dummy(Request $request){
+            $year     = "";
+            $city     = "";
+            $segment3 = request()->segment(3);
+            $segment4 = request()->segment(4);
+            $details  = DB::table('darpan_position_holder_data as dad')
+                ->select('*');
+            //Filter start here
+            if ($request->isMethod('post')) {
+                if ($request->has('month')) {
+                    if ($request->month != 'all') {
+                        $details->where('dad.month', '=', $request->month);
+                    }
 
+                }
+                if ($request->has('year_filter')) {
+                    if ($request->year_filter != 'all') {
+                        $details->where('dad.year', '=', $request->year_filter);
+                    }
+
+                }
+                if ($request->has('from_date') && $request->from_date != '') {
+                    $details->where(DB::raw("date(concat(dad.year,'/',if(LENGTH(dad.month) >1,dad.month,concat(0,month)),'/','01'))"), '>=', my($request->from_date));
+                }
+
+                if ($request->has('to_date') && $request->to_date != '') {
+                    $details->where(DB::raw("date(concat(dad.year,'/',if(LENGTH(dad.month) >1,dad.month,concat(0,month)),'/','01'))"), '<=', my($request->to_date));
+                }
+
+                if ($request->from_date != '' && $request->to_date != '') {
+                    $details->whereBetween(DB::raw("date(concat(dad.year,'/',if(LENGTH(dad.month) >1,dad.month,concat(0,month)),'/','01'))"), [my($request->from_date), my($request->to_date)]);
+                }
+
+            }
+            //Filter end here
+            if ($segment3 && is_numeric($segment3)) {
+                $details->where('dad.status', $segment3);
+            } elseif ($segment3) {
+                $details->where('dad.district', $segment3);
+            }
+            if ($segment4) {
+                $details->where('dad.district', $segment4);
+            }
+            $data = $details->get();
+            // $cities = DB::table('cities')->where('state_id', 23)->orderBy('city', 'ASC')->get();
+            $months = DB::table('month_master')->orderBy('id', 'ASC')->get();
+
+        return view('darpan.position', compact('data', 'months', 'city', 'year'));
+
+    }
     public function position(Request $request)
     {
 
@@ -937,6 +987,63 @@ class darpanController extends Controller
             $cities = DB::table('cities')->where('state_id', 23)->orderBy('city', 'ASC')->get();
             return view('darpan.district_position', compact('data', 'cities', 'city', 'year','month', 'data_total'));
 
+        }elseif(Auth::guard('admin')->check()){
+
+            $city       = $request->city_filter?$request->city_filter:"";
+            $year       = $request->year_filter?$request->year_filter:"";
+            $month      = $request->month_filter?$request->month_filter:"";
+            // $data       = DB::Select("SELECT cities.city  as district,COUNT(darpan_position_holder_data.id) as total,COUNT(CASE WHEN darpan_position_holder_data.status = 1 THEN 1 END) as total_pending,COUNT(CASE WHEN darpan_position_holder_data.status = 2 THEN 1 END) as total_accepted,COUNT(CASE WHEN darpan_position_holder_data.status = 3 THEN 1 END) as total_rejected from   cities left join darpan_position_holder_data on darpan_position_holder_data.district = cities.city WHERE cities.state_id=23 GROUP By cities.city");
+            // $data_total = DB::Select("SELECT cities.city  as district,COUNT(darpan_position_holder_data.id) as total,COUNT(CASE WHEN darpan_position_holder_data.status = 1 THEN 1 END) as total_pending,COUNT(CASE WHEN darpan_position_holder_data.status = 2 THEN 1 END) as total_accepted,COUNT(CASE WHEN darpan_position_holder_data.status = 3 THEN 1 END) as total_rejected from   cities left join darpan_position_holder_data on darpan_position_holder_data.district = cities.city WHERE cities.state_id=23");
+
+            $data = DB::table('cities')
+                ->where('cities.isp_state_code',9)
+                ->leftJoin('darpan_position_holder_data', 'darpan_position_holder_data.district', '=', 'cities.city')
+                ->where('cities.state_id', 23)
+                ->orderBy('cities.city', 'asc')
+                ->groupBy('cities.city')
+                ->select(
+                    'cities.city as district',
+                    DB::raw('COUNT(darpan_position_holder_data.id) as total'),
+                    DB::raw('SUM(CASE WHEN darpan_position_holder_data.status = 1 THEN 1 ELSE 0 END) as total_pending'),
+                    DB::raw('SUM(CASE WHEN darpan_position_holder_data.status = 2 THEN 1 ELSE 0 END) as total_accepted'),
+                    DB::raw('SUM(CASE WHEN darpan_position_holder_data.status = 3 THEN 1 ELSE 0 END) as total_rejected')
+                );
+
+            $data_total = DB::table('cities')
+                ->where('cities.isp_state_code',9)
+                ->leftJoin('darpan_position_holder_data', 'darpan_position_holder_data.district', '=', 'cities.city')
+                ->where('cities.state_id', 23)
+                ->orderBy('cities.city', 'asc')
+                ->select(
+                    DB::raw('COUNT(darpan_position_holder_data.id) as total'),
+                    DB::raw('SUM(CASE WHEN darpan_position_holder_data.status = 1 THEN 1 ELSE 0 END) as total_pending'),
+                    DB::raw('SUM(CASE WHEN darpan_position_holder_data.status = 2 THEN 1 ELSE 0 END) as total_accepted'),
+                    DB::raw('SUM(CASE WHEN darpan_position_holder_data.status = 3 THEN 1 ELSE 0 END) as total_rejected')
+                );
+
+            if(isset($request->city_filter)){
+                if($request->city_filter!="all"){
+                    $data = $data->where('cities.id', $city);
+                    $data_total = $data_total->where('cities.id', $city);
+                }
+            }
+            if(isset($request->year_filter)){
+                if($request->year_filter!="all"){
+                    $data = $data->where('darpan_position_holder_data.year', $year);
+                    $data_total = $data_total->where('darpan_position_holder_data.year', $year);
+                }
+            }
+            if(isset($request->month_filter)){
+                if($request->month_filter!="all"){
+                    $data = $data->where('darpan_position_holder_data.month', $month);
+                    $data_total = $data_total->where('darpan_position_holder_data.month', $month);
+                }
+            }
+            $data=$data->get();
+            $data_total=$data_total->first();
+            // $data = DB::Select("SELECT district,COUNT(id) as total,COUNT(CASE WHEN status = 1 THEN 1 END) as total_pending,COUNT(CASE WHEN status = 2 THEN 1 END) as total_accepted,COUNT(CASE WHEN status = 3 THEN 1 END) as total_rejected from darpan_position_holder_data WHERE 1 GROUP By district ");
+            $cities = DB::table('cities')->where('state_id', 23)->orderBy('city', 'ASC')->get();
+            return view('darpan.district_position', compact('data', 'cities', 'city', 'year','month', 'data_total'));
         } else {
             return redirect('https://up.cmdashboard.nic.in/AuthFailed.html');
         }

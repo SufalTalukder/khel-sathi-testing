@@ -50,15 +50,13 @@ class Adminathentication extends Controller
     {
 
         $user_master = DB::table('user_master')->select('id', 'name')->get();
-        $Code1 = rand(11, 99);
-        $Code2 = rand(11, 99);
-        $capchaCode = $Code1 +  $Code2;
-        session()->put('capchaCode', $capchaCode);
+        $captchaCode = rand(11111, 99999);
+        session()->put('captchaCode', $captchaCode);
 
 
 
 
-        return view('auth.adminlogin', compact('capchaCode', 'user_master', 'Code1', 'Code2'));
+        return view('auth.adminlogin', compact('captchaCode', 'user_master'));
     }
 
     public function forgot()
@@ -82,19 +80,24 @@ class Adminathentication extends Controller
             return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
 
         // dd($req->all());
-        if ($req->captcha != $req->capchaCode)
+        if ($req->captcha != $req->captchacode)
             return response()->json(['error' => true, 'msg' => "Oops! Invalid Captcha Code."]);
 
         $encryptedData = $req->password;
         $decryptionKey = "2b7e151628aed2a6abf7158809cf4f3c";
         $keyHex = hex2bin($decryptionKey);
-        $req->password = openssl_decrypt(base64_decode($encryptedData), 'AES-128-ECB', $keyHex, OPENSSL_RAW_DATA);
-        // //  for email
+        $decryptedPassword = openssl_decrypt(base64_decode($encryptedData), 'AES-128-ECB', $keyHex, OPENSSL_RAW_DATA);
+        if ($decryptedPassword !== false && !empty($decryptedPassword)) {
+            $req->password = $decryptedPassword;
+        }
 
         $mencryptedData = $req->email;
         $mdecryptionKey = "2b7e151628aed2a6abf7158809cf4f3c";
         $mkeyHex = hex2bin($mdecryptionKey);
-        $req->email = openssl_decrypt(base64_decode($mencryptedData), 'AES-128-ECB', $mkeyHex, OPENSSL_RAW_DATA);
+        $decryptedEmail = openssl_decrypt(base64_decode($mencryptedData), 'AES-128-ECB', $mkeyHex, OPENSSL_RAW_DATA);
+        if ($decryptedEmail !== false && !empty($decryptedEmail)) {
+            $req->email = $decryptedEmail;
+        }
 
 
         if (Auth::guard('admin')->attempt(['email' => $req->email, 'password' => $req->password])) {
@@ -150,18 +153,21 @@ class Adminathentication extends Controller
 
         return AdminUser::changePassword($req);
     }
-    public function signOuts()
+    public function signOuts(Request $request)
     {
-        // dd("hello");
-        UserLoggedIn::dispatch(Auth::guard('admin')->user()->id, 2, 1, 'admin');
-        // Auth::logout();
-        DB::table('admin')->where('id', Auth::guard('admin')->user()->id)->update([
-            "is_login" => 0,
-            "ip_address" => request()->ip()
-        ]);
-        Auth::guard('admin')->logout();
+        if (Auth::guard('admin')->check()) {
+            UserLoggedIn::dispatch(Auth::guard('admin')->user()->id, 2, 1, 'admin');
+            DB::table('admin')->where('id', Auth::guard('admin')->user()->id)->update([
+                "is_login" => 0,
+                "ip_address" => $request->ip()
+            ]);
+            Auth::guard('admin')->logout();
+        }
 
-        return Redirect('/admin/login');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect(url('admin/login'));
     }
 
     // public function preRegistration(Request $req)
@@ -820,7 +826,7 @@ class Adminathentication extends Controller
                 $to
             );
         }
-        if(!empty(Auth::guard('admin')->user()->sport_type)){
+        if (!empty(Auth::guard('admin')->user()->sport_type)) {
             $query->where(
                 'laxman_award.sport_type',
                 Auth::guard('admin')->user()->sport_type
@@ -828,7 +834,7 @@ class Adminathentication extends Controller
         }
         $details = $query
             ->orderBy('laxman_award.id', 'DESC')
-            ->get();
+            ->paginate(25);
 
         $cities = DB::table('cities')
             ->where('state_id', 23)
@@ -1317,7 +1323,7 @@ class Adminathentication extends Controller
                 $to
             );
         }
-        if(!empty(Auth::guard('admin')->user()->sport_type)){
+        if (!empty(Auth::guard('admin')->user()->sport_type)) {
             $query->where(
                 'ranilaxmibai_award.sport_type',
                 Auth::guard('admin')->user()->sport_type
@@ -1326,7 +1332,7 @@ class Adminathentication extends Controller
 
         $details = $query
             ->orderBy('ranilaxmibai_award.id', 'DESC')
-            ->get();
+            ->paginate(25);
 
         $cities = DB::table('cities')
             ->where('state_id', 23)
@@ -1807,15 +1813,15 @@ class Adminathentication extends Controller
 
             $comment_data = $comment_data->orderBy('id', 'ASC')->get();
         }
-        if(Auth::guard('admin')->user()->id==135 || Auth::guard('admin')->user()->id==137){
+        if (Auth::guard('admin')->user()->id == 135 || Auth::guard('admin')->user()->id == 137) {
 
             $newStatus = 'SEEN';
 
             DB::table('eklavya_krida_kosh_basic_detail')
-            ->where('application_no', $id)
-            ->update([
-                'form_view_status' => $newStatus
-            ]);
+                ->where('application_no', $id)
+                ->update([
+                    'form_view_status' => $newStatus
+                ]);
         }
 
         return view('rso.dashboard.eklavya_krida_view', compact('query_s', 'user', 'articles', 'sport_achievement', 'queryData', 'id', 'seg', 'comment_data'));
@@ -1826,12 +1832,23 @@ class Adminathentication extends Controller
     {
         $table = "eklavya_krida_kosh_basic_detail";
         $url = "eklavya_krida_view";
-        $seg = (int) $request->segment(3);
+        $rawSeg = $request->segment(3);
+        $seg = is_numeric($rawSeg) ? (int) $rawSeg : $rawSeg;
         $request->status_filter = $seg;
 
         $latestStatusSub = DB::table('status_change_log_detail')
             ->select('user_id', DB::raw('MAX(created_at) as latest_created_at'))
             ->where('form_id', 7)->groupBy('user_id');
+
+        $querySub = DB::table('query_master')
+            ->select(
+                'application_no',
+                DB::raw('COUNT(*) as total_queries'),
+                DB::raw('SUM(CASE WHEN is_closed = 0 OR is_closed IS NULL THEN 1 ELSE 0 END) as open_queries'),
+                DB::raw('SUM(CASE WHEN is_closed = 1 THEN 1 ELSE 0 END) as closed_queries')
+            )
+            ->where('form_type', 7)
+            ->groupBy('application_no');
 
         $queryData = DB::table($table)
             ->join('sport_welfare_registration_master', 'sport_welfare_registration_master.id', '=', $table . '.user_id')
@@ -1840,18 +1857,24 @@ class Adminathentication extends Controller
             ->leftJoinSub($latestStatusSub, 'latest_status', function ($join) {
                 $join->on('latest_status.user_id', '=', 'sport_welfare_registration_master.id');
             })
+            ->leftJoinSub($querySub, 'qm', function ($join) use ($table) {
+                $join->on('qm.application_no', '=', $table . '.application_no');
+            })
             ->select(
                 $table . '.*',
                 'sport_welfare_registration_master.fullname',
                 'sport_welfare_registration_master.permanent_district',
                 'sport_welfare_registration_master.email',
                 'sport_type.name as sportName',
-                'latest_status.latest_created_at as trail_date'
+                'latest_status.latest_created_at as trail_date',
+                DB::raw('COALESCE(qm.total_queries, 0) as total_queries'),
+                DB::raw('COALESCE(qm.open_queries, 0) as open_queries'),
+                DB::raw('COALESCE(qm.closed_queries, 0) as closed_queries')
             )
             ->where($table . '.final_submit', '=', 1);
 
         if ($request->from_date != '') {
-            if ($seg == 6) {
+            if ($seg == 6 || $seg === 'query_marked' || $seg === 9 || $seg === '9') {
                 $queryData->whereDate('latest_status.latest_created_at', '>=', ymd($request->from_date));
             } else {
                 $queryData->whereDate($table . '.created_at', '>=', ymd($request->from_date));
@@ -1859,7 +1882,7 @@ class Adminathentication extends Controller
         }
 
         if ($request->to_date != '') {
-            if ($seg == 6) {
+            if ($seg == 6 || $seg === 'query_marked' || $seg === 9 || $seg === '9') {
                 $queryData->whereDate('latest_status.latest_created_at', '<=', ymd($request->to_date));
             } else {
                 $queryData->whereDate($table . '.created_at', '<=', ymd($request->to_date));
@@ -1867,7 +1890,7 @@ class Adminathentication extends Controller
         }
 
         if ($request->from_date != '' && $request->to_date != '') {
-            if ($seg == 6) {
+            if ($seg == 6 || $seg === 'query_marked' || $seg === 9 || $seg === '9') {
                 $queryData->whereBetween('latest_status.latest_created_at', [ymd($request->from_date), ymd($request->to_date)]);
             } else {
                 $queryData->whereBetween($table . '.created_at', [ymd($request->from_date), ymd($request->to_date)]);
@@ -1889,7 +1912,7 @@ class Adminathentication extends Controller
         } elseif ($request->status_filter == 4) {
             $title = "- RSO/SO Pending";
             $queryData->where($table . '.is_forwarded_by_association', '=', 1)
-                ->where($table . '.is_forwarded_by_rso', '=', 0)
+                ->where($table . '.is_forwarded_by_rso', '=', 1)
                 ->where($table . '.form_status', '=', 0);
         } elseif ($request->status_filter == 5) {
             $title = "- RSO/SO Rejected";
@@ -1899,7 +1922,18 @@ class Adminathentication extends Controller
         } elseif ($request->status_filter == 6) {
             $title = "- Admin Prize Money Pending";
             $queryData->where($table . '.is_forwarded_by_rso', '=', 1)
-                ->where($table . '.form_status', '=', 0);
+                ->where($table . '.form_status', '=', 0)
+                ->where(function ($q) {
+                    $q->whereNull('qm.open_queries')
+                        ->orWhere('qm.open_queries', '=', 0);
+                });
+        } elseif ($request->status_filter === 'query_marked' || $request->status_filter === 9 || $request->status_filter === '9') {
+            if (!in_array(Auth::guard('admin')->user()->admin_role, [1, 2, 3, 5, 9, 17])) {
+                abort(403, 'Unauthorized access.');
+            }
+            $title = "- Query Marked";
+            $queryData->where($table . '.form_status', '=', 0)
+                ->where('qm.open_queries', '>', 0);
         } elseif ($request->status_filter == 7) {
             $title = "- Admin Prize Money Rejected";
             $queryData->where($table . '.is_forwarded_by_rso', '=', 1)
@@ -1925,14 +1959,29 @@ class Adminathentication extends Controller
                 $queryData->where('sport_welfare_registration_master.permanent_district', $request->city_filter);
             }
         }
+
+        // Application Status wise Filter
+        if ($request->application_status != '') {
+            if ($request->application_status === 'pending' || $request->application_status === '0') {
+                $queryData->where(function ($q) {
+                    $q->whereNull('qm.total_queries')
+                        ->orWhere('qm.total_queries', '=', 0);
+                });
+            } elseif ($request->application_status === 'query_resolved' || $request->application_status === '1') {
+                $queryData->where('qm.total_queries', '>', 0)
+                    ->where(function ($q) {
+                        $q->whereNull('qm.open_queries')
+                            ->orWhere('qm.open_queries', '=', 0);
+                    });
+            }
+        }
+
         $collection = $queryData->get();
 
         // DESC wise list get
-        if($seg==6||$seg==7||$seg==8){
+        if ($seg == 6 || $seg == 7 || $seg == 8 || $seg === 'query_marked' || $seg === 9 || $seg === '9') {
             $collection = $collection->sortByDesc('trail_date')->values();
-
-        }
-        else{
+        } else {
 
             $collection = $collection->sortByDesc('created_at')->values();
         }
@@ -2119,12 +2168,24 @@ class Adminathentication extends Controller
             ->select('user_id', DB::raw('MAX(created_at) as latest_created_at'))
             ->where('form_id', 7)->groupBy('user_id');
 
+        $querySub = DB::table('query_master')
+            ->select(
+                'application_no',
+                DB::raw('COUNT(*) as total_queries'),
+                DB::raw('SUM(CASE WHEN is_closed = 0 OR is_closed IS NULL THEN 1 ELSE 0 END) as open_queries'),
+                DB::raw('SUM(CASE WHEN is_closed = 1 THEN 1 ELSE 0 END) as closed_queries')
+            )
+            ->where('form_type', 7)
+            ->groupBy('application_no');
 
         $queryData = DB::table($table)
             ->join('sport_welfare_registration_master', 'sport_welfare_registration_master.id', '=', $table . '.user_id')
             ->join('sport_type', 'sport_type.id', '=', 'sport_welfare_registration_master.sport_type')
             ->joinSub($latestStatusSub, 'latest_status', function ($join) {
                 $join->on('latest_status.user_id', '=', 'sport_welfare_registration_master.id');
+            })
+            ->leftJoinSub($querySub, 'qm', function ($join) use ($table) {
+                $join->on('qm.application_no', '=', $table . '.application_no');
             })
             ->select(
                 $table . '.*',
@@ -2135,13 +2196,16 @@ class Adminathentication extends Controller
                 'sport_welfare_registration_master.permanent_address',
                 'sport_welfare_registration_master.mobile',
                 'sport_type.name as sportName',
-                'latest_status.latest_created_at as trail_date'
+                'latest_status.latest_created_at as trail_date',
+                DB::raw('COALESCE(qm.total_queries, 0) as total_queries'),
+                DB::raw('COALESCE(qm.open_queries, 0) as open_queries'),
+                DB::raw('COALESCE(qm.closed_queries, 0) as closed_queries')
             )
             ->where($table . '.final_submit', '=', 1);
 
 
         if ($fromDate != '') {
-            if ($status == 6) {
+            if ($status == 6 || $status === 'query_marked' || $status === 9 || $status === '9') {
                 $queryData->whereDate('latest_status.latest_created_at', '>=', ymd($fromDate));
             } else {
                 $queryData->whereDate($table . '.created_at', '>=', ymd($fromDate));
@@ -2154,7 +2218,7 @@ class Adminathentication extends Controller
 
 
         if ($toDate != '') {
-            if ($status == 6) {
+            if ($status == 6 || $status === 'query_marked' || $status === 9 || $status === '9') {
                 $queryData->whereDate('latest_status.latest_created_at', '<=', ymd($toDate));
             } else {
                 $queryData->whereDate($table . '.created_at', '<=', ymd($toDate));
@@ -2165,7 +2229,7 @@ class Adminathentication extends Controller
         }
 
         if ($request->from_date != '' && $request->to_date != '') {
-            if ($status == 6) {
+            if ($status == 6 || $status === 'query_marked' || $status === 9 || $status === '9') {
                 $queryData->whereBetween('latest_status.latest_created_at', [ymd($request->from_date), ymd($request->to_date)]);
             } else {
                 $queryData->whereBetween($table . '.created_at', [ymd($request->from_date), ymd($request->to_date)]);
@@ -2173,7 +2237,7 @@ class Adminathentication extends Controller
         }
 
         if ($fromDate != '' && $toDate != '') {
-            if ($status == 6) {
+            if ($status == 6 || $status === 'query_marked' || $status === 9 || $status === '9') {
                 $queryData->whereBetween('latest_status.latest_created_at', [ymd($fromDate), ymd($toDate)]);
             } else {
                 $queryData->whereBetween($table . '.created_at', [ymd($fromDate), ymd($toDate)]);
@@ -2204,7 +2268,19 @@ class Adminathentication extends Controller
         } elseif ($status == 6) {
             $title = "Admin Prize Money Pending -";
             $queryData->where($table . '.is_forwarded_by_rso', '=', 1)
-                ->where($table . '.form_status', '=', 0);
+                ->where($table . '.form_status', '=', 0)
+                ->where(function ($q) {
+                    $q->whereNull('qm.open_queries')
+                        ->orWhere('qm.open_queries', '=', 0);
+                });
+        } elseif ($status === 'query_marked' || $status === 9 || $status === '9') {
+            if (!in_array(Auth::guard('admin')->user()->admin_role, [1, 2, 3, 5, 9, 17])) {
+                abort(403, 'Unauthorized access.');
+            }
+            $title = "Query Marked -";
+            $queryData->where($table . '.is_forwarded_by_rso', '=', 1)
+                ->where($table . '.form_status', '=', 0)
+                ->where('qm.open_queries', '>', 0);
         } elseif ($status == 7) {
             $title = "Admin Prize Money Rejected -";
             $queryData->where($table . '.is_forwarded_by_rso', '=', 1)
@@ -2225,6 +2301,20 @@ class Adminathentication extends Controller
                 $queryData->where('direct_recruitment.permanent_district', $district);
             } else {
                 $queryData->where('sport_welfare_registration_master.permanent_district', $district);
+            }
+        }
+        if ($request->application_status != '') {
+            if ($request->application_status === 'pending' || $request->application_status === '0') {
+                $queryData->where(function ($q) {
+                    $q->whereNull('qm.total_queries')
+                        ->orWhere('qm.total_queries', '=', 0);
+                });
+            } elseif ($request->application_status === 'query_resolved' || $request->application_status === '1') {
+                $queryData->where('qm.total_queries', '>', 0)
+                    ->where(function ($q) {
+                        $q->whereNull('qm.open_queries')
+                            ->orWhere('qm.open_queries', '=', 0);
+                    });
             }
         }
         // $queryData->where($table .'.application_no','25071122964');
@@ -2253,12 +2343,24 @@ class Adminathentication extends Controller
             ->select('user_id', DB::raw('MAX(created_at) as latest_created_at'))
             ->where('form_id', 7)->groupBy('user_id');
 
+        $querySub = DB::table('query_master')
+            ->select(
+                'application_no',
+                DB::raw('COUNT(*) as total_queries'),
+                DB::raw('SUM(CASE WHEN is_closed = 0 OR is_closed IS NULL THEN 1 ELSE 0 END) as open_queries'),
+                DB::raw('SUM(CASE WHEN is_closed = 1 THEN 1 ELSE 0 END) as closed_queries')
+            )
+            ->where('form_type', 7)
+            ->groupBy('application_no');
 
         $queryData = DB::table($table)
             ->join('sport_welfare_registration_master', 'sport_welfare_registration_master.id', '=', $table . '.user_id')
             ->join('sport_type', 'sport_type.id', '=', 'sport_welfare_registration_master.sport_type')
             ->joinSub($latestStatusSub, 'latest_status', function ($join) {
                 $join->on('latest_status.user_id', '=', 'sport_welfare_registration_master.id');
+            })
+            ->leftJoinSub($querySub, 'qm', function ($join) use ($table) {
+                $join->on('qm.application_no', '=', $table . '.application_no');
             })
             ->select(
                 $table . '.*',
@@ -2269,13 +2371,16 @@ class Adminathentication extends Controller
                 'sport_welfare_registration_master.permanent_address',
                 'sport_welfare_registration_master.mobile',
                 'sport_type.name as sportName',
-                'latest_status.latest_created_at as trail_date'
+                'latest_status.latest_created_at as trail_date',
+                DB::raw('COALESCE(qm.total_queries, 0) as total_queries'),
+                DB::raw('COALESCE(qm.open_queries, 0) as open_queries'),
+                DB::raw('COALESCE(qm.closed_queries, 0) as closed_queries')
             )
             ->where($table . '.final_submit', '=', 1);
 
 
         if ($fromDate != '') {
-            if ($status == 6) {
+            if ($status == 6 || $status === 'query_marked' || $status === 9 || $status === '9') {
                 $queryData->whereDate('latest_status.latest_created_at', '>=', ymd($fromDate));
             } else {
                 $queryData->whereDate($table . '.created_at', '>=', ymd($fromDate));
@@ -2288,7 +2393,7 @@ class Adminathentication extends Controller
 
 
         if ($toDate != '') {
-            if ($status == 6) {
+            if ($status == 6 || $status === 'query_marked' || $status === 9 || $status === '9') {
                 $queryData->whereDate('latest_status.latest_created_at', '<=', ymd($toDate));
             } else {
                 $queryData->whereDate($table . '.created_at', '<=', ymd($toDate));
@@ -2300,7 +2405,7 @@ class Adminathentication extends Controller
 
 
         if ($request->from_date != '' && $request->to_date != '') {
-            if ($status == 6) {
+            if ($status == 6 || $status === 'query_marked' || $status === 9 || $status === '9') {
                 $queryData->whereBetween('latest_status.latest_created_at', [ymd($request->from_date), ymd($request->to_date)]);
             } else {
                 $queryData->whereBetween($table . '.created_at', [ymd($request->from_date), ymd($request->to_date)]);
@@ -2332,7 +2437,19 @@ class Adminathentication extends Controller
         } elseif ($status == 6) {
             $title = "Admin Prize Money Pending -";
             $queryData->where($table . '.is_forwarded_by_rso', '=', 1)
-                ->where($table . '.form_status', '=', 0);
+                ->where($table . '.form_status', '=', 0)
+                ->where(function ($q) {
+                    $q->whereNull('qm.open_queries')
+                        ->orWhere('qm.open_queries', '=', 0);
+                });
+        } elseif ($status === 'query_marked' || $status === 9 || $status === '9') {
+            if (!in_array(Auth::guard('admin')->user()->admin_role, [1, 2, 3, 5, 9, 17])) {
+                abort(403, 'Unauthorized access.');
+            }
+            $title = "Query Marked -";
+            $queryData->where($table . '.is_forwarded_by_rso', '=', 1)
+                ->where($table . '.form_status', '=', 0)
+                ->where('qm.open_queries', '>', 0);
         } elseif ($status == 7) {
             $title = "Admin Prize Money Rejected -";
             $queryData->where($table . '.is_forwarded_by_rso', '=', 1)
@@ -2353,6 +2470,20 @@ class Adminathentication extends Controller
                 $queryData->where('direct_recruitment.permanent_district', $district);
             } else {
                 $queryData->where('sport_welfare_registration_master.permanent_district', $district);
+            }
+        }
+        if ($request->application_status != '') {
+            if ($request->application_status === 'pending' || $request->application_status === '0') {
+                $queryData->where(function ($q) {
+                    $q->whereNull('qm.total_queries')
+                        ->orWhere('qm.total_queries', '=', 0);
+                });
+            } elseif ($request->application_status === 'query_resolved' || $request->application_status === '1') {
+                $queryData->where('qm.total_queries', '>', 0)
+                    ->where(function ($q) {
+                        $q->whereNull('qm.open_queries')
+                            ->orWhere('qm.open_queries', '=', 0);
+                    });
             }
         }
         // $queryData->where($table .'.application_no','25071122964');
@@ -4441,7 +4572,7 @@ class Adminathentication extends Controller
 
 
 
-            DB::table('eklavya_krida_kosh_basic_detail')->where('application_no', $userId)->update(['is_editable' => 1]);
+            DB::table('eklavya_krida_kosh_basic_detail')->where('application_no', $userId)->update(['is_editable' => 1, 'created_at' => DB::raw('created_at')]);
             $userId = DB::table('eklavya_krida_kosh_basic_detail')->where('application_no', $userId)->first()->user_id;
             $application_no = $req->formID;
         }
@@ -4573,11 +4704,33 @@ class Adminathentication extends Controller
                 ->where($table . '.sport_type', '=', Auth::guard('admin')->user()->sport_type)
                 ->where($table . '.final_submit', '=', 1);
         } else if ($request->form_type == 7) {
+            $querySub = DB::table('query_master')
+                ->select(
+                    'application_no',
+                    DB::raw('COUNT(*) as total_queries'),
+                    DB::raw('SUM(CASE WHEN is_closed = 0 OR is_closed IS NULL THEN 1 ELSE 0 END) as open_queries'),
+                    DB::raw('SUM(CASE WHEN is_closed = 1 THEN 1 ELSE 0 END) as closed_queries')
+                )
+                ->where('form_type', 7)
+                ->groupBy('application_no');
+
             $queryData = DB::table($table)
                 ->join('sport_welfare_registration_master', 'sport_welfare_registration_master.id', '=', $table . '.user_id')
                 ->join('eklavya_krida_kosh_award', 'eklavya_krida_kosh_award.user_id', '=', $table . '.user_id')
                 ->join('sport_type', 'sport_type.id', '=', 'sport_welfare_registration_master.sport_type')
-                ->select($table . '.*', 'sport_welfare_registration_master.fullname', 'sport_welfare_registration_master.permanent_district', 'sport_welfare_registration_master.email', 'sport_type.name as sportName')
+                ->leftJoinSub($querySub, 'qm', function ($join) use ($table) {
+                    $join->on('qm.application_no', '=', $table . '.application_no');
+                })
+                ->select(
+                    $table . '.*',
+                    'sport_welfare_registration_master.fullname',
+                    'sport_welfare_registration_master.permanent_district',
+                    'sport_welfare_registration_master.email',
+                    'sport_type.name as sportName',
+                    DB::raw('COALESCE(qm.total_queries, 0) as total_queries'),
+                    DB::raw('COALESCE(qm.open_queries, 0) as open_queries'),
+                    DB::raw('COALESCE(qm.closed_queries, 0) as closed_queries')
+                )
                 ->where($table . '.final_submit', '=', 1);
 
             if (isset($adminRole) && $adminRole == 2) {
@@ -4593,22 +4746,23 @@ class Adminathentication extends Controller
 
                     // Cricket: no association forwarding required
                     $query->where(
-                        'sport_welfare_registration_master.sport_type','=',
+                        'sport_welfare_registration_master.sport_type',
+                        '=',
                         3
                     )
 
-                    // Existing conditions for other applications
-                    ->orWhere($table . '.is_forwarded_by_association', '>=', 1)
+                        // Existing conditions for other applications
+                        ->orWhere($table . '.is_forwarded_by_association', '>=', 1)
 
-                    ->orWhereIn(
-                        'eklavya_krida_kosh_award.competition_name',
-                        [6, 9, 10, 14]
-                    )
+                        ->orWhereIn(
+                            'eklavya_krida_kosh_award.competition_name',
+                            [6, 9, 10, 14]
+                        )
 
-                    ->orWhereIn(
-                        $table . '.qualification',
-                        ['diploma', 'researcher']
-                    );
+                        ->orWhereIn(
+                            $table . '.qualification',
+                            ['diploma', 'researcher']
+                        );
                 });
 
                 // Division restriction applies to all applications
@@ -4728,8 +4882,31 @@ class Adminathentication extends Controller
         if ($request->from_date != '' && $request->to_date != '')
             $queryData->whereBetween($table . '.created_at', [ymd($request->from_date), ymd($request->to_date)]);
 
-        if ($request->status_filter != '')
-            $queryData->where($table . '.form_status', "$request->status_filter");
+        if ($request->status_filter != '') {
+            if ($request->form_type == 7) {
+                if ($request->status_filter === 'pending' || $request->status_filter === '0') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where(function ($q) {
+                            $q->whereNull('qm.total_queries')
+                                ->orWhere('qm.total_queries', '=', 0);
+                        });
+                } elseif ($request->status_filter === 'query_raised') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where('qm.open_queries', '>', 0);
+                } elseif ($request->status_filter === 'query_resolved') {
+                    $queryData->where($table . '.form_status', '=', 0)
+                        ->where('qm.total_queries', '>', 0)
+                        ->where(function ($q) {
+                            $q->whereNull('qm.open_queries')
+                                ->orWhere('qm.open_queries', '=', 0);
+                        });
+                } else {
+                    $queryData->where($table . '.form_status', "$request->status_filter");
+                }
+            } else {
+                $queryData->where($table . '.form_status', "$request->status_filter");
+            }
+        }
 
         if ($request->project_filter != '') {
             if ($request->form_type == 6 || $request->form_type == 7) {

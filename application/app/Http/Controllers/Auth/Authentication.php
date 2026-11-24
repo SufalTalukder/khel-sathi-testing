@@ -665,8 +665,9 @@ class Authentication extends Controller
     {
         $type = $req->type;
         $id = $req->id;
+        $query = DB::table('query_master')->where('id', $id)->first();
         $reply = DB::table('query_reply_detail')->where('query_id', $id)->get();
-        return view('queryreply.queryreply', compact('type', 'reply', 'id'));
+        return view('queryreply.queryreply', compact('type', 'reply', 'id', 'query'));
     }
 
     public function directMarkQuery(Request $req)
@@ -684,18 +685,16 @@ class Authentication extends Controller
             'reply_doc' => $fileName,
         ];
         $typename = "";
+        $isApplicant = (Auth::check() && Auth::id() == $queryMaster->user_id);
         $rso = Auth::guard('admin')->user();
-        if (isset($rso)) {
+        if (!$isApplicant && isset($rso)) {
             $typename = Auth::guard('admin')->user()->name;
-        } else {
-            $typename = "User";
-        }
-        if (isset($rso)) {
             $data['replied_by'] = $replyTo;
             $data['reply_to'] = $repliedBy;
             $data['current_status'] = $typename;
             $data['reply_type'] = 1;
         } else {
+            $typename = "User";
             $data['replied_by'] = $repliedBy;
             $data['reply_to'] = $replyTo;
             $data['current_status'] = $typename;

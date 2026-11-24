@@ -9,6 +9,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('') }}/favicon.ico" />
     <link href="{{ asset('facility_booking_storage') }}/css/bootstrap.css" rel='stylesheet' />
     <link href="{{ asset('facility_booking_storage') }}/css/all.css" rel="stylesheet" />
@@ -482,21 +483,39 @@
             let stadium_id = $('#stadium_iddd').val();
             let location = value;
             let option = `<option value=''>Select Stadium</option>`;
+
+            if (!location) {
+                $(`#${id}`).empty();
+                $(`#${id}`).append(option);
+                return;
+            }
+
             $.ajax({
                 type: "POST",
                 url: "{{ url('facility_booking/stadium') }}",
                 data: {
-                    location: location
+                    location: location,
+                    _token: "{{ csrf_token() }}"
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
-                    response.forEach((item) => {
-                        option +=
-                            `<option value="${item.id}"  ${item.id == stadium_id ? 'selected':''}  >${item.studium_name}</option>`;
-                    })
+                    if (response && response.length > 0) {
+                        response.forEach((item) => {
+                            option +=
+                                `<option value="${item.id}" ${item.id == stadium_id ? 'selected' : ''}>${item.studium_name}</option>`;
+                        });
+                    }
+                    $(`#${id}`).empty();
+                    $(`#${id}`).append(option);
+                },
+                error: function(xhr) {
+                    console.error("Error fetching stadiums:", xhr.responseText);
                     $(`#${id}`).empty();
                     $(`#${id}`).append(option);
                 }
-            })
+            });
         }
 
         function showHide(elem) {

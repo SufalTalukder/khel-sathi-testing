@@ -1,4 +1,15 @@
 
+@props(['queryData', 'isApplicant' => null])
+
+@php
+    if (isset($isApplicant)) {
+        $applicantView = (bool)$isApplicant;
+    } else {
+        $isAdminRoute = request()->is('admin*') || request()->is('*/admin*');
+        $applicantView = !$isAdminRoute;
+    }
+@endphp
+
 @if( count( $queryData ) > 0 )
 
 <div class="noprint">
@@ -31,25 +42,39 @@
 						@endif
 					</td>
 					<td class="text-center">
-
-
-
-
-						@if($article->query_status == 1 || $article->is_closed == 1)
-						<a href="javascript:void(0);" class="btn btn-primary btn-sm" onclick="queryFormReply(1,{{$article->id}})">View</a> @else
-
-						<!-- @if(Auth::guard('admin')->user()!=null)
-                <a href="javascript:void(0);" class="btn btn-primary btn-sm" onclick="queryFormReply(1,{{$article->id}})">Send Reminder</a>
-                @else
-                <a href="javascript:void(0);" class="btn btn-primary btn-sm " onclick="queryFormReply(0,{{$article->id}})">Reply</a>
-                @endif -->
-						<a href="javascript:void(0);" class="btn btn-primary btn-sm " onclick="queryFormReply(0,{{$article->id}})">
-							@if(isset(Auth::guard('admin')->user()->id) && Auth::guard('admin')->user()!=null) Send Reminder @else Reply @endif</a> 
-						@endif @if(Auth::guard('admin')->user()!=null) @if($article->is_closed == 1)
-						<a href="javascript:void(0);" class="btn btn-danger  btn-sm ml-5">Closed</a> 
-						@else @if($article->query_status == 0) <a href="javascript:void(0);" class="btn btn-primary  btn-sm ml-5">Pending</a>@elseif($article->query_status == 1) Replied 
-						@else -- @endif	@if(isset(Auth::guard('admin')->user()->id) && (Auth::guard('admin')->user()->id != 1) || $article->form_type == 7)<a href="javascript:void(0);" class="btn btn-danger  btn-sm ml-5" onclick="queryClosed(1,{{$article->id}})">Close Query</a> @endif @endif @endif
-
+						@if($applicantView)
+							{{-- Applicant side --}}
+							@if($article->is_closed == 1)
+								<a href="javascript:void(0);" class="btn btn-info btn-sm" onclick="queryFormReply(1,{{$article->id}})">View</a>
+								<span class="badge bg-secondary ms-1">Closed</span>
+							@else
+								<a href="javascript:void(0);" class="btn btn-primary btn-sm" onclick="queryFormReply(0,{{$article->id}})">Reply</a>
+								@if($article->query_status == 1)
+									<span class="badge bg-success ms-1">Replied</span>
+								@endif
+							@endif
+						@else
+							{{-- Admin side --}}
+							@if($article->query_status == 1 || $article->is_closed == 1)
+								<a href="javascript:void(0);" class="btn btn-primary btn-sm" onclick="queryFormReply(1,{{$article->id}})">View</a>
+							@else
+								<a href="javascript:void(0);" class="btn btn-primary btn-sm" onclick="queryFormReply(0,{{$article->id}})">Send Reminder</a>
+							@endif
+							@if($article->is_closed == 1)
+								<a href="javascript:void(0);" class="btn btn-danger btn-sm ml-5">Closed</a> 
+							@else
+								@if($article->query_status == 0)
+									<a href="javascript:void(0);" class="btn btn-primary btn-sm ml-5">Pending</a>
+								@elseif($article->query_status == 1)
+									Replied 
+								@else
+									--
+								@endif
+								@if((isset(Auth::guard('admin')->user()->id) && Auth::guard('admin')->user()->id != 1) || $article->form_type == 7)
+									<a href="javascript:void(0);" class="btn btn-danger btn-sm ml-5" onclick="queryClosed(1,{{$article->id}})">Close Query</a>
+								@endif
+							@endif
+						@endif
 					</td>
 					<td class="text-center">{{dmy($article->trans_date)}}</td>
 					<?php $query_reply=queryReply($article->id); ?>

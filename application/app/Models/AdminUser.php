@@ -17,13 +17,17 @@ class AdminUser extends Authenticatable
     protected $table = 'admin';
 
     protected $fillable = [
+        'salutation',
+        'name',
         'department_id',
         'admin_role',
         'email',
         'mobile',
         'password',
         'user_password',
-        'user_type'
+        'user_type',
+        'designation',
+        'profile_image',
     ];
 
     static function changePassword($req)

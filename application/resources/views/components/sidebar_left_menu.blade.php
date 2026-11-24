@@ -25,32 +25,29 @@ foreach ($modules as $module) {
 }
 
 ?>
-<span style="color: #d64d92;">
-	<?php
-	$str  = Auth::guard('admin')->user()->username;
-	$res = str_replace('_', ' ', $str); ?>
-	{{ucfirst($res)}}
-</span>
 <ul class="navsidebar" id="accordionExample">
-	
 	<li class=" menu_item nav-item">
 		<a href="{{url('admin/dashboard')}}">
 			<i class="icon icon-home"></i><span>Dashboard </span>
 		</a>
 	</li>
-	
+
 	@if(isset($menu)) @foreach($menu as $key=>$value_arr)
 	<li data-bs-toggle="collapse" data-bs-target="#abc{{$value_arr['id']}}" class="collapsed menu_item">
 		<a href="javascript:void(0)"><i class="{{$value_arr['menu_icon']}}"></i><span>{{repairHindi($key)}}</span> <span class="fa fa-caret-down"></span></a>
 	</li>
 	<ul class="sub-menu collapse" id="abc{{$value_arr['id']}}" data-bs-parent="#accordionExample">
 		@foreach($value_arr['pages'] as $page) @if(isset($page) && $page != "")
+		@if($page->page_url == 'admin/eklavya_krida_co/query_marked' && !in_array(Auth::guard('admin')->user()->admin_role, [1, 2, 3, 5, 9, 17]))
+			@continue
+		@endif
 		<li><a href="{{url($page->page_url)}}"><i class="{{$page->menu_icon}}"></i><span>{{repairHindi($page->page_name)}}</span></a>
 		</li>
+		@if(in_array(Auth::guard('admin')->user()->admin_role, [1, 2, 3, 5, 9, 17]) && ($page->page_url == 'admin/eklavya_krida_co/6') && !collect($value_arr['pages'])->contains('page_url', 'admin/eklavya_krida_co/query_marked'))
+		<li><a href="{{url('admin/eklavya_krida_co/query_marked')}}"><i class="icon icon-eye"></i><span>Query Marked Applications</span></a>
+		</li>
+		@endif
 		@endif @endforeach
 	</ul>
 	@endforeach @endif
 </ul>
-
-
-

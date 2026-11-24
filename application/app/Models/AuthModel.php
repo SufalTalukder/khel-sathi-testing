@@ -81,7 +81,9 @@ class AuthModel extends Model
 
     static function resendOtp()
     {
-        $count = DB::table('sport_welfare_registration_master')->select('otp_count')->where('mobile', session()->get('mobile'))->first()->otp_count;
+        $hasOtpCount = \Illuminate\Support\Facades\Schema::hasColumn('sport_welfare_registration_master', 'otp_count');
+        $user = DB::table('sport_welfare_registration_master')->where('mobile', session()->get('mobile'))->first();
+        $count = ($hasOtpCount && $user && isset($user->otp_count)) ? $user->otp_count : 0;
 
         if ($count >= 4) {
             return response()->json(['status' => 201, 'msg' => "Your account has been temporarily blocked due to 4 consecutive incorrect OTP attempts. Your account has been blocked for the next 24 hours. Please try again after this time period."]);
@@ -92,7 +94,9 @@ class AuthModel extends Model
             ["otp"           => $otp]
         );
         DB::table('eklavya_fund_registration')->where('email', session()->get('email'))->update(["otp" => $otp]);
-        DB::table('sport_welfare_registration_master')->where('email', session()->get('email'))->update(["otp_count" => $count + 1]);
+        if ($hasOtpCount) {
+            DB::table('sport_welfare_registration_master')->where('email', session()->get('email'))->update(["otp_count" => $count + 1]);
+        }
         SmsMail::dispatch([
             "otp" => $otp,
             "email" => session()->get('email'),

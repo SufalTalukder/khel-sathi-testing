@@ -33,8 +33,21 @@
                                          href="{{ route('admin_facility_booking_dashboard', 5) }}" @endif
                                 class="btn btn-outline-danger btn-sm backbtn float-end rounded-pill"><span
                                     class="icons icon-arrow-left"></span>Back to List</a>
+
+                            @if ($application->status == 1 && $application->payment_status == 1)
+                                <a href="javascript:void(0);" class="btn btn-outline-success btn-xs backbtn me-1 float-end"
+                                    style="pointer-events: none;">
+                                    <i class="fa fa-check-circle me-1" style="margin-right: 6px;"></i> Paid: {{ $application->amount_to_be_paid }} INR
+                                </a>
+                            @elseif ($application->status == 1 && $application->fee_exemption_status == 1)
+                                <a href="javascript:void(0);" class="btn btn-outline-warning btn-xs backbtn me-1 float-end"
+                                    style="pointer-events: none;">
+                                    Fee Exemption
+                                </a>
+                            @endif
+
                             @if ($application->status == 1)
-                                <a href="javascript:void(0);"class="btn btn-outline-success btn-xs backbtn me-1 float-end"
+                                <a href="javascript:void(0);" class="btn btn-outline-success btn-xs backbtn me-1 float-end"
                                     style="pointer-events: none;">
                                     Accepted
                                 </a>
@@ -43,7 +56,24 @@
                                     style="pointer-events: none;">
                                     Rejected
                                 </a>
+                            @elseif ($application->final_submit == 1 && $application->query_status == 1)
+                                <a href="javascript:void(0);" class="btn btn-outline-info btn-xs backbtn me-1 float-end"
+                                    style="pointer-events: none;">
+                                    Query Marked
+                                </a>
+                            @elseif ($application->final_submit == 1 && $application->query_status == 2 && ($application->status != 1 && $application->status != 2))
+                                <a href="javascript:void(0);" class="btn btn-outline-warning btn-xs backbtn me-1 float-end"
+                                    style="pointer-events: none;">
+                                    Re-Submitted
+                                </a>
                             @else
+                                <a href="javascript:void(0);" class="btn btn-outline-primary btn-xs backbtn me-1 float-end"
+                                    style="pointer-events: none;">
+                                    Pending
+                                </a>
+                            @endif
+
+                            @if ($application->status != 1 && $application->status != 2)
                                 @if (Auth::guard('admin')->user()->admin_role != 1 && Auth::guard('admin')->user()->admin_role != 18)
                                     <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#queryModal"
                                         class="btn btn-outline-info btn-xs backbtn me-1 float-end">
@@ -120,10 +150,36 @@
                                                 </thead>
 
                                             </table>
+                                            <div class="d-flex justify-content-between align-items-center mb-2 px-1" style="font-size: 10pt;">
+                                                <div>
+                                                    <b>Booking No/बुकिंग सं० :</b> {{ $application->application_no }}
+                                                </div>
+                                                <div>
+                                                    <b>Application Status/आवेदन स्थिति :</b>
+                                                    @if ($application->status == 1)
+                                                        <span class="badge bg-success">Accepted</span>
+                                                    @elseif ($application->status == 2)
+                                                        <span class="badge bg-danger">Rejected</span>
+                                                    @elseif ($application->final_submit == 1 && $application->query_status == 1)
+                                                        <span class="badge bg-info">Query Marked</span>
+                                                    @elseif ($application->final_submit == 1 && $application->query_status == 2)
+                                                        <span class="badge bg-warning text-dark">Re-Submitted</span>
+                                                    @else
+                                                        <span class="badge bg-primary">Pending</span>
+                                                    @endif
+
+                                                    @if ($application->status == 1 && $application->payment_status == 1)
+                                                        &nbsp;|&nbsp; <b>Payment Status/भुगतान :</b> <span class="badge bg-success">Paid ({{ $application->amount_to_be_paid }} INR)</span>
+                                                    @elseif ($application->status == 1 && $application->fee_exemption_status == 1)
+                                                        &nbsp;|&nbsp; <b>Payment Status/भुगतान :</b> <span class="badge bg-warning text-dark">Fee Exemption</span>
+                                                    @elseif ($application->status == 1 && $application->payment_status != 1)
+                                                        &nbsp;|&nbsp; <b>Payment Status/भुगतान :</b> <span class="badge bg-primary">Pending</span>
+                                                    @endif
+                                                </div>
+                                            </div>
                                             <table class="table table-bordered" border="0" cellspacing="0"
                                                 cellpadding="3" width="100%"
                                                 style="border-collapse:collapse; font-size:10pt;">
-                                                <p>Booking No/बुकिंग सं० : {{ $application->application_no }}</p>
                                                 <tbody>
                                                     <tr>
 
@@ -345,6 +401,46 @@
                                                         </tr>
                                                     @endif
 
+
+                                                    <tr>
+                                                        <td colspan="5" style="background-color:#eee;">
+                                                            <b>Payment Details/भुगतान का विवरण</b>
+                                                        </td>
+                                                    </tr>
+                                                    @if ($application->status == 1 && $application->payment_status == 1)
+                                                        <tr>
+                                                            <td style="width:22%"><b>Payment Status/भुगतान स्थिति</b></td>
+                                                            <td style="width:25%"><span class="badge bg-success">Paid / Success</span></td>
+                                                            <td style="width:22%"><b>Paid Amount/भुगतान राशि</b></td>
+                                                            <td colspan="2"><strong>{{ $application->amount_to_be_paid }} INR</strong></td>
+                                                        </tr>
+                                                        @php
+                                                            $paymentInfo = rajkosh_payment_booking($application->application_no);
+                                                        @endphp
+                                                        @if ($paymentInfo)
+                                                            <tr>
+                                                                <td><b>Challan No./चालान सं०</b></td>
+                                                                <td>{{ $paymentInfo->Depchallan ?? '-' }}</td>
+                                                                <td><b>Payment Date/भुगतान तिथि</b></td>
+                                                                <td colspan="2">{{ !empty($application->payment_date) ? dmy($application->payment_date) : '-' }}</td>
+                                                            </tr>
+                                                        @endif
+                                                    @elseif ($application->status == 1 && $application->fee_exemption_status == 1)
+                                                        <tr>
+                                                            <td style="width:22%"><b>Payment Status/भुगतान स्थिति</b></td>
+                                                            <td colspan="4"><span class="badge bg-warning text-dark">Fee Exemption</span></td>
+                                                        </tr>
+                                                    @elseif ($application->status == 1)
+                                                        <tr>
+                                                            <td style="width:22%"><b>Payment Status/भुगतान स्थिति</b></td>
+                                                            <td colspan="4"><span class="badge bg-primary">Pending</span></td>
+                                                        </tr>
+                                                    @else
+                                                        <tr>
+                                                            <td style="width:22%"><b>Payment Status/भुगतान स्थिति</b></td>
+                                                            <td colspan="4">NA</td>
+                                                        </tr>
+                                                    @endif
 
                                                     <tr>
                                                         <td colspan="5" style="background-color:#eee;">

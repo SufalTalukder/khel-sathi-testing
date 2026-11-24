@@ -24,8 +24,10 @@
                     </div>
                     <div class="col-md-12 col-12 deptname">
                         <h5 class="text-danger">
-                            Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools<br /> निजी कोचिंग
-                            अकादमियों / संघों, जिम, और तरणताल का पंजीकरण </h5>
+                            {{-- Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools<br /> निजी कोचिंग
+                            अकादमियों / संघों, जिम, और तरणताल का पंजीकरण --}}
+                            Private Institutions Registration (Gyms & Swimming Pools)<br /> निजी संस्थान पंजीकरण (जिम एवं तरणताल)
+                        </h5>
                     </div>
                 </div>
             </div>

@@ -89,14 +89,18 @@
             </div>
             @if ($today <= $loginCloseDate)
                 <div class="p-3 p-lg-4 login-form">
-                    <div class="text-center text-md-center mb-2 mt-md-0">
-                        <h3 class="mb-0">Applicant's Login/आवेदक का लॉगिन</h3>
+                    <div class="text-center text-md-center mb-3 mt-md-0">
+                        <h3 class="mb-2">Applicant's Login/आवेदक का लॉगिन</h3>
                         @if ($today <= $formCloseDate)
-                            <div class="d-flex justify-content-center align-items-center mt-2">
-                                <span class="fw-normal">Don't have an account?
-                                    <a href="{{ route('onlineAdmissionTest.register') }}" class="fw-bold">Register Here/अभी
-                                        पंजीकरण करें</a>
-                                </span>
+                            <div class="auth-register-callout my-2 text-center">
+                                <div class="d-inline-block p-2 px-3 rounded-3" style="background: #f0f7ff; border: 1.5px dashed #0284c7; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.1);">
+                                    <div style="font-size: 0.82rem; color: #475569; font-weight: 600; margin-bottom: 4px;">
+                                        Don’t have an account? / क्या आपका अकाउंट नहीं है?
+                                    </div>
+                                    <a href="{{ route('onlineAdmissionTest.register') }}" class="btn btn-sm btn-primary rounded-pill px-4 py-1 fw-bold text-white shadow-sm" style="font-size: 0.88rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none;">
+                                        <i class="fas fa-user-plus me-1"></i> Register Here / अभी पंजीकरण करें &rarr;
+                                    </a>
+                                </div>
                             </div>
                         @endif
                     </div>

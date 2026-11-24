@@ -16,9 +16,16 @@ class StudiumMasterModel extends Authenticatable
 
     protected $fillable = [
         'studium_name',
+        'address',
         'district_id',
+        'division_id',
         'latitude',
         'longitude',
     ];
+
+    public function infrastructures()
+    {
+        return $this->hasMany(StadiumInfrastructure::class, 'stadium_id', 'id');
+    }
 }
 

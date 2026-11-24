@@ -262,7 +262,7 @@
                         </div>
                     </div>
                     <div class="row mt-3 justify-content-center">
-                        @if ($applicationview->form_status === null)
+                        @if ($applicationview->form_status === null or $applicationview->form_status==1)
                             <div class="col-md-2 d-grid">
                                 <button class="btn btn-outline-info rounded-pill" id="onlineAdmissionFinal">Update Status </button>
                             </div>
@@ -294,6 +294,13 @@
                                     <h6 class="fw-bold mb-1"><i class="fa fa-times-circle"></i> Membership has Expired</h6>
                                 </div>
                             </div>
+                        @endif
+                        @if ($applicationview->form_status == 1 && $applicationview->payment_status_coaching_fee == 1 && $applicationview->payment_date_coaching_fee!=null)
+                            @if($applicationview->validity<$applicationview->payment_date_coaching_fee)
+                                <div class="col-md-2 d-grid">
+                                    <button class="btn btn-outline-success rounded-pill" id="activateMember">Activate Membership</button>
+                                </div>
+                            @endif
                         @elseif($applicationview->form_status == 1 && $applicationview->payment_status_coaching_fee == 1 && $applicationview->active==1)
                             <div class="col-md-2 d-grid">
                                 <button class="btn btn-outline-danger rounded-pill" id="cancelReg">Cancel Membership</button>
@@ -302,11 +309,15 @@
                             <div class="col-md-2 d-grid">
                                 <button class="btn btn-outline-success rounded-pill" id="activateMember">Activate Membership</button>
                             </div>
+                        @elseif ($applicationview->form_status == 1 && $applicationview->payment_status_coaching_fee == 1 && $applicationview->validity==null && $applicationview->payment_amount_coaching!=null)
+                            <div class="col-md-2 d-grid">
+                                <button class="btn btn-outline-success rounded-pill" id="activateMember">Activate Membership</button>
+                            </div>
                         @elseif($applicationview->form_status == 2)
                             <div class="col-md-2 d-grid">
                                 <span class="btn btn-outline-danger rounded-pill" >Membership has been Cancelled</span>
                             </div>
-                        @elseif($applicationview->form_status == 0)
+                        @elseif($applicationview->form_status === 0)
                             <div class="col-md-2 d-grid">
                                 <span class="btn btn-outline-danger rounded-pill" >Application has been Rejected</span>
                             </div>
@@ -339,7 +350,7 @@
                                                     @php $sno=1 @endphp
                                                     <tr>
                                                         <td>{{$sno++}}</td>
-                                                        <td>{{$presponse->date}}</td>
+                                                        <td>{{$presponse->date_of_payment_attempt}}</td>
                                                         <td>{{$presponse->amount}}</td>
                                                         <td>{{$presponse->challan_no}}</td>
                                                         <td><a target="_blank" href="admin/admin_coaching_camp_challan/{{$presponse->challan_no}}"><i class="fa fa-eye"></i></a></td>
@@ -438,7 +449,7 @@
                 const status = $('input[name="status"]:checked').val();
                 const paymentAmount = $('#paymentAmount').val().trim();
                 const protsahan_amount = $('#protsahantAmount').val().trim();
-                const remark = $('#remark').val().trim();
+                const remark = $('#update_remark').val().trim();
 
                 // Basic validation
                 if (typeof status === 'undefined') {
@@ -616,7 +627,7 @@
                         <!-- Remark Field -->
                         <div class="mb-3">
                             <label for="remark" class="form-label">Remark<span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="remark" name="remark" rows="3"
+                            <textarea class="form-control" id="update_remark" name="remark" rows="3"
                                 placeholder="Enter remark..."></textarea>
                         </div>
 
@@ -688,7 +699,6 @@
                         <input type="text" name="stadium_id" id="stadium" class="form-control d-none" value="{{$applicationview->stadium}}">
                         <input type="text" name="coaching_fees" id="coaching_fees" class="form-control d-none" value="{{$applicationview->payment_amount_coaching}}">
 
-                        <!-- Remark Field -->
                         <div class="mb-3">
                             <label for="payment_date" class="form-label">Protsahan Samiti Payment Date</label>
                             <input type="date" name="payment_date" id="payment_date" class="form-control">
@@ -716,7 +726,6 @@
                             <button type="button" class="btn btn-danger rounded-pill"
                                 data-bs-dismiss="modal">Cancel</button>
                         </div>
-
                     </form>
                 </div>
             </div>

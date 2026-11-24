@@ -34,7 +34,6 @@ class CoachingCampController extends Controller
 
     public function coaching_camp_login()
     {
-
         $Code1 = rand(11, 99);
         $Code2 = rand(11, 99);
         $capchaCode = $Code1 +  $Code2;
@@ -66,7 +65,7 @@ class CoachingCampController extends Controller
         $states                 =   DB::table('states')->orderBy('name')->get();
 
         $districts              =   DB::table('cities')->where('state_id', 23)->orderBy('city')->get();
-        $stadium                =   DB::table('studium_master')->get();
+        $stadiums                =   DB::table('studium_master')->get();
         $cities                 =   DB::table('cities')->where('state_id', 23)->where('isp_state_code','!=',0)->orderBy('city')->get();
         $districtall            =   DB::table('cities')->orderBy('city')->get();
         $allSubSports           =   DB::table('sub_sport_type')->get();
@@ -74,7 +73,7 @@ class CoachingCampController extends Controller
         $dob                    =   Carbon::parse(Auth::guard('CoachingCamp')->user()->dob);
 
         $age                    =   $dob->age;
-        return view('coaching_camp.application_form', compact('stadium', 'sport', 'applicationview', 'states', 'districts', 'districtall','age','allSubSports','cities'));
+        return view('coaching_camp.application_form', compact('stadiums', 'sport', 'applicationview', 'states', 'districts', 'districtall','age','allSubSports','cities'));
     }
 
     public function coaching_camp_application_preview()
@@ -600,7 +599,7 @@ class CoachingCampController extends Controller
                        ->join('coaching_camp_basic_details', 'rajkosh_payment_request.application_no', '=', 'coaching_camp_basic_details.application_no')
                        ->join('coaching_camp_register', 'coaching_camp_basic_details.user_id', '=', 'coaching_camp_register.id')
                        ->where('rajkosh_payment_response.challan_no',(string)$request->challan)
-                       ->select('coaching_camp_basic_details.*','coaching_camp_register.*','rajkosh_payment_response.*','rajkosh_payment_request.Depchallan','rajkosh_payment_response.amount as paid_amount')
+                       ->select('coaching_camp_basic_details.*','coaching_camp_register.*','rajkosh_payment_request.date_of_payment_attempt','rajkosh_payment_response.*','rajkosh_payment_request.Depchallan','rajkosh_payment_response.amount as paid_amount')
                        ->first();
         $pdf = Pdf::loadView('coaching_camp.challan', compact('districts','sportList','userDetails'));
         $name = $userDetails->name . "_Coaching_Camp_Receipt_" . date('d-m-Y') . '.pdf';

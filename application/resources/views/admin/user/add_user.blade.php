@@ -106,10 +106,19 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="mobile">Designation</label>
-                        <input type="text" name="designation" id="designation" class="form-control" required value="{{ old('designation') }}">
+                        <label for="add_designation">Designation</label>
+                        <input type="text" name="designation" id="add_designation" class="form-control" required value="{{ old('designation') }}">
                         <div class="invalid-feedback">
                             Please provide Designation.
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="add_password">Password</label>
+                        <input type="text" name="password" id="add_password" class="form-control" required value="{{ old('password', '12345678') }}">
+                        <div class="invalid-feedback">
+                            Please provide Password.
                         </div>
                     </div>
                 </div>

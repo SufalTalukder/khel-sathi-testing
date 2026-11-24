@@ -22,29 +22,22 @@
         );
     });
 
+    // AJAX Global Progress Indicator (Slim top progress bar only, never a blocking modal popup!)
     $(document)
         .ajaxStart(function() {
-            $.blockUI({
-                message: '<h1><img src="' +
-                    ajaxUrl +
-                    '/busy.gif" /> Please Wait...</h1>',
-            });
+            if (window.startKsTopProgress) {
+                window.startKsTopProgress();
+            }
         })
         .ajaxComplete(function() {
-            $.unblockUI({
-                message: '<h1><img src="' +
-                    ajaxUrl +
-                    '/busy.gif" /> Please Wait...</h1>',
-            });
+            if (window.finishKsTopProgress) {
+                window.finishKsTopProgress();
+            }
         })
         .ajaxError(function() {
-            $.unblockUI({
-                message: '<h1><img src="' +
-                    ajaxUrl +
-                    '/busy.gif" /> Please Wait...</h1>',
-            });
-            // error("Oop! Something went wrong please reload this page and try again.");
-            // error("Oops! Something Went Wrong Please Try After Some Time.");
+            if (window.finishKsTopProgress) {
+                window.finishKsTopProgress();
+            }
         });
 
 
@@ -66,6 +59,9 @@ function removeValidity() {
 
 
 function error(msg) {
+    if (!msg || typeof msg !== "string" || msg.trim() === "" || msg === "undefined" || msg === "null") {
+        return;
+    }
     $.toast({
         heading: "Error",
         text: msg,
@@ -73,7 +69,8 @@ function error(msg) {
         loader: true,
         loaderBg: "#8b0404",
         showHideTransition: "fadeup",
-        hideAfter: 4500,
+        hideAfter: 8000,
+        allowToastClose: true,
         position: {
             right: 20,
             top: 20,
@@ -82,6 +79,9 @@ function error(msg) {
 }
 
 function success(msg) {
+    if (!msg || typeof msg !== "string" || msg.trim() === "" || msg === "undefined" || msg === "null") {
+        return;
+    }
     $.toast({
         heading: "Success",
         text: msg,
@@ -89,7 +89,8 @@ function success(msg) {
         loader: true,
         loaderBg: "#114404",
         showHideTransition: "fadeup",
-        hideAfter: 4500,
+        hideAfter: 8000,
+        allowToastClose: true,
         position: {
             right: 20,
             top: 20,
@@ -98,6 +99,9 @@ function success(msg) {
 }
 
 function info(msg) {
+    if (!msg || typeof msg !== "string" || msg.trim() === "" || msg === "undefined" || msg === "null") {
+        return;
+    }
     $.toast({
         heading: "Info",
         text: msg,
@@ -105,7 +109,8 @@ function info(msg) {
         loader: true,
         loaderBg: "#034b6d",
         showHideTransition: "fadeup",
-        hideAfter: 4500,
+        hideAfter: 8000,
+        allowToastClose: true,
         position: {
             right: 20,
             top: 20,
@@ -114,6 +119,9 @@ function info(msg) {
 }
 
 function warning(msg) {
+    if (!msg || typeof msg !== "string" || msg.trim() === "" || msg === "undefined" || msg === "null") {
+        return;
+    }
     $.toast({
         heading: "Warning",
         text: msg,
@@ -121,13 +129,40 @@ function warning(msg) {
         loader: true,
         loaderBg: "#ff7a59",
         showHideTransition: "fadeup",
-        hideAfter: 4500,
+        hideAfter: 8000,
+        allowToastClose: true,
         position: {
             right: 20,
             top: 20,
         },
     });
 }
+
+// Global pause on hover for toast notifications
+$(document).on("mouseenter", ".jq-toast-single", function () {
+    var inst = $(this).data("toast-instance");
+    if (inst && typeof inst.stopTimer === "function") {
+        inst.stopTimer();
+    }
+});
+$(document).on("mouseleave", ".jq-toast-single", function () {
+    var inst = $(this).data("toast-instance");
+    if (inst && typeof inst.startTimer === "function") {
+        inst.startTimer(4000);
+    }
+});
+
+// Sync toastr calls to standard $.toast functions so look-and-feel is uniform across all alerts
+function syncToastrBridge() {
+    if (typeof toastr !== 'undefined' && typeof success === 'function') {
+        toastr.success = function(msg) { success(msg); };
+        toastr.error = function(msg) { error(msg); };
+        toastr.warning = function(msg) { warning(msg); };
+        toastr.info = function(msg) { info(msg); };
+    }
+}
+syncToastrBridge();
+$(document).ready(syncToastrBridge);
 
 $(".cp_refresh").on("click", function() {
     $.ajax({
@@ -764,6 +799,16 @@ $("#adminlogin").submit(function(e) {
                     window.location.href = res.url;
                 } else {
                     error(res.msg);
+                }
+            },
+            error: function(xhr) {
+                if (xhr.status === 419) {
+                    error("Session expired! Refreshing page...");
+                    setTimeout(function() { window.location.reload(); }, 1500);
+                } else if (xhr.responseJSON && xhr.responseJSON.msg) {
+                    error(xhr.responseJSON.msg);
+                } else {
+                    error("Connection error or server busy. Please retry.");
                 }
             },
         });
@@ -1461,12 +1506,16 @@ $("#exportPdf").click(function() {
 
 function fetch_data(page) {
     let form_type = $("#form_type").val();
-    let lenght = $("#table_length").val();
-    let search = $("#table_search").val();
+    let lenght = $("#table_length").val() || 25;
+    let search = $("#table_search").val() || "";
     let seg4 = $("#seg4").val();
     let seg = $("#seg").val();
     if (seg != 3 && seg != 4 && seg < 10) {
         status_filter = $("#seg").val();
+    }
+    var $tblContainer = $("#table_data").length ? $("#table_data") : $("#table_data_department");
+    if ($tblContainer.length) {
+        $tblContainer.addClass("ks-table-loading");
     }
     $.ajax({
         url: sendUrl +
@@ -1480,7 +1529,7 @@ function fetch_data(page) {
             "&form_type=" +
             form_type +
             "&search=" +
-            search +
+            encodeURIComponent(search) +
             "&project_filter=" +
             project_filter +
             "&sports_comp=" +
@@ -1504,13 +1553,15 @@ function fetch_data(page) {
         success: function(data) {
             if ($("#table_data").length) {
                 $("#table_data").html(data);
-                $(".table-responsive").load(" .table-responsive");
-                tableRendor();
             } else {
                 $("#table_data_department").html(data);
-                tableRendor();
             }
         },
+        complete: function() {
+            if ($tblContainer.length) {
+                $tblContainer.removeClass("ks-table-loading");
+            }
+        }
     });
 }
 
@@ -1523,11 +1574,27 @@ if ($("#table_data_department").length) {
 
 $(document).ready(function() {
     $(document).on("click", ".pagination a", function(event) {
-        if ($("#table_data").length) {
+        if ($("#table_data").length || $("#table_data_department").length) {
             event.preventDefault();
-            page = $(this).attr("href").split("page=")[1];
-            fetch_data(page);
+            var href = $(this).attr("href");
+            if (href && href.indexOf("page=") !== -1) {
+                var p = href.split("page=")[1];
+                if (p.indexOf("&") !== -1) {
+                    p = p.split("&")[0];
+                }
+                fetch_data(p);
+                var $container = $("#table_data").length ? $("#table_data") : $("#table_data_department");
+                if ($container.length && $container.offset()) {
+                    $('html, body').animate({
+                        scrollTop: $container.offset().top - 100
+                    }, 200);
+                }
+            }
         }
+    });
+
+    $(document).on("change", "#table_length", function() {
+        fetch_data(1);
     });
 });
 
@@ -1545,12 +1612,6 @@ function searchStatus() {
         searchs = 0;
     }, 500);
 }
-
-$("#table_length").on("change", function() {
-    if (pages != 0) fetch_data(1);
-
-    pages = 1;
-});
 var handeChanges = 0;
 
 function handeChange(e) {
@@ -1626,9 +1687,8 @@ function resetButton() {
     to_date = "";
     comp_from_date = "";
     comp_to_date = "";
-    $("#table_search").val(" ");
-    $("#table_length").val("100000");
-
+    $("#table_search").val("");
+    $("#table_length").val("25");
 
     fetch_data(1);
 }
@@ -2105,14 +2165,29 @@ function pageStatus(id) {
     });
 }
 
-function userManagerStatus(id) {
+function userManagerStatus(id, elem) {
     $.ajax({
         type: "GET",
         url: ajaxUrl + "/admin/userManagerStatus/" + id,
         dataType: "json",
         success: function(res) {
-            success(res.msg);
+            if (res.error) {
+                error(res.msg);
+                if (elem) {
+                    var checkbox = $(elem).closest('.switch').find('input[type="checkbox"]');
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                }
+            } else {
+                success(res.msg);
+            }
         },
+        error: function() {
+            error("Something went wrong!");
+            if (elem) {
+                var checkbox = $(elem).closest('.switch').find('input[type="checkbox"]');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+            }
+        }
     });
 }
 $('.module_select,.user_select,.role_select').change(function() {
@@ -2232,26 +2307,89 @@ $('#ckbCheckAll').click(function(event) {
 // $("#from_date").datepicker({ changeMonth: true, changeYear: true, minDate: '-60Y', maxDate: '0', dateFormat: 'dd-mm-yy' });
 // $("#to_date").datepicker({ changeMonth: true, changeYear: true, minDate: '-60Y', maxDate: '0', dateFormat: 'dd-mm-yy' });
 
-function tableRendor() {
-    $("#dataTable").dataTable({
-        "paging": false,
-        "searching": false
+// Global DataTables Default Settings
+if (typeof $.fn.dataTable !== 'undefined') {
+    $.extend(true, $.fn.dataTable.defaults, {
+        paging: true,
+        pageLength: 25,
+        iDisplayLength: 25,
+        lengthMenu: [
+            [10, 25, 50, 100, 200, -1],
+            [10, 25, 50, 100, 200, "All"]
+        ],
+        aLengthMenu: [
+            [10, 25, 50, 100, 200, -1],
+            [10, 25, 50, 100, 200, "All"]
+        ],
+        deferRender: true,
+        autoWidth: false,
+        processing: false,
+        scrollCollapse: true
     });
 }
 
+function tableRendor() {
+    if (typeof $.fn.DataTable === "undefined") {
+        return;
+    }
 
-$('.datatable').DataTable({
-    //"scrollY":"200px",
-    "scrollCollapse": true,
-    "paging": true,
-    aLengthMenu: [
-        [10, 25, 50, 100, 200, -1],
-        [10, 25, 50, 100, 200, "All"]
-    ],
+    var $target = $("#dataTable");
+    if (!$target.length) {
+        return;
+    }
 
-    // iDisplayLength: 25
-    iDisplayLength: -1
-        //"scrollX": true,
+    // Never attach DataTables to server-paginated tables
+    if ($target.closest("#table_data, #table_data_department").length > 0) {
+        if ($.fn.DataTable.isDataTable("#dataTable")) {
+            $("#dataTable").DataTable().destroy();
+        }
+        return;
+    }
+
+    if ($.fn.DataTable.isDataTable("#dataTable")) {
+        $("#dataTable").DataTable().destroy();
+    }
+
+    $("#dataTable").DataTable({
+        paging: true,
+        pageLength: 25,
+        iDisplayLength: 25,
+        lengthMenu: [
+            [10, 25, 50, 100, 200, -1],
+            [10, 25, 50, 100, 200, "All"]
+        ],
+        searching: true,
+        deferRender: true,
+        autoWidth: false,
+        responsive: true,
+        scrollCollapse: true
+    });
+}
+
+$(document).ready(function () {
+    $('.datatable').each(function () {
+        // Skip server-paginated tables
+        if ($(this).closest("#table_data, #table_data_department").length > 0) {
+            return;
+        }
+        if (!$.fn.DataTable.isDataTable(this)) {
+            var $tbl = $(this);
+            $tbl.DataTable({
+                paging: true,
+                pageLength: 25,
+                iDisplayLength: 25,
+                lengthMenu: [
+                    [10, 25, 50, 100, 200, -1],
+                    [10, 25, 50, 100, 200, "All"]
+                ],
+                searching: true,
+                deferRender: true,
+                autoWidth: false,
+                responsive: true,
+                scrollCollapse: true
+            });
+        }
+    });
 });
 
 
@@ -2643,13 +2781,11 @@ $(document).ready(function() {
                         } else {
 
                             setTimeout(function() {
-
-                                $.blockUI({
-                                    message: '<h1><img src="' +
-                                        ajaxUrl +
-                                        '/public/busy.gif" /> Please Wait...</h1>',
-                                });
-
+                                if (window.showGlobalLoader) {
+                                    window.showGlobalLoader('Sending OTP, please wait...');
+                                } else if (typeof $.blockUI !== "undefined") {
+                                    $.blockUI({ message: window.getKsGlobalLoaderHtml ? window.getKsGlobalLoaderHtml('Sending OTP, please wait...') : '<h1>Please Wait...</h1>' });
+                                }
                             }, 100);
 
 
@@ -2682,13 +2818,11 @@ $(document).ready(function() {
                                     }
 
                                     setTimeout(function() {
-
-                                        $.unblockUI({
-                                            message: '<h1><img src="' +
-                                                ajaxUrl +
-                                                '/public/busy.gif" /> Please Wait...</h1>',
-                                        });
-
+                                        if (window.hideGlobalLoader) {
+                                            window.hideGlobalLoader();
+                                        } else if (typeof $.unblockUI !== "undefined") {
+                                            $.unblockUI();
+                                        }
                                     }, 100);
 
                                 }

@@ -20,9 +20,12 @@
                             खेल विभाग, उत्तर प्रदेश सरकार</h5>
                     </div>
                     <div class="col-md-12 col-12 deptname">
-                        <h4 class="text-danger">Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming
-                            Pools<br />
-                            निजी कोचिंग अकादमियों / संघों, जिम, और तरणताल का पंजीकरण</h4>
+                        <h4 class="text-danger">
+                            {{-- Registration of Pvt. Coaching Academies / Associations ,Gyms, Swimming Pools<br />
+                            निजी कोचिंग अकादमियों / संघों, जिम, और तरणताल का पंजीकरण --}}
+                            Private Institutions Registration (Gyms & Swimming Pools)<br />
+                            निजी संस्थान पंजीकरण (जिम एवं तरणताल)
+                        </h4>
                     </div>
                 </div>
             </div>

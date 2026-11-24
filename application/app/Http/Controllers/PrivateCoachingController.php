@@ -8,8 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 use PDF;
 
 class PrivateCoachingController extends Controller
@@ -24,8 +27,6 @@ class PrivateCoachingController extends Controller
         return view('private_coaching.register', compact('capchaCode', 'Code1', 'Code2'));
     }
 
-
-
     public function cp_refresh()
     {
         $Code1 = rand(11, 99);
@@ -38,10 +39,8 @@ class PrivateCoachingController extends Controller
         return response()->json($data);
     }
 
-
     public function register_store(Request $request)
     {
-
         $validation = Validator::make($request->all(), [
             'name' => 'required|max:100',
             'email' => 'required|email',
@@ -50,7 +49,6 @@ class PrivateCoachingController extends Controller
             'mobile' => 'required|numeric|digits:10',
             'designation' => 'required',
         ]);
-
 
         if ($validation->fails())
             return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
@@ -73,27 +71,19 @@ class PrivateCoachingController extends Controller
             'aadhar_no' => $request->aadhar_no,
             'decoded_password' => $randomPassword,
             'password' => Hash::make($randomPassword),
-
-
         ];
 
-
         $user = PrivateCoaching::where('email', $request->email)->where('otp_verify', 1)->first();
-
         if ($user) {
             return response()->json(["error" => true, "msg" => "Already Registered with this Email."]);
         }
         $checkEmail_for_registered = PrivateCoaching::where('email', $request->email)->first();
 
-
-
         if ($checkEmail_for_registered  && $checkEmail_for_registered->otp_verify != 1) {
-
             $registerUser =   PrivateCoaching::where('id', $checkEmail_for_registered->id)->update($data);
         } else {
             $registerUser = PrivateCoaching::create($data);
         }
-
 
         session()->put('email', $request->email);
         session()->put('mobile', $request->mobile);
@@ -103,17 +93,13 @@ class PrivateCoachingController extends Controller
             "email" => $request->email,
             "mobile" => $request->mobile
         ], 1);
-
-
         return response()->json(["error" => false, "msg" => "OTP Sent Successfully./ओटीपी सफलतापूर्वक अग्रेषित कर दिया गया है।", "url" => route('private_coaching_otp')]);
     }
-
 
     public function otp()
     {
         return view('private_coaching.otp');
     }
-
 
     public function resend_otp()
     {
@@ -135,8 +121,6 @@ class PrivateCoachingController extends Controller
         ], 1);
         return response()->json(["error" => false, "msg" => "Otp Resend Successfully."]);
     }
-
-
 
     public function otp_store(Request $req)
     {
@@ -304,6 +288,7 @@ class PrivateCoachingController extends Controller
             ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', 'private_coaching_register.id')
             ->select('private_academies_application.id as id_application', 'private_coaching_register.*', 'private_coaching_profile.*', 'private_academies_application.application_no', 'private_academies_application.*')
             ->where('private_academies_application.user_id', $userId)
+            ->groupBy('private_academies_application.id')
             ->orderByDesc('private_academies_application.final_submit_on')
             ->get();
 
@@ -312,6 +297,7 @@ class PrivateCoachingController extends Controller
             ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', 'private_coaching_register.id')
             ->select('private_coaching_application.id as id_application', 'private_coaching_register.*', 'private_coaching_profile.*', 'private_coaching_application.application_no', 'private_coaching_application.*')
             ->where('private_coaching_application.user_id', $userId)
+            ->groupBy('private_coaching_application.id')
             ->orderByDesc('private_coaching_application.final_submit_on')
             ->get();
 
@@ -320,6 +306,7 @@ class PrivateCoachingController extends Controller
             ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', 'private_coaching_register.id')
             ->select('private_gym_application.id as id_application', 'private_coaching_register.*', 'private_coaching_profile.*', 'private_gym_application.application_no', 'private_gym_application.*')
             ->where('private_gym_application.user_id', $userId)
+            ->groupBy('private_gym_application.id')
             ->orderByDesc('private_gym_application.final_submit_on')
             ->get();
 
@@ -328,6 +315,7 @@ class PrivateCoachingController extends Controller
             ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', 'private_coaching_register.id')
             ->select('private_swimming_pool_application.id as id_application', 'private_coaching_register.*', 'private_coaching_profile.*', 'private_swimming_pool_application.application_no', 'private_swimming_pool_application.*')
             ->where('private_swimming_pool_application.user_id', $userId)
+            ->groupBy('private_swimming_pool_application.id')
             ->orderByDesc('private_swimming_pool_application.final_submit_on')
             ->get();
 
@@ -367,235 +355,146 @@ class PrivateCoachingController extends Controller
 
     public function application_form_store(Request $request, $id = null)
     {
+        DB::beginTransaction();
+        try {
+            $userId = Auth::guard('PrivateCoaching')->user()->id;
 
+            $data = [
+                'user_id' => $userId,
+                'date_of_registration' => $request->date_of_registration,
+                'is_forwarded' => 0,
+            ];
 
-        $data = [
-            'user_id' => Auth::guard('PrivateCoaching')->user()->id,
-            'sport' => $request->sport,
-            'date_of_registration' => $request->date_of_registration,
-        ];
-
-
-
-        if ($request->hasFile('sport_federation')) {
-            $sport_federation = moveFile('private_coaching_storage/sport_federation', $request->sport_federation);
-            $data['sport_federation'] = $sport_federation;
-        }
-
-
-        if ($request->hasFile('granting_recognition')) {
-            $granting_recognition = moveFile('private_coaching_storage/granting_recognition', $request->granting_recognition);
-            $data['granting_recognition'] = $granting_recognition;
-        }
-
-
-        if ($request->hasFile('certified_copy_of_recognition')) {
-            $certified_copy_of_recognition = moveFile('private_coaching_storage/certified_copy_of_recognition', $request->certified_copy_of_recognition);
-            $data['certified_copy_of_recognition'] = $certified_copy_of_recognition;
-        }
-
-
-        if ($request->hasFile('registration_certificate')) {
-            $registration_certificate = moveFile('private_coaching_storage/registration_certificate', $request->registration_certificate);
-            $data['registration_certificate'] = $registration_certificate;
-        }
-
-
-
-        if ($request->hasFile('certified_copy_of_the_constitution')) {
-            $certified_copy_of_the_constitution = moveFile('private_coaching_storage/certified_copy_of_the_constitution', $request->certified_copy_of_the_constitution);
-            $data['certified_copy_of_the_constitution'] = $certified_copy_of_the_constitution;
-        }
-
-
-
-        if ($request->hasFile('copy_of_the_selection')) {
-            $copy_of_the_selection = moveFile('private_coaching_storage/copy_of_the_selection', $request->copy_of_the_selection);
-            $data['copy_of_the_selection'] = $copy_of_the_selection;
-        }
-
-
-        if ($request->hasFile('audited_income_first')) {
-            $audited_income_first = moveFile('private_coaching_storage/audited_income_first', $request->audited_income_first);
-            $data['audited_income_first'] = $audited_income_first;
-        }
-
-        if ($request->hasFile('audited_income_second')) {
-            $audited_income_second = moveFile('private_coaching_storage/audited_income_second', $request->audited_income_second);
-            $data['audited_income_second'] = $audited_income_second;
-        }
-
-
-
-        if ($request->hasFile('audited_income_third')) {
-            $audited_income_third = moveFile('private_coaching_storage/audited_income_third', $request->audited_income_third);
-            $data['audited_income_third'] = $audited_income_third;
-        }
-
-
-
-
-
-
-        if ($request->hasFile('copy_of_the_list_including_mobile')) {
-            $copy_of_the_list_including_mobile = moveFile('private_coaching_storage/copy_of_the_list_including_mobile', $request->copy_of_the_list_including_mobile);
-            $data['copy_of_the_list_including_mobile'] = $copy_of_the_list_including_mobile;
-        }
-
-        if ($request->hasFile('report_activity_first')) {
-            $report_activity_first = moveFile('private_coaching_storage/report_activity_first', $request->report_activity_first);
-            $data['report_activity_first'] = $report_activity_first;
-        }
-
-        if ($request->hasFile('report_activity_second')) {
-            $report_activity_second = moveFile('private_coaching_storage/report_activity_second', $request->report_activity_second);
-            $data['report_activity_second'] = $report_activity_second;
-        }
-
-
-
-
-        if ($request->hasFile('report_activity_third')) {
-            $report_activity_third = moveFile('private_coaching_storage/report_activity_third', $request->report_activity_third);
-
-            $data['report_activity_third'] = $report_activity_third;
-        }
-
-
-        if ($request->hasFile('state_sports_association_first')) {
-            $state_sports_association_first = moveFile('private_coaching_storage/state_sports_association_first', $request->state_sports_association_first);
-
-            $data['state_sports_association_first'] = $state_sports_association_first;
-        }
-        if ($request->hasFile('state_sports_association_second')) {
-            $state_sports_association_second = moveFile('private_coaching_storage/state_sports_association_second', $request->state_sports_association_second);
-
-            $data['state_sports_association_second'] = $state_sports_association_second;
-        }
-
-
-        if ($request->hasFile('state_sports_association_third')) {
-            $state_sports_association_third = moveFile('private_coaching_storage/state_sports_association_third', $request->state_sports_association_third);
-
-            $data['state_sports_association_third'] = $state_sports_association_third;
-        }
-
-
-        $application = DB::table('private_coaching_application')->where('id', $id)->first();
-
-
-        if ($application) {
-
-            DB::table('private_coaching_application')->where('id', $id)->update($data);
-            $id = $application->id;
-            DB::table('private_coaching_associate_member')->where('application_id', $application->id)->delete();
-
-            foreach ($request->name_of_member as $key => $value) {
-                $data = [
-                    'application_id' => $application->id,
-                    'name' => $value,
-                    'mobile' => $request->mobile[$key],
-                    'email' => $request->email[$key],
-                    'designation' => $request->designation[$key],
-                ];
-
-                DB::table('private_coaching_associate_member')->insert($data);
+            // If private_coaching_application table has 'sport' column, set it
+            if (Schema::hasColumn('private_coaching_application', 'sport')) {
+                $data['sport'] = $request->sport;
             }
-        } else {
-            $id = DB::table('private_coaching_application')->insertGetId($data);
 
-            foreach ($request->name_of_member as $key => $value) {
-                $data = [
-                    'application_id' => $id,
-                    'name' => $value,
-                    'mobile' => $request->mobile[$key],
-                    'email' => $request->email[$key],
-                    'designation' => $request->designation[$key],
-                ];
-
-                DB::table('private_coaching_associate_member')->insert($data);
+            // Also synchronize sport to user's profile if provided
+            if ($request->filled('sport')) {
+                DB::table('private_coaching_profile')->where('user_id', $userId)->update([
+                    'sport_id' => $request->sport
+                ]);
             }
+
+            $fileFields = [
+                'sport_federation' => 'private_coaching_storage/sport_federation',
+                'granting_recognition' => 'private_coaching_storage/granting_recognition',
+                'certified_copy_of_recognition' => 'private_coaching_storage/certified_copy_of_recognition',
+                'registration_certificate' => 'private_coaching_storage/registration_certificate',
+                'certified_copy_of_the_constitution' => 'private_coaching_storage/certified_copy_of_the_constitution',
+                'copy_of_the_selection' => 'private_coaching_storage/copy_of_the_selection',
+                'audited_income_first' => 'private_coaching_storage/audited_income_first',
+                'audited_income_second' => 'private_coaching_storage/audited_income_second',
+                'audited_income_third' => 'private_coaching_storage/audited_income_third',
+                'copy_of_the_list_including_mobile' => 'private_coaching_storage/copy_of_the_list_including_mobile',
+                'report_activity_first' => 'private_coaching_storage/report_activity_first',
+                'report_activity_second' => 'private_coaching_storage/report_activity_second',
+                'report_activity_third' => 'private_coaching_storage/report_activity_third',
+                'state_sports_association_first' => 'private_coaching_storage/state_sports_association_first',
+                'state_sports_association_second' => 'private_coaching_storage/state_sports_association_second',
+                'state_sports_association_third' => 'private_coaching_storage/state_sports_association_third',
+            ];
+
+            foreach ($fileFields as $field => $path) {
+                if ($request->hasFile($field)) {
+                    $data[$field] = moveFile($path, $request->file($field));
+                }
+            }
+
+            $application = $id ? DB::table('private_coaching_application')->where('id', $id)->first() : null;
+            if (!$application) {
+                $application = DB::table('private_coaching_application')->where('user_id', $userId)->first();
+            }
+
+            if ($application) {
+                unset($data['is_forwarded']);
+                DB::table('private_coaching_application')->where('id', $application->id)->update($data);
+                $appId = $application->id;
+                DB::table('private_coaching_associate_member')->where('application_id', $appId)->delete();
+            } else {
+                $appId = DB::table('private_coaching_application')->insertGetId($data);
+            }
+
+            if (!empty($request->name_of_member) && is_array($request->name_of_member)) {
+                foreach ($request->name_of_member as $key => $value) {
+                    if (empty($value)) continue;
+                    DB::table('private_coaching_associate_member')->insert([
+                        'application_id' => $appId,
+                        'name' => $value,
+                        'mobile' => $request->mobile[$key] ?? '',
+                        'email' => $request->email[$key] ?? '',
+                        'designation' => $request->designation[$key] ?? '',
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json([
+                'error' => false,
+                'msg' => 'Application Saved Successfully.',
+                'url' => route('private_coaching_application_preview', $appId)
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('application_form_store failed: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json([
+                'error' => true,
+                'msg' => 'Error saving application: ' . $e->getMessage()
+            ], 500);
         }
-
-
-
-
-
-        return response()->json(['error' => false, 'msg' => 'Application Saved Successfully.',  "url" => route('private_coaching_application_preview', $id)]);
     }
-
-
-
 
     public function application_preview($id)
     {
         $application = DB::table('private_coaching_application')->where('id', $id)->first();
-
         $profile = DB::table('private_coaching_profile')->where('user_id', Auth::guard('PrivateCoaching')->user()->id)->first();
         $associate_member =  DB::table('private_coaching_associate_member')->where('application_id', $application->id)->get();
         $query_mark =  DB::table('private_mark_query_comment')->where('type', 2)->where('application_no', $application->application_no)->get();
-
         return view('private_coaching.application_preview', compact('application', 'associate_member', 'profile', 'query_mark'));
     }
 
-
-
-
     public function applicationfinalSubmit($id)
     {
-
-
         if (DB::table('private_coaching_application')->where('id', $id)->where('final_submit', 1)->first()) {
-
-
-
             DB::table('private_coaching_application')->where('id', $id)->update([
                 'query_status' => 2
             ]);
             return response()->json(['error' => false, 'msg' => 'Application Form Re-Submitted Successfully.',  "url" => route('private_coaching_application_preview', $id)]);
         } else {
-
             DB::table('private_coaching_application')->where('id', $id)->update([
                 'final_submit' => 1,
                 'application_no' => date('Y') . '01' . sprintf("%05d", $id),
                 'final_submit_on' => now()
             ]);
-
-
             return response()->json(['error' => false, 'msg' => 'Application Form Final Submitted Successfully.',  "url" => route('private_coaching_application_preview', $id)]);
         }
     }
 
-
     public function profile(Request $request)
     {
-
+        $userId = Auth::guard('PrivateCoaching')->user()->id;
         $district = DB::table('cities')->where('state_id', 23)->orderBy('city')->get();
-
-
+        $profile = DB::table('private_coaching_profile')->where('user_id', $userId)->first();
 
         if ($request->method() == 'POST') {
             $validation = Validator::make($request->all(), [
-
                 'office_address' => 'required',
                 'state' => 'required',
                 'district' => 'required',
                 'pin' => 'required',
-
                 'institute_name' => 'required',
-                'photo_upload' => 'nullable|mimes:png,jpg,jpeg,pdf|max:2048',
+                'photo_upload' => ($profile && $profile->photo_upload) ? 'nullable|mimes:png,jpg,jpeg,pdf|max:2048' : 'required|mimes:png,jpg,jpeg,pdf|max:2048',
             ]);
             if ($validation->fails()) {
                 return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
             }
             $data = [
-                'user_id' => Auth::guard('PrivateCoaching')->user()->id,
+                'user_id' => $userId,
                 'office_address' => $request->office_address,
                 'state' => $request->state,
                 'district' => $request->district,
                 'pin' => $request->pin,
-
-
                 'institute_name' => $request->institute_name,
             ];
             if ($request->hasFile('photo_upload')) {
@@ -603,44 +502,140 @@ class PrivateCoachingController extends Controller
                 $data['photo_upload'] = $photo_upload;
             };
 
-            $id = DB::table('private_coaching_profile')->insertGetId($data);
+            $existingProfiles = DB::table('private_coaching_profile')->where('user_id', $userId)->orderBy('id')->get();
+            if ($existingProfiles->count() > 0) {
+                $primaryProfile = $existingProfiles->first();
+                DB::table('private_coaching_profile')->where('id', $primaryProfile->id)->update($data);
+                if ($existingProfiles->count() > 1) {
+                    $duplicateIds = $existingProfiles->slice(1)->pluck('id')->toArray();
+                    DB::table('private_coaching_profile')->whereIn('id', $duplicateIds)->delete();
+                }
+            } else {
+                DB::table('private_coaching_profile')->insert($data);
+            }
             return response()->json(['error' => false, 'msg' => 'Profile Saved Successfully.', "url" => route('private_coaching_dashboard')]);
         }
-        return view('private_coaching.profile', compact('district'));
+        return view('private_coaching.profile', compact('district', 'profile'));
     }
 
 
 
-    public function admin_dashboard()
+    private function getFilteredApplications($tableName, Request $request)
     {
-        $adminRole = Auth::guard('admin')->user()->admin_role;
-        $application =   DB::table('private_coaching_register')
-            ->leftJoin('private_coaching_application', 'private_coaching_application.user_id', '=', 'private_coaching_register.id')
-            ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', 'private_coaching_register.id')->select('private_coaching_application.id as id_application', 'private_coaching_register.*', 'private_coaching_profile.*', 'private_coaching_application.application_no', 'private_coaching_application.*');
+        $admin = Auth::guard('admin')->user();
+        $adminRole = $admin->admin_role ?? null;
 
-        // if(isset($adminRole) &&  $adminRole == 3)
-        // $application->where('sport_id', '=', Auth::guard('admin')->user()->sport_type);
+        $division_id = $request->input('division_id');
+        $district_id = $request->input('district_id');
+        $status = $request->input('status');
+        $fee_status = $request->input('fee_status');
+        $from_date = $request->input('from_date');
+        $to_date = $request->input('to_date');
 
-        // comment out ==============================================
-        // if (isset($adminRole) &&  $adminRole == 2) {
-        //     $div_id = Auth::guard('admin')->user()->division_id;
-        //     $dis_t = DB::table('hostel_div_district_mapping')->where('division_id', $div_id)->pluck('district_id')
-        //         ->toArray();
+        // Role-based visibility restrictions:
+        // District Login / SO (role 9 or user with assigned district_id): strictly their assigned district
+        // RSO (role 2): strictly their assigned district (if set) or their assigned division
+        // Admin / Super Admin (role 1, etc.): across all districts (can optionally filter)
+        if ($adminRole == 9 || (!in_array($adminRole, [1, 3]) && !empty($admin->district_id))) {
+            $district_id = $admin->district_id;
+            $division_id = null;
+        } elseif ($adminRole == 2) {
+            $division_id = $admin->division_id;
+            if (!empty($admin->district_id)) {
+                $district_id = $admin->district_id;
+            }
+        }
 
-        //     // $application->where('is_forwarded', '>=', 1);
-        //     $application->whereIn('district', $dis_t);
-        // } elseif (isset($adminRole) &&  $adminRole == 9) {
-        //     // $application->where('is_forwarded', '>=', 1);
-        //     $application->where('district', Auth::guard('admin')->user()->district_id);
-        // }
-        // comment out ==============================================
+        $query = DB::table($tableName)
+            ->leftJoin('private_coaching_register', $tableName . '.user_id', '=', 'private_coaching_register.id')
+            ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', $tableName . '.user_id')
+            ->leftJoin('cities', 'private_coaching_profile.district', '=', 'cities.id')
+            ->leftJoin('hostel_div_district_mapping', 'cities.id', '=', 'hostel_div_district_mapping.district_id')
+            ->leftJoin('hostel_division_master', 'hostel_div_district_mapping.division_id', '=', 'hostel_division_master.id')
+            ->select(
+                $tableName . '.id as id_application',
+                'private_coaching_register.*',
+                'private_coaching_profile.*',
+                $tableName . '.application_no',
+                $tableName . '.*',
+                'cities.city as district_name',
+                'hostel_division_master.division_name'
+            )
+            ->where($tableName . '.final_submit', 1);
 
-        // elseif(isset($adminRole) &&  $adminRole == 17){
-        //     $application->where('is_forwarded', '>=', 2);
-        // }
+        if (!empty($division_id)) {
+            $query->where('hostel_div_district_mapping.division_id', $division_id);
+        }
+        if (!empty($district_id)) {
+            $query->where('cities.id', $district_id);
+        }
+        if ($status !== null && $status !== '' && $status !== 'all') {
+            if ($status == '1') {
+                $query->where($tableName . '.status', 1);
+            } elseif ($status == '2') {
+                $query->where($tableName . '.status', 2);
+            } elseif ($status == '0') {
+                $query->where(function ($q) use ($tableName) {
+                    $q->whereNull($tableName . '.status')
+                        ->orWhere($tableName . '.status', 0);
+                });
+            } elseif ($status == 'query_marked') {
+                $query->where($tableName . '.query_status', 1);
+            }
+        }
+        if ($fee_status !== null && $fee_status !== '' && $fee_status !== 'all') {
+            if ($fee_status == '1') {
+                $query->where($tableName . '.fee_status', 1);
+            } elseif ($fee_status == '0') {
+                $query->where(function ($q) use ($tableName) {
+                    $q->where($tableName . '.protsahan_samiti_fee', '>', 0)
+                        ->where(function ($sq) use ($tableName) {
+                            $sq->whereNull($tableName . '.fee_status')
+                                ->orWhere($tableName . '.fee_status', 0);
+                        });
+                });
+            } elseif ($fee_status == 'not_set') {
+                $query->whereNull($tableName . '.protsahan_samiti_fee');
+            }
+        }
+        if (!empty($from_date)) {
+            $query->whereDate($tableName . '.final_submit_on', '>=', $from_date);
+        }
+        if (!empty($to_date)) {
+            $query->whereDate($tableName . '.final_submit_on', '<=', $to_date);
+        }
 
-        $application = $application->where('private_coaching_application.final_submit', 1)->orderByDesc('private_coaching_application.final_submit_on')->get();
-        return view('private_coaching.admin_dashboard', compact('application'));
+        $application = $query->groupBy($tableName . '.id')
+            ->orderByDesc($tableName . '.final_submit_on')
+            ->get();
+
+        $divisions = DB::table('hostel_division_master')->select('id', 'division_name')->orderBy('division_name')->get();
+        $districtsQuery = DB::table('cities')->select('cities.id', 'cities.city')->where('cities.state_id', 23)->orderBy('cities.city');
+        if ($adminRole == 9 || (!in_array($adminRole, [1, 3]) && !empty($admin->district_id))) {
+            $districtsQuery->where('cities.id', $admin->district_id);
+        } elseif (!empty($division_id)) {
+            $districtsQuery->join('hostel_div_district_mapping', 'cities.id', '=', 'hostel_div_district_mapping.district_id')
+                ->where('hostel_div_district_mapping.division_id', $division_id);
+        }
+        $districts = $districtsQuery->get();
+
+        return compact(
+            'application',
+            'divisions',
+            'districts',
+            'division_id',
+            'district_id',
+            'status',
+            'fee_status',
+            'from_date',
+            'to_date'
+        );
+    }
+
+    public function admin_dashboard(Request $request)
+    {
+        $data = $this->getFilteredApplications('private_coaching_application', $request);
+        return view('private_coaching.admin_dashboard', $data);
     }
 
     public function admin_application_preview($id)
@@ -661,8 +656,28 @@ class PrivateCoachingController extends Controller
         return view('private_coaching.admin_application_preview', compact('application', 'associate_member', 'query_mark', 'forward_data'));
     }
 
+    private function resolveApplicationTable($value)
+    {
+        switch ((int)$value) {
+            case 1:
+                return 'private_coaching_application';
+            case 2:
+                return 'private_gym_application';
+            case 3:
+                return 'private_academies_application';
+            case 4:
+                return 'private_swimming_pool_application';
+            default:
+                return null;
+        }
+    }
+
     public function accepted_reject_status(Request $req)
     {
+        $table = $this->resolveApplicationTable($req->value);
+        if (!$table) {
+            return response()->json(['error' => true, 'msg' => 'Invalid application category.']);
+        }
 
         if ($req->status == 1) {
             $data = [
@@ -672,24 +687,203 @@ class PrivateCoachingController extends Controller
             ];
             $msg = "Application Accepted Successfully";
         } else {
+            $validation = Validator::make($req->all(), [
+                'remark' => 'required',
+                'rejection_doc' => 'nullable|file|mimes:pdf|max:2048',
+            ], [
+                'rejection_doc.mimes' => 'Supporting document must be a PDF file.',
+                'rejection_doc.max' => 'Supporting document must not exceed 2MB in size.',
+            ]);
+
+            if ($validation->fails()) {
+                return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
+            }
+
             $data = [
                 'status' => 2,
                 'accept_reject_date' => date('Y-m-d'),
                 'remark' => $req->remark
             ];
+
+            if ($req->hasFile('rejection_doc')) {
+                $doc = moveFile('private_coaching_storage/rejection_doc', $req->file('rejection_doc'));
+                $data['rejection_doc'] = $doc;
+            }
+
             $msg = "Application Rejected Successfully";
         }
 
-        if ($req->value == 1) {
-            DB::table('private_coaching_application')->where('id', $req->application_id)->update($data);
-        } elseif ($req->value == 2) {
-            DB::table('private_gym_application')->where('id', $req->application_id)->update($data);
-        } elseif ($req->value == 3) {
-            DB::table('private_academies_application')->where('id', $req->application_id)->update($data);
-        } elseif ($req->value == 4) {
-            DB::table('private_swimming_pool_application')->where('id', $req->application_id)->update($data);
-        }
+        DB::table($table)->where('id', $req->application_id)->update($data);
         return response()->json(['error' => false, 'msg' => $msg]);
+    }
+
+    public function mark_inspection_date(Request $req)
+    {
+        $validation = Validator::make($req->all(), [
+            'application_id' => 'required',
+            'value' => 'required|in:1,2,3,4',
+            'inspection_date' => 'required|date',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
+        }
+
+        $table = $this->resolveApplicationTable($req->value);
+        if (!$table) {
+            return response()->json(['error' => true, 'msg' => 'Invalid application category.']);
+        }
+
+        $inspectionDate = date('Y-m-d', strtotime($req->inspection_date));
+
+        DB::table($table)->where('id', $req->application_id)->update([
+            'inspection_date' => $inspectionDate
+        ]);
+
+        return response()->json([
+            'error' => false,
+            'msg' => 'Inspection Date marked successfully: ' . date('d-m-Y', strtotime($inspectionDate))
+        ]);
+    }
+
+    public function inspection_report_submit(Request $req)
+    {
+        $rules = [
+            'application_id' => 'required',
+            'value' => 'required|in:1,2,3,4',
+            'decision' => 'required|in:1,2',
+            'inspection_report' => 'required|file|mimes:pdf|max:2048',
+        ];
+
+        if ($req->decision == 1) {
+            $rules['protsahan_samiti_fee'] = 'required|numeric|min:0';
+        } else {
+            $rules['remark'] = 'required';
+        }
+
+        $messages = [
+            'inspection_report.required' => 'Please upload the inspection report.',
+            'inspection_report.mimes' => 'Inspection report must be a PDF file.',
+            'inspection_report.max' => 'Inspection report file size must not exceed 2MB.',
+            'protsahan_samiti_fee.required' => 'Please enter the Protsahan Samiti Fees amount.',
+            'protsahan_samiti_fee.numeric' => 'Fees amount must be a valid number.',
+        ];
+
+        $validation = Validator::make($req->all(), $rules, $messages);
+        if ($validation->fails()) {
+            return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
+        }
+
+        $table = $this->resolveApplicationTable($req->value);
+        if (!$table) {
+            return response()->json(['error' => true, 'msg' => 'Invalid application category.']);
+        }
+
+        $reportDoc = moveFile('private_coaching_storage/inspection_report', $req->file('inspection_report'));
+
+        if ($req->decision == 1) {
+            $data = [
+                'status' => 1,
+                'inspection_report' => $reportDoc,
+                'protsahan_samiti_fee' => $req->protsahan_samiti_fee,
+                'fee_status' => 0,
+                'accept_reject_date' => date('Y-m-d'),
+                'remark' => $req->remark ?? 'Accepted after inspection'
+            ];
+            $msg = 'Inspection Report uploaded and Application Accepted. Protsahan Samiti Fees Amount marked: ₹' . number_format($req->protsahan_samiti_fee, 2);
+        } else {
+            $data = [
+                'status' => 2,
+                'inspection_report' => $reportDoc,
+                'accept_reject_date' => date('Y-m-d'),
+                'remark' => $req->remark
+            ];
+            $msg = 'Inspection Report uploaded and Application Rejected.';
+        }
+
+        DB::table($table)->where('id', $req->application_id)->update($data);
+
+        return response()->json(['error' => false, 'msg' => $msg]);
+    }
+
+    public function mark_fee_paid(Request $req)
+    {
+        $validation = Validator::make($req->all(), [
+            'application_id' => 'required',
+            'value' => 'required|in:1,2,3,4',
+            'protsahan_samiti_fee' => 'nullable|numeric|min:0',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
+        }
+
+        $table = $this->resolveApplicationTable($req->value);
+        if (!$table) {
+            return response()->json(['error' => true, 'msg' => 'Invalid application category.']);
+        }
+
+        $feeDate = !empty($req->fee_paid_date) ? date('Y-m-d', strtotime($req->fee_paid_date)) : date('Y-m-d');
+
+        $updateData = [
+            'fee_status' => 1,
+            'fee_paid_date' => $feeDate
+        ];
+
+        if ($req->filled('protsahan_samiti_fee')) {
+            $updateData['protsahan_samiti_fee'] = $req->protsahan_samiti_fee;
+        }
+
+        DB::table($table)->where('id', $req->application_id)->update($updateData);
+
+        return response()->json([
+            'error' => false,
+            'msg' => 'Protsahan Samiti Fees successfully marked as Paid.'
+        ]);
+    }
+
+    public function upload_certificate(Request $req)
+    {
+        $validation = Validator::make($req->all(), [
+            'application_id' => 'required',
+            'value' => 'required|in:1,2,3,4',
+            'certificate_file' => 'required|file|mimes:pdf|max:2048',
+            'certificate_issue_date' => 'required|date',
+            'certificate_valid_upto' => 'required|date|after_or_equal:certificate_issue_date',
+        ], [
+            'certificate_file.required' => 'Please select the Registration Certificate PDF.',
+            'certificate_file.mimes' => 'Certificate must be a PDF file.',
+            'certificate_file.max' => 'Certificate file size must not exceed 2MB.',
+            'certificate_issue_date.required' => 'Please provide the Certificate Issue Date.',
+            'certificate_valid_upto.required' => 'Please provide the Certificate Validity / Valid Upto Date.',
+            'certificate_valid_upto.after_or_equal' => 'Validity date must be on or after the Certificate Issue Date.',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['error' => true, 'msg' => $validation->errors()->first()]);
+        }
+
+        $table = $this->resolveApplicationTable($req->value);
+        if (!$table) {
+            return response()->json(['error' => true, 'msg' => 'Invalid application category.']);
+        }
+
+        $certDoc = moveFile('private_coaching_storage/certificate', $req->file('certificate_file'));
+        $issueDate = !empty($req->certificate_issue_date) ? date('Y-m-d', strtotime($req->certificate_issue_date)) : date('Y-m-d');
+        $validUpto = !empty($req->certificate_valid_upto) ? date('Y-m-d', strtotime($req->certificate_valid_upto)) : null;
+        $validityText = !empty($req->certificate_validity) ? $req->certificate_validity : ($validUpto ? date('d-m-Y', strtotime($validUpto)) : null);
+
+        DB::table($table)->where('id', $req->application_id)->update([
+            'certificate_file' => $certDoc,
+            'certificate_issue_date' => $issueDate,
+            'certificate_valid_upto' => $validUpto,
+            'certificate_validity' => $validityText,
+        ]);
+
+        return response()->json([
+            'error' => false,
+            'msg' => 'Registration Certificate uploaded successfully.'
+        ]);
     }
     public function profile_preview()
     {
@@ -744,7 +938,7 @@ class PrivateCoachingController extends Controller
         switch ($id) {
             case 1:
                 $table = 'private_coaching_application';
-                 $namee = 'List of Applicants who applied for Coaching';
+                $namee = 'List of Applicants who applied for Coaching';
                 break;
             case 2:
                 $table = 'private_gym_application';
@@ -752,32 +946,60 @@ class PrivateCoachingController extends Controller
                 break;
             case 3:
                 $table = 'private_swimming_pool_application';
-                 $namee = 'List of Applicants who applied for Swimming Pool';
+                $namee = 'List of Applicants who applied for Swimming Pool';
                 break;
             case 4:
                 $table = 'private_academies_application';
-                            $namee = 'List of Applicants who applied for Academy';
+                $namee = 'List of Applicants who applied for Academy';
 
                 break;
             default:
                 abort(404, 'Invalid Application Type');
         }
 
-        $application = DB::table($table)
+        $admin = Auth::guard('admin')->user();
+        $adminRole = $admin->admin_role ?? null;
+
+        $division_id = $request->input('division_id');
+        $district_id = $request->input('district_id');
+
+        if ($adminRole == 9 || (!in_array($adminRole, [1, 3]) && !empty($admin->district_id))) {
+            $district_id = $admin->district_id;
+            $division_id = null;
+        } elseif ($adminRole == 2) {
+            $division_id = $admin->division_id;
+            if (!empty($admin->district_id)) {
+                $district_id = $admin->district_id;
+            }
+        }
+
+        $query = DB::table($table)
             ->leftJoin('private_coaching_register', $table . '.user_id', '=', 'private_coaching_register.id')
             ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', $table . '.user_id')
+            ->leftJoin('cities', 'private_coaching_profile.district', '=', 'cities.id')
+            ->leftJoin('hostel_div_district_mapping', 'cities.id', '=', 'hostel_div_district_mapping.district_id')
             ->select(
                 $table . '.id as id_application',
                 'private_coaching_register.*',
                 'private_coaching_profile.*',
                 $table . '.application_no',
-                $table . '.*'
+                $table . '.*',
+                'cities.city as district_name'
             )
-            ->where($table . '.final_submit', 1)
+            ->where($table . '.final_submit', 1);
+
+        if (!empty($division_id)) {
+            $query->where('hostel_div_district_mapping.division_id', $division_id);
+        }
+        if (!empty($district_id)) {
+            $query->where('cities.id', $district_id);
+        }
+
+        $application = $query->groupBy($table . '.id')
             ->orderByDesc($table . '.final_submit_on')
             ->get();
 
-        $pdf = PDF::loadView('private_coaching.admin_application_pdf', compact('application','namee'))
+        $pdf = PDF::loadView('private_coaching.admin_application_pdf', compact('application', 'namee'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
                 'isHtml5ParserEnabled' => true,
@@ -980,6 +1202,13 @@ class PrivateCoachingController extends Controller
             foreach ($fileFields as $field => $path) {
                 if ($request->hasFile($field)) {
                     $data[$field] = moveFile($path, $request->file($field));
+                }
+            }
+
+            if (!$id) {
+                $existingApp = DB::table('private_academies_application')->where('user_id', $userId)->first();
+                if ($existingApp) {
+                    $id = $existingApp->id;
                 }
             }
 
@@ -1292,6 +1521,13 @@ class PrivateCoachingController extends Controller
                 }
             }
 
+            if (!$id) {
+                $existingApp = DB::table('private_swimming_pool_application')->where('user_id', $userId)->first();
+                if ($existingApp) {
+                    $id = $existingApp->id;
+                }
+            }
+
             if ($id) {
                 // Update
                 DB::table('private_swimming_pool_application')->where('id', $id)->update($data);
@@ -1570,6 +1806,13 @@ class PrivateCoachingController extends Controller
             }
         }
 
+        if (!$id) {
+            $existingApp = DB::table('private_gym_application')->where('user_id', $userId)->first();
+            if ($existingApp) {
+                $id = $existingApp->id;
+            }
+        }
+
         if ($id) {
             // Update
             DB::table('private_gym_application')->where('id', $id)->update($data);
@@ -1734,47 +1977,10 @@ class PrivateCoachingController extends Controller
 
 
     // anu work admin
-    public function gym_list()
+    public function gym_list(Request $request)
     {
-        $adminRole = Auth::guard('admin')->user()->admin_role;
-
-        $application =   DB::table('private_coaching_register')
-            ->leftJoin('private_gym_application', 'private_gym_application.user_id', '=', 'private_coaching_register.id')
-            ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', 'private_coaching_register.id')
-            ->select(
-                'private_gym_application.id as id_application',
-                'private_coaching_register.*',
-                'private_coaching_profile.*',
-                'private_gym_application.application_no',
-                'private_gym_application.*'
-            )
-            ->where('private_gym_application.final_submit', 1);
-
-        // if(isset($adminRole) &&  $adminRole == 3)
-        // $application->where('sport_id', '=', Auth::guard('admin')->user()->sport_type);
-
-        // commented out ==============================================
-        // if (isset($adminRole) &&  $adminRole == 2) {
-        //     $div_id = Auth::guard('admin')->user()->division_id;
-        //     $dis_t = DB::table('hostel_div_district_mapping')->where('division_id', $div_id)->pluck('district_id')
-        //         ->toArray();
-
-        //     // $application->where('is_forwarded', '>=', 1);
-        //     $application->whereIn('district', $dis_t);
-        // } elseif (isset($adminRole) &&  $adminRole == 9) {
-        //     // $application->where('is_forwarded', '>=', 1);
-        //     $application->where('district', Auth::guard('admin')->user()->district_id);
-        // }
-        // commented out ==============================================
-
-        // elseif(isset($adminRole) &&  $adminRole == 17){
-        //     $application->where('is_forwarded', '>=', 2);
-        // }
-
-        $application = $application->orderByDesc('private_gym_application.final_submit_on')
-            ->get();
-
-        return view('private_coaching.admin.gym_list', compact('application'));
+        $data = $this->getFilteredApplications('private_gym_application', $request);
+        return view('private_coaching.admin.gym_list', $data);
     }
 
     public function admin_gym_preview($id)
@@ -1802,44 +2008,10 @@ class PrivateCoachingController extends Controller
         ]);
     }
 
-    public function academy_list()
+    public function academy_list(Request $request)
     {
-        $adminRole = Auth::guard('admin')->user()->admin_role;
-
-        $application =   DB::table('private_academies_application')
-            ->leftJoin('private_coaching_register', 'private_academies_application.user_id', '=', 'private_coaching_register.id')
-            ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', 'private_academies_application.user_id')
-            ->select(
-                'private_academies_application.id as id_application',
-                'private_coaching_register.*',
-                'private_coaching_profile.*',
-                'private_academies_application.application_no',
-                'private_academies_application.*'
-            )
-            ->where('private_academies_application.final_submit', 1);
-
-        // if(isset($adminRole) &&  $adminRole == 3)
-        // $application->where('sport_id', '=', Auth::guard('admin')->user()->sport_type);
-
-        // if (isset($adminRole) &&  $adminRole == 2) {
-        //     $div_id = Auth::guard('admin')->user()->division_id;
-        //     $dis_t = DB::table('hostel_div_district_mapping')->where('division_id', $div_id)->pluck('district_id')
-        //         ->toArray();
-        //     // $application->where('is_forwarded', '>=', 1);
-        //     $application->whereIn('district', $dis_t);
-        // } elseif (isset($adminRole) &&  $adminRole == 9) {
-        //     // $application->where('is_forwarded', '>=', 1);
-        //     $application->where('district', Auth::guard('admin')->user()->district_id);
-        // }
-
-        // elseif(isset($adminRole) &&  $adminRole == 17){
-        //     $application->where('is_forwarded', '>=', 2);
-        // }
-
-        $application = $application->orderByDesc('private_academies_application.final_submit_on')
-            ->get();
-
-        return view('private_coaching.admin.academy_list', compact('application'));
+        $data = $this->getFilteredApplications('private_academies_application', $request);
+        return view('private_coaching.admin.academy_list', $data);
     }
 
     public function admin_academy_preview($id)
@@ -1869,40 +2041,10 @@ class PrivateCoachingController extends Controller
         ]);
     }
 
-    public function swimming_pool_list()
+    public function swimming_pool_list(Request $request)
     {
-        $adminRole = Auth::guard('admin')->user()->admin_role;
-        $application =   DB::table('private_swimming_pool_application')
-            ->leftJoin('private_coaching_register', 'private_swimming_pool_application.user_id', '=', 'private_coaching_register.id')
-            ->leftJoin('private_coaching_profile', 'private_coaching_profile.user_id', '=', 'private_swimming_pool_application.user_id')
-            ->select('private_swimming_pool_application.id as id_application', 'private_coaching_register.*', 'private_coaching_profile.*', 'private_swimming_pool_application.application_no', 'private_swimming_pool_application.*')
-            ->where('private_swimming_pool_application.final_submit', 1);
-
-        // if(isset($adminRole) &&  $adminRole == 3)
-        // $application->where('sport_id', '=', Auth::guard('admin')->user()->sport_type);
-
-        // comment out ==============================================
-        // if (isset($adminRole) &&  $adminRole == 2) {
-        //     $div_id = Auth::guard('admin')->user()->division_id;
-        //     $dis_t = DB::table('hostel_div_district_mapping')->where('division_id', $div_id)->pluck('district_id')
-        //         ->toArray();
-
-        //     // $application->where('is_forwarded', '>=', 1);
-        //     $application->whereIn('district', $dis_t);
-        // } elseif (isset($adminRole) &&  $adminRole == 9) {
-        //     // $application->where('is_forwarded', '>=', 1);
-        //     $application->where('district', Auth::guard('admin')->user()->district_id);
-        // }
-        // comment out ==============================================
-
-        // elseif(isset($adminRole) &&  $adminRole == 17){
-        //     $application->where('is_forwarded', '>=', 2);
-        // }
-
-        $application = $application->orderByDesc('private_swimming_pool_application.final_submit_on')
-            ->get();
-        // dd($application);
-        return view('private_coaching.admin.swimming_pool_list', compact('application'));
+        $data = $this->getFilteredApplications('private_swimming_pool_application', $request);
+        return view('private_coaching.admin.swimming_pool_list', $data);
     }
 
     public function admin_swimming_pool_preview($id)
@@ -2008,5 +2150,249 @@ class PrivateCoachingController extends Controller
         ]);
 
         return response()->json(['error' => false, 'msg' => 'Application Forwarded', 'url' => url('admin/private_coaching/dashboard')]);
+    }
+
+    public function report(Request $request)
+    {
+        $admin = Auth::guard('admin')->user();
+        $adminRole = $admin->admin_role ?? null;
+
+        $division_id = $request->input('division_id');
+        $district_id = $request->input('district_id');
+        $category_id = $request->input('category_id');
+        $fee_status = $request->input('fee_status'); // '1', '0', or null/'all'
+        $from_date = $request->input('from_date');
+        $to_date = $request->input('to_date');
+
+        // Role-based restrictions
+        // Role-based visibility restrictions:
+        // District Login / SO (role 9 or user with assigned district_id): strictly their assigned district
+        // RSO (role 2): strictly their assigned district (if set) or their assigned division
+        // Admin / Super Admin (role 1, etc.): across all districts (can optionally filter)
+        if ($adminRole == 9 || (!in_array($adminRole, [1, 3]) && !empty($admin->district_id))) {
+            $district_id = $admin->district_id;
+            $division_id = null;
+        } elseif ($adminRole == 2) {
+            $division_id = $admin->division_id;
+            if (!empty($admin->district_id)) {
+                $district_id = $admin->district_id;
+            }
+        }
+
+        // Date bounds
+        $startDate = null;
+        $endDate = null;
+        if (!empty($from_date)) {
+            $startDate = strlen($from_date) == 7 ? $from_date . '-01' : $from_date;
+        }
+        if (!empty($to_date)) {
+            $endDate = strlen($to_date) == 7 ? date('Y-m-t', strtotime($to_date . '-01')) : $to_date;
+        }
+
+        $categoryDefinitions = [
+            1 => [
+                'table' => 'private_coaching_application',
+                'name' => 'Sports Association',
+                'preview_url' => url('admin/private_coaching/preview'),
+            ],
+            2 => [
+                'table' => 'private_gym_application',
+                'name' => 'Private Gym',
+                'preview_url' => url('admin/private_coaching/admin_gym_preview'),
+            ],
+            3 => [
+                'table' => 'private_academies_application',
+                'name' => 'Private Academy',
+                'preview_url' => url('admin/private_coaching/admin_academy_preview'),
+            ],
+            4 => [
+                'table' => 'private_swimming_pool_application',
+                'name' => 'Swimming Pool',
+                'preview_url' => url('admin/private_coaching/admin_swimming_pool_preview'),
+            ],
+        ];
+
+        $targetCategories = $categoryDefinitions;
+        if (!empty($category_id) && isset($categoryDefinitions[$category_id])) {
+            $targetCategories = [$category_id => $categoryDefinitions[$category_id]];
+        }
+
+        $allRecords = collect();
+
+        foreach ($targetCategories as $catId => $catDef) {
+            $q = DB::table($catDef['table'] . ' as app')
+                ->leftJoin('private_coaching_register as reg', 'app.user_id', '=', 'reg.id')
+                ->leftJoin('private_coaching_profile as prof', 'prof.user_id', '=', 'app.user_id')
+                ->leftJoin('cities as c', 'prof.district', '=', 'c.id')
+                ->leftJoin('hostel_div_district_mapping as hm', 'c.id', '=', 'hm.district_id')
+                ->leftJoin('hostel_division_master as hdm', 'hm.division_id', '=', 'hdm.id')
+                ->where('app.final_submit', 1)
+                ->where('app.fee_status', 1)
+                ->where('app.protsahan_samiti_fee', '>', 0)
+                ->select([
+                    'app.id as app_id',
+                    'app.application_no',
+                    'app.status',
+                    'app.protsahan_samiti_fee',
+                    'app.fee_status',
+                    'app.fee_paid_date',
+                    'app.final_submit_on',
+                    'app.accept_reject_date',
+                    'prof.institute_name',
+                    'prof.district as district_id',
+                    'reg.name as applicant_name',
+                    'reg.mobile',
+                    'reg.email',
+                    'c.city as district_name',
+                    'hm.division_id',
+                    'hdm.division_name',
+                ]);
+
+            if (!empty($division_id)) {
+                $q->where('hm.division_id', $division_id);
+            }
+
+            if (!empty($district_id)) {
+                $q->where('c.id', $district_id);
+            }
+
+            if (!empty($startDate)) {
+                $q->whereRaw("COALESCE(app.fee_paid_date, app.accept_reject_date, app.final_submit_on) >= ?", [$startDate]);
+            }
+            if (!empty($endDate)) {
+                $q->whereRaw("COALESCE(app.fee_paid_date, app.accept_reject_date, app.final_submit_on) <= ?", [$endDate]);
+            }
+
+            $rows = $q->get()->map(function ($row) use ($catId, $catDef) {
+                $row->category_id = $catId;
+                $row->category_name = $catDef['name'];
+                $row->preview_link = $catDef['preview_url'] . '/' . $row->app_id;
+                $effDate = $row->fee_paid_date ?: ($row->accept_reject_date ?: $row->final_submit_on);
+                $row->month_year = $effDate ? date('F Y', strtotime($effDate)) : 'N/A';
+                return $row;
+            });
+
+            $allRecords = $allRecords->concat($rows);
+        }
+
+        // Summary Aggregation by Year, Month, Division, District
+        $grouped = [];
+        foreach ($allRecords as $rec) {
+            $effDate = $rec->fee_paid_date ?: ($rec->accept_reject_date ?: $rec->final_submit_on);
+            $year = $effDate ? date('Y', strtotime($effDate)) : date('Y');
+            $monthNum = $effDate ? (int)date('m', strtotime($effDate)) : (int)date('m');
+            $monthName = $effDate ? date('F', strtotime($effDate)) : date('F');
+            $divName = $rec->division_name ?: 'N/A';
+            $distName = $rec->district_name ?: 'N/A';
+            $divId = $rec->division_id ?? 0;
+            $distId = $rec->district_id ?? 0;
+
+            $groupKey = "{$year}-" . str_pad($monthNum, 2, '0', STR_PAD_LEFT) . "-{$divId}-{$distId}";
+
+            if (!isset($grouped[$groupKey])) {
+                $grouped[$groupKey] = (object)[
+                    'year' => $year,
+                    'month' => $monthName,
+                    'month_num' => $monthNum,
+                    'month_year' => "{$monthName} {$year}",
+                    'division_name' => $divName,
+                    'district_name' => $distName,
+                    'associations_fee' => 0.0,
+                    'gyms_fee' => 0.0,
+                    'academies_fee' => 0.0,
+                    'swimming_fee' => 0.0,
+                    'total_fee' => 0.0,
+                    'total_count' => 0,
+                ];
+            }
+
+            $fee = (float)($rec->protsahan_samiti_fee ?? 0);
+            if ($rec->category_id == 1) {
+                $grouped[$groupKey]->associations_fee += $fee;
+            } elseif ($rec->category_id == 2) {
+                $grouped[$groupKey]->gyms_fee += $fee;
+            } elseif ($rec->category_id == 3) {
+                $grouped[$groupKey]->academies_fee += $fee;
+            } elseif ($rec->category_id == 4) {
+                $grouped[$groupKey]->swimming_fee += $fee;
+            }
+            $grouped[$groupKey]->total_fee += $fee;
+            $grouped[$groupKey]->total_count += 1;
+        }
+
+        $summary = collect(array_values($grouped))->sortByDesc(function ($item) {
+            return $item->year . '-' . str_pad($item->month_num, 2, '0', STR_PAD_LEFT);
+        })->values();
+
+        // Sort details: newest payment date first
+        $details = $allRecords->sortByDesc(function ($r) {
+            return $r->fee_paid_date ?: ($r->accept_reject_date ?: $r->final_submit_on);
+        })->values();
+
+        $totalPaidFee = $allRecords->sum(function ($r) {
+            return (float)($r->protsahan_samiti_fee ?? 0);
+        });
+        $totalAssocFee = $allRecords->where('category_id', 1)->sum(function ($r) {
+            return (float)($r->protsahan_samiti_fee ?? 0);
+        });
+        $totalGymFee = $allRecords->where('category_id', 2)->sum(function ($r) {
+            return (float)($r->protsahan_samiti_fee ?? 0);
+        });
+        $totalAcadFee = $allRecords->where('category_id', 3)->sum(function ($r) {
+            return (float)($r->protsahan_samiti_fee ?? 0);
+        });
+        $totalSwimFee = $allRecords->where('category_id', 4)->sum(function ($r) {
+            return (float)($r->protsahan_samiti_fee ?? 0);
+        });
+        $totalRecordsCount = $allRecords->count();
+
+        // Divisions & Districts for filters: District will only load after division is chosen
+        $divisions = DB::table('hostel_division_master')->select('id', 'division_name')->orderBy('division_name')->get();
+
+        $districts = collect();
+        if (!empty($division_id)) {
+            $districts = DB::table('cities')
+                ->select('cities.id', 'cities.city')
+                ->where('cities.state_id', 23)
+                ->join('hostel_div_district_mapping as hdm_map', 'cities.id', '=', 'hdm_map.district_id')
+                ->where('hdm_map.division_id', $division_id)
+                ->orderBy('cities.city')
+                ->get();
+        } elseif ($adminRole == 9 && !empty($admin->district_id)) {
+            $districts = DB::table('cities')
+                ->select('cities.id', 'cities.city')
+                ->where('cities.state_id', 23)
+                ->where('cities.id', $admin->district_id)
+                ->get();
+        }
+
+        // Back navigation URL based on origin category
+        $backUrl = url('admin/private_coaching/dashboard');
+        if ($category_id == 2) {
+            $backUrl = url('admin/private_coaching/gym_list');
+        } elseif ($category_id == 3) {
+            $backUrl = url('admin/private_coaching/academy_list');
+        } elseif ($category_id == 4) {
+            $backUrl = url('admin/private_coaching/swimming_pool_list');
+        }
+
+        return view('private_coaching.admin.report', compact(
+            'summary',
+            'details',
+            'divisions',
+            'districts',
+            'division_id',
+            'district_id',
+            'category_id',
+            'from_date',
+            'to_date',
+            'totalPaidFee',
+            'totalAssocFee',
+            'totalGymFee',
+            'totalAcadFee',
+            'totalSwimFee',
+            'totalRecordsCount',
+            'backUrl'
+        ));
     }
 }

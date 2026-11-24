@@ -680,6 +680,7 @@ class HostelApplication extends Controller
 
     public function hostelList($id = null)
     {
+        session()->forget('filter_hostel');
         $division = DB::table('hostel_division_master')->get();
 
 
@@ -726,7 +727,7 @@ class HostelApplication extends Controller
         }
 
 
-        $hostelList =  $hostelList->where('rg.session_year', config('app.session_year'))->groupBy('rg.id')->get();
+        $hostelList =  $hostelList->where('rg.session_year', config('app.session_year'))->groupBy('rg.id')->paginate(25);
         // $userDetails->payment_status
 
         $divisions = DB::table('hostel_division_master')->orderBy('division_name')->get();
@@ -834,7 +835,7 @@ class HostelApplication extends Controller
             $hostelList->where('rg.session_year', config('app.session_year'));
         }
 
-        $hostelList =   $hostelList->groupBy('rg.id')->get();
+        $hostelList =   $hostelList->groupBy('rg.id')->paginate(25);
         $sports = DB::table('sport_master')->orderBy('name')->get();
         $divisions = DB::table('hostel_division_master')->orderBy('division_name')->get();
 

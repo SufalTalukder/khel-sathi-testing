@@ -69,8 +69,24 @@ class RegisteredUser extends Controller
 
       return response()->json(['error' => false]);
    }
-   public function deleteUser($id){
+
+   // Modified deleteUser function
+   public function deleteUser($id = null)
+   {
+      if (empty($id)) {
+         return redirect()->back()->with("error", "User not found.");
+      }
+
+      $userRole = DB::table('admin')->where('id', '=', $id)->first();
+      if (empty($userRole)) {
+         return redirect()->back()->with("error", "User not found.");
+      }
+
+      if ($userRole->admin_role == 1 || $userRole->admin_role == 5) {
+         return redirect()->back()->with("error", "You can't delete this user.");
+      }
+
       DB::table('admin')->where('id', '=', $id)->delete();
       return redirect()->back()->with("success", "User Successfully Deleted.");
-    }
+   }
 }

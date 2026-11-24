@@ -8,12 +8,68 @@
                 <i class="fa fa-file-excel"></i> Export to Excel
             </a>
 
-            <a href="{{ route('private_coaching_export_pdf', 3) }}" class="btn btn-sm btn-primary float-end" target="_blank"
+            <a href="{{ route('private_coaching_export_pdf', 3) }}" class="btn btn-sm btn-primary float-end me-2" target="_blank"
                 rel="noopener noreferrer"> Export PDF</a>
+
+            <a href="{{ route('admin_private_coaching_report', ['category_id' => 4]) }}" class="btn btn-sm btn-info float-end me-2 text-white">
+                <i class="fa fa-bar-chart"></i> Fee Report
+            </a>
         </h4>
     </div>
+
     <div class="card">
         <div class="card-body">
+            <div class="mb-4">
+                <form class="row g-2 align-items-end" method="get" action="{{ url()->current() }}">
+                    <div class="col-md-3">
+                        <div class="form-group mb-0">
+                            <label for="status">Application Status</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">All</option>
+                                <option value="1" {{ (string)$status === '1' ? 'selected' : '' }}>Accepted</option>
+                                <option value="2" {{ (string)$status === '2' ? 'selected' : '' }}>Rejected</option>
+                                <option value="0" {{ (string)$status === '0' ? 'selected' : '' }}>Pending</option>
+                                <option value="query_marked" {{ $status === 'query_marked' ? 'selected' : '' }}>Query Marked</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group mb-0">
+                            <label for="fee_status">Payment Status</label>
+                            <select name="fee_status" id="fee_status" class="form-select">
+                                <option value="">All</option>
+                                <option value="1" {{ (string)$fee_status === '1' ? 'selected' : '' }}>Paid</option>
+                                <option value="0" {{ (string)$fee_status === '0' ? 'selected' : '' }}>Pending</option>
+                                <option value="not_set" {{ $fee_status === 'not_set' ? 'selected' : '' }}>Fee Not Set</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    @if(empty(Auth::guard('admin')->user()->district_id) && Auth::guard('admin')->user()->admin_role != 9)
+                    <div class="col-md-3">
+                        <div class="form-group mb-0">
+                            <label for="district_id">District</label>
+                            <select name="district_id" id="district_id" class="form-select">
+                                <option value="">All Districts</option>
+                                @foreach ($districts as $dst)
+                                    <option value="{{ $dst->id }}" {{ (string)$district_id === (string)$dst->id ? 'selected' : '' }}>
+                                        {{ repairHindi($dst->city) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    @endif
+
+                    <div class="col-md-3">
+                        <div class="form-group mb-0">
+                            <button type="submit" class="btn btn-info me-2">Submit</button>
+                            <a href="{{ url()->current() }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
             <div class="table-responsive table-bordred">
                 <table id="dataTable" class="table table_new datatable table-bordred table-hover bg-white">
                     <thead>
@@ -21,7 +77,7 @@
 
                             <th>S.No.</th>
                             <th>Application No.</th>
-
+                            <th>District</th>
                             <th>Name</th>
                             <th>Designation</th>
                             <th>Institution Name</th>
@@ -29,6 +85,7 @@
                             <th>Email ID</th>
                             <th>Mobile No.</th>
                             <th>Sports Name</th>
+                            <th class="text-center">Payment Received (₹)</th>
                             <th class="text-center">Status of Application</th>
 
                             {{-- <th class="text-center">Action</th> --}}
@@ -47,6 +104,9 @@
                                     {{ $item->application_no }}
                                 </td>
                                 <td>
+                                    {{ !empty($item->district_name) ? repairHindi($item->district_name) : (!empty($item->district) ? districtName($item->district) : '-') }}
+                                </td>
+                                <td>
                                     {{ $item->name }}
                                 </td>
                                 <td>
@@ -63,6 +123,26 @@
                                 </td>
                                 <td>
                                     {{ sport_name($item->sport_id) }}
+                                </td>
+
+                                <td class="text-center">
+                                    @if ($item->fee_status == 1)
+                                        <span class="badge bg-success" style="font-size: 0.85rem;" title="Payment Received">
+                                            <i class="fa fa-check-circle me-1"></i>₹{{ number_format((float)$item->protsahan_samiti_fee, 2) }}
+                                        </span>
+                                        @if(!empty($item->fee_paid_date))
+                                            <div class="small text-muted" style="font-size: 0.72rem;"><i class="fa fa-calendar me-1"></i>{{ date('d-m-Y', strtotime($item->fee_paid_date)) }}</div>
+                                        @endif
+                                    @elseif(!empty($item->protsahan_samiti_fee) && (float)$item->protsahan_samiti_fee > 0)
+                                        <span class="badge bg-warning text-dark" style="font-size: 0.85rem;" title="Payment Pending">
+                                            <i class="fa fa-clock-o me-1"></i>₹{{ number_format((float)$item->protsahan_samiti_fee, 2) }}
+                                        </span>
+                                        <div class="small text-warning" style="font-size: 0.72rem;">(Pending)</div>
+                                    @elseif($item->status == 1)
+                                        <span class="badge bg-secondary" style="font-size: 0.75rem;">Not Set</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
 
                                 <td class="text-center">

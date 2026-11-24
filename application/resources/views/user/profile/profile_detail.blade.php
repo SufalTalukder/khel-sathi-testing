@@ -1,21 +1,14 @@
 @extends('layouts/layout')
 @section('content')
-
-
 <div class="pageheader" id="menu-margin">
     <h4 class="mb-0">
         Applicant’s Profile
     </h4>
 </div>
 
-<div class="card"  >
+<div class="card">
     <div class="card-body">
-        <?php $iso_detail = isp_common(Auth::User()->id, Auth::User()->email);
-
-
-
-
-      ?>
+        <?php $iso_detail = isp_common(Auth::User()->id, Auth::User()->email); ?>
         <form action="{{url('compProfile')}}" id="form1" method="post" enctype="multipart/form-data" class="needs-validation mt-4 " novalidate>
             @csrf
             <div class="bhoechie-tab-content">
@@ -49,34 +42,34 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label class="placeholder"> Date of Birth<br>जन्म तिथि</label>
+                                <label class="placeholder"> Date of Birth<br>जन्म तिथि <span class="text-danger">*</span></label>
                                 <input type="text"
-       id="dob"
-       name="dob"
-       class="form-control"
-       autocomplete="off"
-       onkeypress="return false"
-       placeholder="DD/MM/YYYY"
-       value="{{ isset($iso_detail) && $iso_detail->dob ? isodate($iso_detail->dob) : (old('dob') ? old('dob') : $user->dob) }}"
-       required>
+                                    id="dob"
+                                    name="dob"
+                                    class="form-control"
+                                    autocomplete="off"
+                                    onkeypress="return false"
+                                    placeholder="DD/MM/YYYY"
+                                    value="{{ isset($iso_detail) && $iso_detail->dob ? isodate($iso_detail->dob) : (old('dob') ? old('dob') : $user->dob) }}"
+                                    required>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label class="placeholder"> Place of Birth<br>जन्म स्थान</label>
+                                <label class="placeholder"> Place of Birth<br>जन्म स्थान <span class="text-danger">*</span></label>
                                 {{-- <input onkeypress='return ((event.charCode >= 65 && event.charCode <= 90) || (event.charCode >= 97 && event.charCode <= 122) || (event.charCode == 32))' type="text" class="form-control" required data-language="en" name="place_of_birth" value="{{old('place_of_birth') ? old('place_of_birth') : $user->place_of_birth}}"> --}}
                                 <select class="form-select" required name="place_of_birth">
                                     <option value="">Select</option>
                                     @foreach($all_city as $value)
-                                    <option value="{{$value->id}}" @if($user->place_of_birth == $value->id ) selected  @endif>{{$value->city}}</option>
+                                    <option value="{{$value->id}}" @if($user->place_of_birth == $value->id ) selected @endif>{{$value->city}}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label> Gender<br>लिंग</label>
-                                <select class="form-select @if(isset($iso_detail) && $iso_detail->gender) dis_check   @endif"  @if(isset($iso_detail) && $iso_detail->gender) readonly  @endif required name="gender">
+                                <label> Gender<br>लिंग <span class="text-danger">*</span></label>
+                                <select class="form-select @if(isset($iso_detail) && $iso_detail->gender) dis_check   @endif" @if(isset($iso_detail) && $iso_detail->gender) readonly @endif required name="gender">
                                     <option value="">Select</option>
                                     <option value="Male" @if(isset($iso_detail) && $iso_detail->gender && $iso_detail->gender == "M") Selected @else {{ old('gender') ==  'Male'?'Selected':'' }} {{$user->gender=='Male'?'Selected':''}} @endif>Male</option>
                                     <option value="Female" @if(isset($iso_detail) && $iso_detail->gender && $iso_detail->gender == "F") Selected @else {{ old('gender') ==  'Female'?'Selected':'' }} {{$user->gender=='Female'?'Selected':''}} @endif>Female</option>
@@ -87,7 +80,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label> Marital Status<br>वैवाहिक स्थिति<span class="text-danger">*</span></label>
-                                <select class="form-select @if(isset($iso_detail) && $iso_detail->marital_status) dis_check @endif" @if(isset($iso_detail) && $iso_detail->marital_status) readonly  @endif  required name="marital_status">
+                                <select class="form-select @if(isset($iso_detail) && $iso_detail->marital_status) dis_check @endif" @if(isset($iso_detail) && $iso_detail->marital_status) readonly @endif required name="marital_status">
                                     <option value="">Select</option>
                                     <option value="Married" @if(isset($iso_detail) && $iso_detail->marital_status && $iso_detail->marital_status == "2") Selected @else {{ old('marital_status') ==  'Married'?'Selected':'' }} {{$user->marital_status=='Married'?'Selected':''}}@endif>Married</option>
                                     <option value="Single" @if(isset($iso_detail) && $iso_detail->marital_status && $iso_detail->marital_status == "1") Selected @else {{ old('marital_status') ==  'Single'?'Selected':'' }} {{$user->marital_status=='Single'?'Selected':''}}@endif>Single</option>
@@ -123,13 +116,13 @@
                         </div> -->
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label class="placeholder"> Mother’s Name<br>माता का नाम</label>
+                                <label class="placeholder"> Mother’s Name<br>माता का नाम <span class="text-danger">*</span></label>
                                 <input type="text" required onkeypress='return ((event.charCode >= 65 && event.charCode <= 90) || (event.charCode >= 97 && event.charCode <= 122) || (event.charCode == 32))' @if(isset($iso_detail) && $iso_detail->mother_name_eng) value="{{ $iso_detail->mother_name_eng }}" class="form-control dis_check" readonly @endif class="form-control" name="mother_name" value="{{old('mother_name') ? old('mother_name') : $user->mother_name}}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label class="placeholder"> Father’s Name<br>पिता का नाम</label>
+                                <label class="placeholder"> Father’s Name<br>पिता का नाम <span class="text-danger">*</span></label>
                                 <input type="text" required onkeypress='return ((event.charCode >= 65 && event.charCode <= 90) || (event.charCode >= 97 && event.charCode <= 122) || (event.charCode == 32))' name="father_name" @if(isset($iso_detail) && $iso_detail->father_or_husband_or_guardian_name_eng) value="{{ $iso_detail->father_or_husband_or_guardian_name_eng }}" class="form-control dis_check" readonly @endif class="form-control" value="{{old('father_name') ? old('father_name') : $user->father_name}}">
                             </div>
                         </div>
@@ -146,8 +139,8 @@
                         </div>
                         <div class="col-md-4" id="sport_type_hide_div">
                             <div class="form-group">
-                                <label class="placeholder"> Para Sports Name<br>पैरा स्पोर्ट्स का नाम</label>
-                                <input type="text" id="para_sport"  placeholder="Para Shooting" name="para_sport" class="form-control" value="{{old('para_sport') ? old('para_sport') : $user->para_sport}}">
+                                <label class="placeholder"> Para Sports Name<br>पैरा स्पोर्ट्स का नाम <span class="text-danger">*</span></label>
+                                <input type="text" id="para_sport" placeholder="Para Shooting" name="para_sport" class="form-control" value="{{old('para_sport') ? old('para_sport') : $user->para_sport}}">
                             </div>
                         </div>
                         <!-- <div class="col-md-4">
@@ -166,22 +159,25 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="placeholder"> Aadhaar No.<br>आधार नंबर<span class="text-danger">*</span></label>
-                                <input type="text" readonly oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" required  class="form-control dis_check" pattern="[0-9]{12}" name="aadhar_no" maxlength="12" minlength="12" value="{{old('aadhar_no') ? old('aadhar_no') : $user->aadhar_no}}">
+                                <input type="text" readonly oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" required class="form-control dis_check" pattern="[0-9]{12}" name="aadhar_no" maxlength="12" minlength="12" value="{{old('aadhar_no') ? old('aadhar_no') : $user->aadhar_no}}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label> Aadhaar Card<br>आधार कार्ड <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="file" name="aadhar_card" class="form-control" onchange="getfileext(this.value,1)" id="File1" aria-describedby="inputGroupFileAddon05" aria-label="Upload" {{$user->aadhar_doc!=''?'':'required'}}>
+                                    <input type="file" name="aadhar_card" class="form-control" onchange="getfileext(this.value,1); handleFilePreview(this, 'view_btn_aadhar_card');" id="File1" aria-describedby="inputGroupFileAddon05" aria-label="Upload" {{$user->aadhar_doc!=''?'':'required'}}>
                                     <input type="hidden" name="aadhar_card1" value="{{$user->aadhar_doc}}">
-                                    @if($user->aadhar_doc !='')
+                                    @if(!empty($user->aadhar_doc))
                                     @php
                                     $img = url('storage/award').'/'.$user->aadhar_doc;
                                     $img1 = url('public/images/view.jpg');
                                     $doc = explode('.',$user->aadhar_doc);
+                                    $ext = strtolower(end($doc));
                                     @endphp
-                                    <img src="{{$img1}}" role="button" onclick="appendImage('{{$img}}','{{$doc[1]}}')" class="img-fluid" />
+                                    <img src="{{$img1}}" role="button" id="view_btn_aadhar_card" data-original-url="{{$img}}" data-original-type="{{$ext}}" onclick="appendImage('{{$img}}','{{$ext}}')" class="img-fluid" style="cursor: pointer;" />
+                                    @else
+                                    <img src="{{url('public/images/view.jpg')}}" role="button" id="view_btn_aadhar_card" class="img-fluid" style="display:none; cursor: pointer;" />
                                     @endif
                                 </div>
                                 <span class="note">(File Format/फाइल का प्रारूप: JPEG/JPG/PDF | Max File Size/फाइल का अधिकतम साइज़: 2 MB)</span>
@@ -190,17 +186,20 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label> Upload Birth Certificate / जन्म प्रमाण पत्र अपलोड करें <span class="text-danger">*</span>
-                                <br><span>(  Birth Certificate issued by an authorized institution(Nagar Panchayat/Municipal Corporation/Municipality) / अधिकृत संस्था द्वारा निर्गत जन्म प्रमाण पत्र (नगर पंचायत/नगर निगम/नगर पालिका))</span></label>
+                                    <br><span>( Birth Certificate issued by an authorized institution(Nagar Panchayat/Municipal Corporation/Municipality) / अधिकृत संस्था द्वारा निर्गत जन्म प्रमाण पत्र (नगर पंचायत/नगर निगम/नगर पालिका))</span></label>
                                 <div class="input-group">
-                                    <input type="file" name="birth_certificate" class="form-control" onchange="getfileext(this.value,1)" id="File1" aria-describedby="inputGroupFileAddon05" aria-label="Upload" {{$user->birth_certificate!=''?'':'required'}}>
+                                    <input type="file" name="birth_certificate" class="form-control" onchange="getfileext(this.value,2); handleFilePreview(this, 'view_btn_birth_certificate');" id="File2" aria-describedby="inputGroupFileAddon05" aria-label="Upload" {{$user->birth_certificate!=''?'':'required'}}>
                                     <input type="hidden" name="birth_certificate1" value="{{$user->birth_certificate}}">
-                                    @if($user->birth_certificate !='')
+                                    @if(!empty($user->birth_certificate))
                                     @php
                                     $img = url('storage/award').'/'.$user->birth_certificate;
                                     $img1 = url('public/images/view.jpg');
                                     $doc = explode('.',$user->birth_certificate);
+                                    $ext = strtolower(end($doc));
                                     @endphp
-                                    <img src="{{$img1}}" role="button" onclick="appendImage('{{$img}}','{{$doc[1]}}')" class="img-fluid" />
+                                    <img src="{{$img1}}" role="button" id="view_btn_birth_certificate" data-original-url="{{$img}}" data-original-type="{{$ext}}" onclick="appendImage('{{$img}}','{{$ext}}')" class="img-fluid" style="cursor: pointer;" />
+                                    @else
+                                    <img src="{{url('public/images/view.jpg')}}" role="button" id="view_btn_birth_certificate" class="img-fluid" style="display:none; cursor: pointer;" />
                                     @endif
                                 </div>
                                 <span class="note">(File Format/फाइल का प्रारूप: JPEG/JPG/PDF | Max File Size/फाइल का अधिकतम साइज़: 2 MB)</span>
@@ -220,15 +219,18 @@
                             <div class="form-group">
                                 <label> Upload Medical Certificate if the applicant is unfit or disabled<br>यदि आवेदक अक्षम अथवा दिव्यांग है तो चिकित्सा प्रमाणपत्र अपलोड करें <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="file" name="medical_certificate" class="form-control" onchange="getfileext(this.value,9)" id="File9" aria-describedby="inputGroupFileAddon05" aria-label="Upload">
+                                    <input type="file" name="medical_certificate" class="form-control" onchange="getfileext(this.value,9); handleFilePreview(this, 'view_btn_medical_certificate');" id="File9" aria-describedby="inputGroupFileAddon05" aria-label="Upload">
                                     <input type="hidden" name="medical_certificate1" id="medical_certificate1" value="{{$user->phy_handi_docs}}">
-                                    @if($user->phy_handi_docs !='')
+                                    @if(!empty($user->phy_handi_docs))
                                     @php
                                     $img = url('storage/award').'/'.$user->phy_handi_docs;
                                     $img1 = url('public/images/view.jpg');
                                     $doc = explode('.',$user->phy_handi_docs);
+                                    $ext = strtolower(end($doc));
                                     @endphp
-                                    <img src="{{$img1}}" role="button" onclick="appendImage('{{$img}}','{{$doc[1]}}')" class="img-fluid" />
+                                    <img src="{{$img1}}" role="button" id="view_btn_medical_certificate" data-original-url="{{$img}}" data-original-type="{{$ext}}" onclick="appendImage('{{$img}}','{{$ext}}')" class="img-fluid" style="cursor: pointer;" />
+                                    @else
+                                    <img src="{{url('public/images/view.jpg')}}" role="button" id="view_btn_medical_certificate" class="img-fluid" style="display:none; cursor: pointer;" />
                                     @endif
                                 </div>
                                 <span class="note">(File Format/फाइल का प्रारूप: JPEG/JPG/PDF | Max File Size/फाइल का अधिकतम साइज़: 2 MB)</span>
@@ -241,11 +243,11 @@
                                 <select name="association_certificate"  id="association_certificate" class="form-select">
                                     <!-- <option value="">Select</option>   -->
                                       <option value="1" {{$user->association_certificate ==  "1" ? 'Selected':''}} {{ old('association_certificate') === "1" ? 'selected' : '' }}>Yes</option>
-                                    <!-- <option value="2" {{$user->association_certificate=="2" ? 'Selected':''}} {{ old('association_certificate') === "2" ? 'selected' : '' }}>No</option> -->
-                                </select>
-                            </div>
-                        </div>--}}
-                        <!-- <div class="col-md-6" id="association_certificate_upload_hide">
+                        <!-- <option value="2" {{$user->association_certificate=="2" ? 'Selected':''}} {{ old('association_certificate') === "2" ? 'selected' : '' }}>No</option> -->
+                        </select>
+                    </div>
+                </div>--}}
+                <!-- <div class="col-md-6" id="association_certificate_upload_hide">
                             <div class="form-group">
                                 <label>Upload association approved certificate<br>एसोसिएशन द्वारा अनुमोदित प्रमाणपत्र अपलोड करें !</label>
                                 <div class="input-group">
@@ -255,152 +257,171 @@
                                 <span class="note">(File Format/फाइल का प्रारूप: JPEG/JPG/PDF | Max File Size/फाइल का अधिकतम साइज़: 2 MB)</span>
                             </div>
                         </div> -->
-                        <div class="clearfix"></div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label> Photograph<br>फोटो<span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="file" name="photograph" class="form-control" onchange="getfileext2(this,'T4')" id="FileT4" aria-describedby="inputGroupFileAddon05" aria-label="Upload" {{$user->photograph_doc!=''?'':'required'}}>
-                                    <input type="hidden" name="photograph1" value="{{$user->photograph_doc}}">
-                                    @if($user->photograph_doc !='')
-                                    @php
-                                    $img = url('storage/award').'/'.$user->photograph_doc;
-                                    $img1 = url('public/images/view.jpg');
-                                    $doc = explode('.',$user->photograph_doc);
+                <div class="clearfix"></div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label> Photograph<br>फोटो<span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="file" name="photograph" class="form-control" onchange="getfileext2(this,'T4'); handleFilePreview(this, 'view_btn_photograph');" id="FileT4" aria-describedby="inputGroupFileAddon05" aria-label="Upload" {{$user->photograph_doc!=''?'':'required'}}>
+                            <input type="hidden" name="photograph1" value="{{$user->photograph_doc}}">
+                            @if(!empty($user->photograph_doc))
+                            @php
+                            $img = url('storage/award').'/'.$user->photograph_doc;
+                            $img1 = url('public/images/view.jpg');
+                            $doc = explode('.',$user->photograph_doc);
+                            $ext = strtolower(end($doc));
+                            @endphp
+                            <img src="{{$img1}}" role="button" id="view_btn_photograph" data-original-url="{{$img}}" data-original-type="{{$ext}}" onclick="appendImage('{{$img}}','{{$ext}}')" class="img-fluid" style="cursor: pointer;" />
+                            @else
+                            <img src="{{url('public/images/view.jpg')}}" role="button" id="view_btn_photograph" class="img-fluid" style="display:none; cursor: pointer;" />
+                            @endif
+                        </div>
+                        <span class="note">(File Format/फाइल का प्रारूप: JPEG/JPG | Max File Size/फाइल का अधिकतम साइज़: 2 MB)</span>
+                    </div>
+                    @if(!empty($user->photograph_doc))
+                    <img id="photo" src="{{url('storage/award').'/'.$user->photograph_doc}}" alt="your image" style="height: 80px; width: 100px; margin-bottom: 15px; margin-top: 5px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;" />
+                    @else
+                    <img id="photo" src="#" alt="your image" style="display:none;height: 80px; width: 100px; margin-bottom: 15px; margin-top: 5px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;" />
+                    @endif
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Signature<br>हस्ताक्षर<span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="file" name="signature" class="form-control" onchange="getfileext25(this,'T3'); handleFilePreview(this, 'view_btn_signature');" id="FileT3" aria-describedby="inputGroupFileAddon05" aria-label="Upload" {{$user->signature_doc==''?'required':''}}>
+                            <input type="hidden" name="signature1" value="{{$user->signature_doc}}">
+                            @if(!empty($user->signature_doc))
+                            @php
+                            $img = url('storage/award').'/'.$user->signature_doc;
+                            $img1 = url('public/images/view.jpg');
+                            $doc = explode('.',$user->signature_doc);
+                            $ext = strtolower(end($doc));
+                            @endphp
+                            <img src="{{$img1}}" role="button" id="view_btn_signature" data-original-url="{{$img}}" data-original-type="{{$ext}}" onclick="appendImage('{{$img}}','{{$ext}}')" class="img-fluid" style="cursor: pointer;" />
+                            @else
+                            <img src="{{url('public/images/view.jpg')}}" role="button" id="view_btn_signature" class="img-fluid" style="display:none; cursor: pointer;" />
+                            @endif
+                        </div>
+                        <span class="note">(File Format/फाइल का प्रारूप: JPEG/JPG | Max File Size/फाइल का अधिकतम साइज़: 2 MB)</span>
+                    </div>
+                    @if(!empty($user->signature_doc))
+                        @php
+                        $docS = explode('.',$user->signature_doc);
+                        $signExt = strtolower(end($docS));
+                        @endphp
+                        @if($signExt != 'pdf')
+                        <img id="sign" src="{{url('storage/award').'/'.$user->signature_doc}}" alt="your image" style="height: 80px; width: 100px; margin-bottom: 15px; margin-top: 5px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;" />
+                        @else
+                        <img id="sign" src="#" alt="your image" style="display:none;height: 80px; width: 100px; margin-bottom: 15px; margin-top: 5px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;" />
+                        @endif
+                    @else
+                    <img id="sign" src="#" alt="your image" style="display:none;height: 80px; width: 100px; margin-bottom: 15px; margin-top: 5px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;" />
+                    @endif
+                </div>
+            </div>
+            <div class="col-md-12">
+                <h5 class="subheading">Current Address/वर्तमान पता
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="placeholder">Flat No. / House No.<br>फ्लैट संख्या / मकान संख्या <span class="text-danger">*</span></label>
+                        <input type="text" id="flat_no" value="{{old('present_flat_no') ? old('present_flat_no') : $user->present_flat_no}}" required name="present_flat_no" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="placeholder">Complete Address<br>पूरा पता <span class="text-danger">*</span></label>
+                        <textarea id="address1" required name="present_address" rows="1" class="form-control" cols="25">{{old('present_address') ? old('present_address') : $user->present_address}}</textarea>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="placeholder">State<br>राज्य <span class="text-danger">*</span></label>
+                        <select class="form-select  @if(isset($iso_detail) && $iso_detail->residential_state) dis_check @endif" @if(isset($iso_detail) && $iso_detail->residential_state) readonly @endif required name="present_state" readonly id="state1" onchange="get_city(this.value,'district1')">
+                            <option value="">Select</option>
+                            @foreach($state as $value)
+                            <option value="{{$value->id}}" @if(isset($iso_detail) && $iso_detail->residential_state && $iso_detail->residential_state == $value->isp_state_code ) Selected @else {{$user->present_state==$value->id?'Selected':''}} @endif>{{$value->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="placeholder"> District<br>जनपद <span class="text-danger">*</span></label>
+                        <input type="hidden" id="h_district12" value="@if(isset($iso_detail) && $iso_detail->residential_district){{$iso_detail->residential_district}} @endif" />
+                        <input type="hidden" id="h_district1" value="{{$user->present_district}}" />
+                        <select class="form-select @if(isset($iso_detail) && $iso_detail->residential_district) dis_check @endif" required @if(isset($iso_detail) && $iso_detail->residential_district)readonly @endif name="present_district" id="district1">
+                            <option value="">Select</option>
+                            @foreach($all_city as $value)
+                            <option value="{{$value->id}}" @if(isset($iso_detail) && $iso_detail->residential_district && $iso_detail->residential_district == $value->isp_dist_code ) Selected @else {{ old('present_district') === $value->id ? 'selected' : '' }} {{$user->present_district==$value->id?'Selected':''}} @endif>{{$value->city}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group"> <label class="placeholder">PIN Code<br>पिन कोड<span class="text-danger">*</span></label>
+                        <input type="text" required oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" class="form-control" maxlength="6" minlength="6" name="present_pincode" id="present_pincode" pattern="[0-9]{6}" @if(isset($iso_detail) && $iso_detail->residential_pin ) class="dis_check" value="{{ $iso_detail->residential_pin}}" readonly @else value="{{ old('present_pincode') ? old('present_pincode') : $user->present_pincode }}"@endif>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <h5 class="subheading">Permanent Address/स्थायी पता
+                    <small class="text-dark"><input type="checkbox" name="" value="yes" id="same" class="ms-2"> Select the Checkbox if same as Current Address/यदि वर्तमान पता के समान है तो चेकबॉक्स का चयन करें</small>
+                </h5>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="placeholder ">Flat No. / House No.<br>फ्लैट संख्या / मकान संख्या <span class="text-danger">*</span></label>
+                        <input type="text" id="flat_no1" value="{{old('permanent_flat_no') ? old('permanent_flat_no') : $user->permanent_flat_no}}" required name="permanent_flat_no" class="form-control dis_check">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="placeholder">Complete Address<br>पूरा पता <span class="text-danger">*</span></label>
+                        <textarea id="permanent_address" required name="permanent_address" rows="1" class="form-control dis_check" cols="25">{{old('permanent_address') ? old('permanent_address') : $user->permanent_address}}</textarea>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="placeholder">State<br>राज्य <span class="text-danger">*</span></label>
+                        <select class="form-select dis_check" required name="permanent_state" disabled style="pointer-events: none;" id="state" onchange="get_city(this.value,'district')">
+                            <option value="">Select State</option>
+                            @foreach($state as $value)
+                            <option value="{{$value->id}}" {{23==$value->id?'Selected':''}}>{{$value->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="placeholder dis_check"> District<br>जनपद <span class="text-danger">*</span></label>
+                        <input type="hidden" id="h_district" value="{{$user->permanent_district}}" />
+                        <select class="form-select dis_check " required name="permanent_district" id="district" @if(isset($iso_detail) && $iso_detail->residential_district) readonly @endif>
+                            <option value="">Select</option>
+                            @foreach($all_city as $value)
+                            <option value="{{$value->id}}" @if(isset($iso_detail) && $iso_detail->residential_district && $iso_detail->permanent_district == $value->isp_dist_code ) Selected @else {{ old('permanent_district') === $value->id ? 'selected' : '' }} {{$user->permanent_district==$value->id?'Selected':''}} @endif>{{$value->city}}</option>
+                            @endforeach
 
-                                    @endphp
-                                    <img src="{{$img1}}" role="button" onclick="appendImage('{{$img}}','{{$doc[1]}}')" class="img-fluid" />
-                                    @endif
-                                </div>
-                                <span class="note">(File Format/फाइल का प्रारूप: JPEG/JPG | Max File Size/फाइल का अधिकतम साइज़: 2 MB)</span>
-                            </div>
-                            <img id="photo" src="#" alt="your image" style="display:none;height: 80px; width: 100px;  margin-bottom: 15px;" />
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Signature<br>हस्ताक्षर<span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="file" name="signature" class="form-control" onchange="getfileext25(this,'T3')" id="FileT3" aria-describedby="inputGroupFileAddon05" aria-label="Upload" {{$user->signature_doc==''?'required':''}}>
-                                    <input type="hidden" name="signature1" value="{{$user->signature_doc}}">
-                                    @if($user->signature_doc !='')
-                                    @php
-                                    $img = url('storage/award').'/'.$user->signature_doc;
-                                    $img1 = url('public/images/view.jpg');
-                                    $doc = explode('.',$user->signature_doc);
-                                    @endphp
-                                    <img src="{{$img1}}" role="button" onclick="appendImage('{{$img}}','{{$doc[1]}}')" class="img-fluid" />
-                                    @endif
-                                </div>
-                                <span class="note">(File Format/फाइल का प्रारूप: JPEG/JPG | Max File Size/फाइल का अधिकतम साइज़: 2 MB)</span>
-                            </div>
-                            <img id="sign" src="#" alt="your image" style="display:none;height: 80px; width: 100px; margin-bottom: 15px;" />
-                        </div>
+                        </select>
                     </div>
-                    <div class="col-md-12">
-                        <h5 class="subheading">Current Address/वर्तमान पता
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="placeholder"> PIN Code<br>पिन कोड<span class="text-danger">*</span></label>
+                        <input type="text" required oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" pattern="[0-9]{6}" minlength="6" maxlength="6" name="permanent_pincode" id="permanent_pincode" @if(isset($iso_detail) && $iso_detail->permanent_pin ) class="form-control dis_check" value="{{ $iso_detail->permanent_pin}}" readonly @else value="{{old('permanent_pincode') ? old('permanent_pincode') : $user->permanent_pincode}}" @endif class="form-control dis_check">
                     </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="placeholder">Flat No. / House No.<br>फ्लैट संख्या / मकान संख्या <span class="text-danger">*</span></label>
-                                <input type="text" id="flat_no" value="{{old('present_flat_no') ? old('present_flat_no') : $user->present_flat_no}}" required name="present_flat_no"  class="form-control" >
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="placeholder">Complete Address<br>पूरा पता <span class="text-danger">*</span></label>
-                                <textarea id="address1" required name="present_address" rows="1" class="form-control" cols="25">{{old('present_address') ? old('present_address') : $user->present_address}}</textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label class="placeholder">State<br>राज्य </label>
-                                <select class="form-select  @if(isset($iso_detail) && $iso_detail->residential_state) dis_check @endif"@if(isset($iso_detail) && $iso_detail->residential_state)  readonly @endif required name="present_state" readonly id="state1" onchange="get_city(this.value,'district1')">
-                                    <option value="">Select</option>
-                                    @foreach($state as $value)
-                                    <option value="{{$value->id}}" @if(isset($iso_detail) && $iso_detail->residential_state && $iso_detail->residential_state == $value->isp_state_code ) Selected @else {{$user->present_state==$value->id?'Selected':''}} @endif>{{$value->name}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label class="placeholder"> District<br>जनपद <span class="text-danger">*</span></label>
-                                <input type="hidden" id="h_district12" value="@if(isset($iso_detail) && $iso_detail->residential_district){{$iso_detail->residential_district}} @endif" />
-                                <input type="hidden" id="h_district1" value="{{$user->present_district}}" />
-                                <select class="form-select @if(isset($iso_detail) && $iso_detail->residential_district) dis_check @endif" required @if(isset($iso_detail) && $iso_detail->residential_district)readonly @endif name="present_district" id="district1">
-                                    <option value="">Select</option>
-                                    @foreach($all_city as $value)
-                                    <option value="{{$value->id}}" @if(isset($iso_detail) && $iso_detail->residential_district && $iso_detail->residential_district == $value->isp_dist_code ) Selected @else {{ old('present_district') === $value->id ? 'selected' : '' }} {{$user->present_district==$value->id?'Selected':''}} @endif>{{$value->city}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group"> <label class="placeholder">PIN Code<br>पिन कोड<span class="text-danger">*</span></label>
-                                <input type="text" required oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" class="form-control" maxlength="6" minlength="6" name="present_pincode" id="present_pincode" pattern="[0-9]{6}" @if(isset($iso_detail) && $iso_detail->residential_pin ) class="dis_check" value="{{ $iso_detail->residential_pin}}" readonly @else value="{{ old('present_pincode') ? old('present_pincode') : $user->present_pincode }}"@endif>
-                            </div>
-                        </div>
+                </div>
+            </div>
+            <div class="bhoechie-footer">
+                <div class="row justify-content-center">
+                    <div class="col-md-3 d-grid">
+                        <button type="submit" id="reg-submit" class="btn btn-info">Save & Proceed/दर्ज करें व आगे बढ़ें</button>
                     </div>
-                    <div class="col-md-12">
-                        <h5 class="subheading">Permanent Address/स्थायी पता
-                            <small class="text-dark"><input type="checkbox" name="" value="yes" id="same" class="ms-2"> Select the Checkbox if same as Current Address/यदि वर्तमान पता के समान है तो चेकबॉक्स का चयन करें</small>
-                        </h5>
+                    <div class="col-md-3 d-grid">
+                        <button type="reset" onclick="this.form.reset();" class="btn btn-danger">Reset/रीसेट करें</button>
                     </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="placeholder ">Flat No. / House No.<br>फ्लैट संख्या / मकान संख्या <span class="text-danger">*</span></label>
-                                <input type="text" id="flat_no1" value="{{old('permanent_flat_no') ? old('permanent_flat_no') : $user->permanent_flat_no}}" required name="permanent_flat_no"  class="form-control dis_check" >
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="placeholder">Complete Address<br>पूरा पता <span class="text-danger">*</span></label>
-                                <textarea id="permanent_address" required name="permanent_address" rows="1" class="form-control dis_check" cols="25">{{old('permanent_address') ? old('permanent_address') : $user->permanent_address}}</textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label class="placeholder">State<br>राज्य </label>
-                                <select class="form-select dis_check" required name="permanent_state" disabled style="pointer-events: none;" id="state" onchange="get_city(this.value,'district')">
-                                    <option value="">Select State</option>
-                                    @foreach($state as $value)
-                                    <option value="{{$value->id}}" {{23==$value->id?'Selected':''}}>{{$value->name}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label class="placeholder dis_check"> District<br>जनपद <span class="text-danger">*</span></label>
-                                <input type="hidden" id="h_district" value="{{$user->permanent_district}}" />
-                                <select class="form-select dis_check " required name="permanent_district" id="district" @if(isset($iso_detail) && $iso_detail->residential_district) readonly @endif>
-                                    <option value="">Select</option>
-                                    @foreach($all_city as $value)
-                                    <option value="{{$value->id}}" @if(isset($iso_detail) && $iso_detail->residential_district && $iso_detail->permanent_district == $value->isp_dist_code ) Selected @else {{ old('permanent_district') === $value->id ? 'selected' : '' }} {{$user->permanent_district==$value->id?'Selected':''}} @endif>{{$value->city}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label class="placeholder"> PIN Code<br>पिन कोड<span class="text-danger">*</span></label>
-                                <input type="text" required oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" pattern="[0-9]{6}" minlength="6" maxlength="6" name="permanent_pincode" id="permanent_pincode" @if(isset($iso_detail) && $iso_detail->permanent_pin ) class="form-control dis_check" value="{{ $iso_detail->permanent_pin}}" readonly @else value="{{old('permanent_pincode') ? old('permanent_pincode') : $user->permanent_pincode}}" @endif class="form-control dis_check">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bhoechie-footer">
-                        <div class="row justify-content-center">
-                            <div class="col-md-3 d-grid">
-                                <button type="submit" id="reg-submit" class="btn btn-info">Save & Proceed/दर्ज करें व आगे बढ़ें</button>
-                            </div>
-                            <div class="col-md-3 d-grid">
-                                <button type="reset" onclick="this.form.reset();" class="btn btn-danger">Reset/रीसेट करें</button>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </form>
@@ -414,6 +435,132 @@
 
 @push('custom-scripts')
 <script type="text/javascript">
+    window.appendImage = function(img, pdf) {
+        var $modal = $("#query_form_iamge");
+        var $container = $("#query_form_image_append");
+
+        var isPdf = false;
+        if (pdf && pdf.toString().toLowerCase() === 'pdf') {
+            isPdf = true;
+        } else if (typeof img === 'string') {
+            var cleanImg = img.split('?')[0].split('#')[0].toLowerCase();
+            if (cleanImg.endsWith('.pdf') || img.startsWith('data:application/pdf') || (img.startsWith('blob:') && pdf && pdf.toString().toLowerCase() === 'pdf')) {
+                isPdf = true;
+            }
+        }
+
+        var contentHtml = '';
+        if (isPdf) {
+            contentHtml =
+                '<div style="width: 100%; height: 575px; background: #525659;">' +
+                    '<iframe src="' + img + '" style="width: 100%; height: 575px; border: none;" allowfullscreen></iframe>' +
+                '</div>';
+        } else {
+            contentHtml =
+                '<div style="width: 100%; min-height: 400px; max-height: 575px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; padding: 10px;">' +
+                    '<img src="' + img + '" style="max-width: 100%; max-height: 550px; height: auto; width: auto; object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 4px;" alt="Preview" />' +
+                '</div>';
+        }
+
+        $container.html(
+            '<div class="modal-header py-2 px-3" style="background: #2b7a78; color: #fff;">' +
+                '<h5 class="modal-title fs-6" style="color: #fff;"><i class="fa fa-eye me-2"></i>Document Preview / दस्तावेज़ पूर्वावलोकन</h5>' +
+                '<button type="button" class="btn-close btn-close-white float-end" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">&times;</button>' +
+            '</div>' +
+            '<div class="modal-body p-0">' +
+                contentHtml +
+            '</div>'
+        );
+
+        $modal.modal("show");
+    };
+
+    window.handleFilePreview = function(input, previewId) {
+        var previewImg = document.getElementById(previewId);
+        if (!previewImg) return;
+
+        if (input.files && input.files[0]) {
+            var file = input.files[0];
+            var fileName = file.name || '';
+            var ext = fileName.split('.').pop().toLowerCase();
+            var fileType = file.type || '';
+
+            var isPdf = (fileType === 'application/pdf' || fileType === 'application/x-pdf' || ext === 'pdf');
+            var isImage = (fileType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(ext));
+
+            previewImg.src = "{{ url('public/images/view.jpg') }}";
+            previewImg.style.display = 'inline-block';
+            previewImg.style.cursor = 'pointer';
+
+            if (isPdf) {
+                var blob = new Blob([file], { type: 'application/pdf' });
+                var blobURL = URL.createObjectURL(blob);
+                previewImg.onclick = function() {
+                    appendImage(blobURL, 'pdf');
+                };
+            } else if (isImage) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.onclick = function() {
+                        appendImage(e.target.result, ext || 'jpg');
+                    };
+                };
+                reader.readAsDataURL(file);
+            } else {
+                var genericBlob = URL.createObjectURL(file);
+                previewImg.onclick = function() {
+                    appendImage(genericBlob, ext);
+                };
+            }
+        } else {
+            var originalUrl = previewImg.getAttribute('data-original-url');
+            var originalType = previewImg.getAttribute('data-original-type') || '';
+
+            if (originalUrl && originalUrl.trim() !== '') {
+                previewImg.src = "{{ url('public/images/view.jpg') }}";
+                previewImg.style.display = 'inline-block';
+                previewImg.style.cursor = 'pointer';
+                previewImg.onclick = function() {
+                    appendImage(originalUrl, originalType);
+                };
+            } else {
+                previewImg.style.display = 'none';
+                previewImg.onclick = null;
+            }
+        }
+    };
+
+    $(document).ready(function() {
+        $('button[type="reset"], #form1 button[type="reset"]').on('click', function() {
+            setTimeout(function() {
+                $('input[type="file"]').each(function() {
+                    var viewBtn = $(this).closest('.input-group').find('img[id^="view_btn_"]');
+                    if (viewBtn.length) {
+                        handleFilePreview(this, viewBtn.attr('id'));
+                    }
+                });
+                @if(!empty($user->photograph_doc))
+                    $("#photo").attr("src", "{{ url('storage/award').'/'.$user->photograph_doc }}").show();
+                @else
+                    $("#photo").attr("src", "#").hide();
+                @endif
+                @if(!empty($user->signature_doc))
+                    @php
+                    $docS2 = explode('.',$user->signature_doc);
+                    $signExt2 = strtolower(end($docS2));
+                    @endphp
+                    @if($signExt2 != 'pdf')
+                        $("#sign").attr("src", "{{ url('storage/award').'/'.$user->signature_doc }}").show();
+                    @else
+                        $("#sign").attr("src", "#").hide();
+                    @endif
+                @else
+                    $("#sign").attr("src", "#").hide();
+                @endif
+            }, 50);
+        });
+    });
+
     //  $('.dis_check').attr("style", "pointer-events: none;");
 
     function showMsg() {
@@ -488,7 +635,6 @@
                 $("#permanent_pincode").val('');
                 $("#flat_no1").val('')
                 $('.dis_check').attr("style", "");
-
             }
         } else {
             error("Permanent Address Must Be Uttar Pradesh");
@@ -499,37 +645,33 @@
 
     window.onload = () => {
         get_city();
-        if($("#physical_condition").val() == "1"){
+        if ($("#physical_condition").val() == "1") {
             $("#physical_condition_hide_div").show();
         }
     }
     $("#physical_condition").on('change', function() {
-
-        if ($("#physical_condition").val() == "1" ) {
+        if ($("#physical_condition").val() == "1") {
             $("#physical_condition_hide_div").show();
-            if($('#medical_certificate1').val() == ""){
+            if ($('#medical_certificate1').val() == "") {
                 $("#File9").attr('required', true);
             }
         } else {
             $("#physical_condition_hide_div").hide();
             $("#File9").attr('required', false);
         }
-
     });
 
     $("#sport_type").on('change', function() {
 
-        if ($("#sport_type").val() == "52" ) {
+        if ($("#sport_type").val() == "52") {
             $("#sport_type_hide_div").show();
             $("#para_sport").attr('required', true);
         } else {
             $("#sport_type_hide_div").hide();
             $("#para_sport").attr('required', false);
         }
-
     });
     //new column add
-
     $("#association_certificate").on('change', function() {
         if (this.value == "1" && $('#association_certificate1').val() == "") {
             $("#association_certificate_upload_hide").show();
@@ -553,71 +695,53 @@
     //         }
     //     });
     // });
-    
 
-    $(document).ready(function(){
+    $(document).ready(function() {
+        var start = (new Date()).getFullYear() - 100;
+        var end = (new Date()).getFullYear();
+        var yrRange = start + ":" + end;
 
-    var start = (new Date()).getFullYear() - 100;
-    var end = (new Date()).getFullYear();
-    var yrRange = start + ":" + end;
-
-    $("#dob").datepicker({
-        changeMonth: true,
-        changeYear: true,
-        minDate: new Date(1947, 0, 1),
-        yearRange: yrRange,
-        dateFormat: 'dd/mm/yy',
-        maxDate: '-9Y'
+        $("#dob").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            minDate: new Date(1947, 0, 1),
+            yearRange: yrRange,
+            dateFormat: 'dd/mm/yy',
+            maxDate: '-9Y'
+        });
     });
-
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     (function() {
-    const redirectUrl = "http://164.100.181.91/login"; // Replace with your desired URL
+        const redirectUrl = "http://164.100.181.91/login"; // Replace with your desired URL
 
-    function detectDevTools() {
-        const threshold = 160; // Customize threshold if needed
+        function detectDevTools() {
+            const threshold = 160; // Customize threshold if needed
 
-        // Check for various conditions that indicate DevTools is open
-        const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-        const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-        const orientationThreshold = window.orientation === undefined;
+            // Check for various conditions that indicate DevTools is open
+            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+            const orientationThreshold = window.orientation === undefined;
 
-        if (widthThreshold || heightThreshold || orientationThreshold) {
-            window.location.href = redirectUrl;
+            if (widthThreshold || heightThreshold || orientationThreshold) {
+                window.location.href = redirectUrl;
+            }
         }
-    }
 
-    // Run check periodically
-    // setInterval(detectDevTools, 1000);
+        // Run check periodically
+        // setInterval(detectDevTools, 1000);
 
-    // Additional check on key press (common way to open DevTools)
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'F12' || (event.ctrlKey && event.shiftKey && event.key === 'I')) {
-         return false;
-        }
-    });
+        // Additional check on key press (common way to open DevTools)
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'F12' || (event.ctrlKey && event.shiftKey && event.key === 'I')) {
+                return false;
+            }
+        });
 
-    // Prevent right-click context menu
-    document.addEventListener('contextmenu', function(event) {
-        event.preventDefault();
-        return false;
-    });
-})();
+        // Prevent right-click context menu
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+            return false;
+        });
+    })();
 </script>
-
-
 @endpush

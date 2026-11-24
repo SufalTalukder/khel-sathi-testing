@@ -6,16 +6,17 @@
         <div class="pagebody removebg-color">
             <div class="row">
                 <div class="col-12">
-                    <div class="pageheader" id="menu-margin">
-                        <div class="row">
-                            <div class="col-md-10">
-                                <h4 class="mb-0"> Private Sports Coaching/Academy Operation Form</h4>
-                            </div>
-                            <div class="col-md-2 d-grid">
-                                <a href="{{ route('private_coaching_dashboard') }}" class="btn btn-xs btn-outline-success">
-                                    <span class="icons icon-arrow-left"></span>Back to Dashboard
-                                </a>
-                            </div>
+                    <div class="pageheader d-flex justify-content-between align-items-center flex-wrap" id="menu-margin" style="padding: 14px 0; margin-bottom: 22px; border-bottom: 1px solid #e2e8f0;">
+                        <div>
+                            <h4 class="mb-1 text-dark fw-bold" style="font-size: 1.25rem;">
+                                <i class="fa fa-graduation-cap text-primary me-2"></i> Private Sports Coaching / Academy Operation Form
+                            </h4>
+                            <small class="text-muted">Fill out the operational details, trainer certificates, and facility compliance.</small>
+                        </div>
+                        <div class="mt-2 mt-md-0">
+                            <a href="{{ route('private_coaching_dashboard') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm" style="font-weight: 600;">
+                                <i class="fa fa-arrow-left me-1"></i> Back to Dashboard
+                            </a>
                         </div>
                     </div>
                 </div>
